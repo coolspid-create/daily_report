@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://today-public-report.local/contracts/source-config.schema.json",
+  "title": "SourceConfig",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "name", "adapter", "homepage_url", "list_url", "rights_default", "poll_interval_minutes", "request_delay_ms"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+    "name": {"type": "string", "minLength": 1},
+    "adapter": {"enum": ["static_board", "rendered_board", "rss"]},
+    "homepage_url": {"type": "string", "format": "uri", "pattern": "^https://"},
+    "list_url": {"type": "string", "format": "uri", "pattern": "^https://"},
+    "rights_default": {"enum": ["FILE_UPLOAD_ALLOWED", "LINK_ONLY", "MANUAL_REVIEW", "BLOCKED"]},
+    "poll_interval_minutes": {"type": "integer", "minimum": 60},
+    "request_delay_ms": {"type": "integer", "minimum": 500},
+    "timeout_seconds": {"type": "number", "minimum": 1, "maximum": 60},
+    "run_timeout_seconds": {"type": "integer", "minimum": 30, "maximum": 600},
+    "max_retries": {"type": "integer", "minimum": 0, "maximum": 5},
+    "active": {"type": "boolean"},
+    "implementation": {"type": "string", "pattern": "^report_collector\\.adapters\\.sources\\.[a-z0-9_]+\\.[a-z0-9_]+:[A-Za-z][A-Za-z0-9]+$"},
+    "selectors": {"$ref": "#/$defs/selectors"},
+    "detail": {"$ref": "#/$defs/detail"},
+    "filters": {"$ref": "#/$defs/filters"},
+    "browser": {"$ref": "#/$defs/browser"}
+  },
+  "$defs": {
+    "selectors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["list_item", "title", "detail_link"],
+      "properties": {
+        "list_item": {"type": "string"},
+        "title": {"type": "string"},
+        "detail_link": {"type": "string"},
+        "published_at": {"type": "string"},
+        "source_item_key_attr": {"type": "string"}
+      }
+    },
+    "detail": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "institution": {"type": "string"},
+        "published_at": {"type": "string"},
+        "attachments": {"type": "string"},
+        "summary": {"type": "string"},
+        "license": {"type": "string"}
+      }
+    },
+    "filters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "allowed_extensions": {"type": "array", "items": {"enum": ["pdf", "hwp", "hwpx", "doc", "docx"]}},
+        "include_title_keywords": {"type": "array", "items": {"type": "string"}},
+        "exclude_title_keywords": {"type": "array", "items": {"type": "string"}},
+        "max_age_days": {"type": "integer", "minimum": 1, "maximum": 30},
+        "max_items_per_run": {"type": "integer", "minimum": 1, "maximum": 50}
+      }
+    },
+    "browser": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "wait_for": {"type": "string"},
+        "timeout_ms": {"type": "integer", "minimum": 1000, "maximum": 60000}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"adapter": {"enum": ["static_board", "rendered_board"]}}},
+      "then": {"required": ["selectors"]}
+    }
+  ]
+}

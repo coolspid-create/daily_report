@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://today-public-report.local/contracts/public-feed.schema.json",
+  "title": "PublicFeedSnapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "generatedAt", "range", "topics", "reportsByTopic", "digests"],
+  "properties": {
+    "version": {"const": 1},
+    "generatedAt": {"type": "string", "format": "date-time"},
+    "range": {"enum": ["today", "1d", "7d"]},
+    "topics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "count"],
+        "properties": {
+          "id": {"type": "string"},
+          "label": {"type": "string"},
+          "count": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "reportsByTopic": {
+      "type": "object",
+      "additionalProperties": {"type": "array", "items": {"$ref": "#/$defs/report"}}
+    },
+    "digests": {
+      "type": "object",
+      "additionalProperties": {"$ref": "#/$defs/digest"}
+    }
+  },
+  "$defs": {
+    "digest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["available"],
+      "properties": {
+        "available": {"type": "boolean"},
+        "url": {"type": ["string", "null"], "format": "uri"}
+      }
+    },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "deliveryMode", "sourceUrl"],
+      "properties": {
+        "format": {"type": ["string", "null"]},
+        "sizeBytes": {"type": ["integer", "null"], "minimum": 0},
+        "pageCount": {"type": ["integer", "null"], "minimum": 1},
+        "deliveryMode": {"enum": ["DIRECT_OFFICIAL_FILE", "OFFICIAL_PAGE_ONLY", "MIRRORED_ALLOWED", "SUMMARY_ONLY", "BLOCKED"]},
+        "downloadUrl": {"type": ["string", "null"], "format": "uri"},
+        "sourceUrl": {"type": "string", "format": "uri"}
+      }
+    },
+    "report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "institution", "publishedAt", "contentTag", "isNew", "shortSummary", "keyTags", "file"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "title": {"type": "string", "minLength": 1},
+        "institution": {"type": "string", "minLength": 1},
+        "publishedAt": {"type": "string", "format": "date"},
+        "contentTag": {"type": "string"},
+        "isNew": {"type": "boolean"},
+        "analysisAvailable": {"type": "boolean"},
+        "shortSummary": {"type": ["string", "null"], "minLength": 1, "maxLength": 240},
+        "keyTags": {"type": "array", "minItems": 1, "maxItems": 3, "items": {"type": "string", "minLength": 1, "maxLength": 24}},
+        "file": {"$ref": "#/$defs/file"}
+      }
+    }
+  }
+}

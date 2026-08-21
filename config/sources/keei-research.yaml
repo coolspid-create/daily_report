@@ -1,0 +1,27 @@
+id: keei-research
+name: 에너지경제연구원
+adapter: rendered_board
+homepage_url: https://www.keei.re.kr
+list_url: https://www.keei.re.kr/board.es?mid=a10101010000&bid=0001
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+max_retries: 2
+active: true
+selectors:
+  list_item: li:has(> .desc a[href*="act=view"])
+  title: .desc .tit a
+  detail_link: .desc .tit a[href*="act=view"]
+  published_at: .info .date
+detail:
+  summary: .report_view .detail
+filters:
+  allowed_extensions: [pdf]
+  include_title_keywords: []
+  exclude_title_keywords: [채용, 입찰, 행사, 공고]
+  max_age_days: 7
+  max_items_per_run: 20
+browser:
+  wait_for: li .desc .tit a[href*="act=view"]
+  timeout_ms: 30000

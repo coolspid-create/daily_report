@@ -1,0 +1,23 @@
+id: nars
+name: 국회입법조사처
+adapter: static_board
+implementation: report_collector.adapters.sources.nars.adapter:NarsAdapter
+homepage_url: https://www.nars.go.kr
+list_url: https://www.nars.go.kr/report/list.do?cmsCode=CM0043
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 20
+max_retries: 2
+active: true
+selectors:
+  list_item: ul.brdl-tp1 > li
+  title: div.tt a
+  detail_link: div.tt a
+  published_at: div.zl span
+filters:
+  allowed_extensions: [pdf]
+  include_title_keywords: []
+  exclude_title_keywords: [채용, 입찰, 행사, 공고]
+  max_age_days: 7
+  max_items_per_run: 20

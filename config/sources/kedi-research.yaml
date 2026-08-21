@@ -1,0 +1,26 @@
+id: kedi-research
+name: 한국교육개발원
+adapter: rendered_board
+implementation: report_collector.adapters.sources.kedi.adapter:KediAdapter
+homepage_url: https://www.kedi.re.kr
+list_url: https://www.kedi.re.kr/khome/main/research/listPubForm.do?plNum0=7037
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+max_retries: 2
+active: true
+selectors:
+  list_item: tr
+  title: "a[onclick*='selectPubFormFn']"
+  detail_link: "a[onclick*='selectPubFormFn']"
+  published_at: td:nth-child(3)
+filters:
+  allowed_extensions: [pdf]
+  include_title_keywords: []
+  exclude_title_keywords: [채용, 입찰, 행사, 공고, 설명회]
+  max_age_days: 7
+  max_items_per_run: 20
+browser:
+  wait_for: "a[onclick*='selectPubFormFn']"
+  timeout_ms: 30000

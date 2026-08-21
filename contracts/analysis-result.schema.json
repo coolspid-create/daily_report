@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://today-public-report.local/contracts/analysis-result.schema.json",
+  "title": "AnalysisResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["why_it_matters", "summary_kind", "key_points", "key_tags", "topic_candidates", "content_tag", "confidence", "evidence_pages"],
+  "properties": {
+    "why_it_matters": {"type": "string", "minLength": 1, "maxLength": 240},
+    "summary_kind": {"enum": ["ANALYZED", "OFFICIAL_ABSTRACT", "UNAVAILABLE"]},
+    "key_points": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "items": {"type": "string", "minLength": 1, "maxLength": 180}
+    },
+    "key_tags": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "items": {"type": "string", "minLength": 1, "maxLength": 24}
+    },
+    "topic_candidates": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"enum": ["economy", "industry", "ai-tech", "labor-welfare", "education-population", "land-environment", "law-security"]}
+    },
+    "content_tag": {"type": "string", "minLength": 1, "maxLength": 40},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "evidence_pages": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "integer", "minimum": 1}
+    }
+  }
+}

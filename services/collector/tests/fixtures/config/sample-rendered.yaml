@@ -1,0 +1,25 @@
+id: sample-rendered
+name: 가상 렌더링 연구원
+adapter: rendered_board
+homepage_url: https://rendered.example
+list_url: https://rendered.example/reports
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 500
+selectors:
+  list_item: article.report
+  title: a.title
+  detail_link: a.title
+  published_at: time
+  source_item_key_attr: data-key
+detail:
+  institution: .publisher
+  published_at: time
+  attachments: a.file
+browser:
+  wait_for: article.report
+  timeout_ms: 5000
+filters:
+  allowed_extensions: [pdf]
+  include_title_keywords: []
+  exclude_title_keywords: []

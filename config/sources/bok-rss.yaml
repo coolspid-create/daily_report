@@ -1,0 +1,18 @@
+id: bok-rss
+name: 한국은행
+adapter: rss
+implementation: report_collector.adapters.sources.bok.adapter:BokRssAdapter
+homepage_url: https://www.bok.or.kr
+list_url: https://www.bok.or.kr/portal/bbs/P0002353/news.rss?menuNo=200433
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 20
+max_retries: 2
+active: true
+filters:
+  allowed_extensions: [pdf, hwp, docx]
+  include_title_keywords: []
+  exclude_title_keywords: [채용, 입찰, 행사, 공고]
+  max_age_days: 7
+  max_items_per_run: 20

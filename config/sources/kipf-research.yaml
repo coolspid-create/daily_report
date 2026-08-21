@@ -1,0 +1,26 @@
+id: kipf-research
+name: 한국조세재정연구원
+adapter: rendered_board
+implementation: report_collector.adapters.sources.kipf.adapter:KipfAdapter
+homepage_url: https://www.kipf.re.kr
+list_url: https://www.kipf.re.kr/kor/Publication/KipfReport/kiPublish/CA/list.do
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+max_retries: 2
+active: true
+selectors:
+  list_item: a.link
+  title: strong.tit
+  detail_link: a.link
+  published_at: li.last
+filters:
+  allowed_extensions: [pdf]
+  include_title_keywords: []
+  exclude_title_keywords: [채용, 입찰, 행사, 공고]
+  max_age_days: 7
+  max_items_per_run: 20
+browser:
+  wait_for: a.link[onclick*='fn_search_detail']
+  timeout_ms: 30000

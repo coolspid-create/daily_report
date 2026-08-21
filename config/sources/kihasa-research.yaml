@@ -1,0 +1,25 @@
+id: kihasa-research
+name: 한국보건사회연구원
+adapter: rendered_board
+homepage_url: https://www.kihasa.re.kr
+list_url: https://www.kihasa.re.kr/publish/report/list?type=research
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 90
+max_retries: 2
+active: false
+selectors:
+  list_item: .rpt-thumb-li
+  title: .title a[href*='/publish/report/view?type=research']
+  detail_link: .title a[href*='/publish/report/view?type=research']
+browser:
+  wait_for: .rpt-thumb-li .title a[href*='/publish/report/view?type=research']
+  timeout_ms: 30000
+filters:
+  allowed_extensions: [pdf]
+  include_title_keywords: []
+  exclude_title_keywords: [채용, 입찰, 행사, 공고]
+  max_age_days: 7
+  max_items_per_run: 20

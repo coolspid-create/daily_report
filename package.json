@@ -1,0 +1,27 @@
+{
+  "name": "today-public-report",
+  "private": true,
+  "packageManager": "pnpm@11.22.0",
+  "engines": {
+    "node": ">=20.9"
+  },
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "lint": "pnpm --filter web lint",
+    "typecheck": "pnpm --filter web typecheck",
+    "test": "pnpm --filter web test",
+    "test:e2e": "pnpm --filter web test:e2e",
+    "python:lint": "ruff check services scripts",
+    "python:typecheck": "mypy services/collector/src",
+    "python:test": "pytest",
+    "check:contracts": "python scripts/check-contracts.py",
+    "check:sources": "python scripts/check-source-configs.py",
+    "check:sizes": "python scripts/verify-file-sizes.py",
+    "check:migrations": "python scripts/check-migrations.py",
+    "check:automation": "python scripts/check-automation-workflow.py",
+    "check:collector-policy": "python scripts/check-collector-policy.py",
+    "check:product-boundaries": "python scripts/check-product-boundaries.py",
+    "verify": "pnpm check:contracts && pnpm check:sources && pnpm check:migrations && pnpm check:automation && pnpm check:collector-policy && pnpm check:product-boundaries && pnpm check:sizes && pnpm python:lint && pnpm python:typecheck && pnpm python:test && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  }
+}

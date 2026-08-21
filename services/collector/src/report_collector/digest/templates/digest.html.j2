@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><style>{{ css }}</style></head>
+<body>
+  <header>
+    <p class="eyebrow">TODAY'S PUBLIC REPORTS</p>
+    <h1>오늘의 {{ view.topic_label }} 리포트</h1>
+    <p>{{ view.date_label }} · 선정 {{ view.reports | length }}건</p>
+  </header>
+  <main>
+    {% for report in view.reports %}
+    <article>
+      <p class="tag">{{ report.contentTag }}</p>
+      <h2>{{ report.title }}</h2>
+      <p class="meta">{{ report.institution }} · {{ report.publishedAt }}</p>
+      {% if report.shortSummary %}<p>{{ report.shortSummary }}</p>{% endif %}
+      <ul>{% for tag in report.keyTags %}<li>{{ tag }}</li>{% endfor %}</ul>
+      <p class="links"><a href="{{ report.file.sourceUrl }}">공식 출처</a>{% if report.file.downloadUrl %} · <a href="{{ report.file.downloadUrl }}">공식 파일</a>{% endif %}</p>
+    </article>
+    {% endfor %}
+  </main>
+  <footer>원문 권리는 각 발행기관에 있습니다. 이 정리본은 공식 출처와 파일 링크를 안내합니다.</footer>
+</body>
+</html>

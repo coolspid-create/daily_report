@@ -1,0 +1,33 @@
+name: Collector
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "35 23 * * *"
+
+concurrency:
+  group: daily-public-report
+  cancel-in-progress: false
+
+jobs:
+  collect-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e ./services/collector
+      - run: python -m playwright install --with-deps chromium
+      - run: python -m report_collector daily-publish --timezone Asia/Seoul --window-hours 168
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          AUTO_APPROVAL_ENABLED: ${{ vars.AUTO_APPROVAL_ENABLED || 'false' }}
+          AUTO_APPROVAL_POLICY_VERSION: "2026-08-v1"
+          TELEGRAM_ENABLED: ${{ vars.TELEGRAM_ENABLED || 'false' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_DESTINATION_KEY: "daily-report-main"

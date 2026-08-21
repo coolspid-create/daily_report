@@ -1,0 +1,16 @@
+@page { size: A4; }
+* { box-sizing: border-box; }
+body { margin: 0; color: #17201d; font-family: "Malgun Gothic", Arial, sans-serif; font-size: 10.5pt; line-height: 1.65; }
+header { padding: 0 0 18px; border-bottom: 3px solid #176b4d; }
+.eyebrow { margin: 0 0 6px; color: #176b4d; font-size: 8pt; font-weight: 700; letter-spacing: 1.5px; }
+h1 { margin: 0; font-size: 25pt; letter-spacing: -1px; }
+header p:last-child { margin: 8px 0 0; color: #60706a; }
+article { break-inside: avoid; padding: 18px 0; border-bottom: 1px solid #dce5e1; }
+.tag { display: inline-block; margin: 0 0 7px; padding: 2px 7px; border-radius: 12px; color: #0f513b; background: #e8f4ee; font-size: 8pt; font-weight: 700; }
+h2 { margin: 0; font-size: 15pt; line-height: 1.35; }
+.meta { margin: 5px 0 14px; color: #60706a; font-size: 9pt; }
+h3 { margin: 0 0 3px; color: #0f513b; font-size: 9pt; }
+article p { margin: 0 0 8px; }
+ul { margin: 8px 0; padding-left: 18px; }
+.links a { color: #176b4d; font-weight: 700; }
+footer { margin-top: 22px; color: #60706a; font-size: 8pt; }

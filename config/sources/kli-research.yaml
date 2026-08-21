@@ -1,0 +1,22 @@
+id: kli-research
+name: 한국노동연구원
+adapter: static_board
+implementation: report_collector.adapters.sources.kli.adapter:KliAdapter
+homepage_url: https://www.kli.re.kr
+list_url: https://www.kli.re.kr/kli/prePrdclView.es?mid=a10102060000
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+max_retries: 2
+active: false
+selectors:
+  list_item: li
+  title: a
+  detail_link: a
+filters:
+  allowed_extensions: [pdf]
+  include_title_keywords: []
+  exclude_title_keywords: [채용, 입찰, 행사, 공고]
+  max_age_days: 7
+  max_items_per_run: 20

@@ -1,0 +1,30 @@
+id: kdi-research
+name: 한국개발연구원
+adapter: rendered_board
+implementation: report_collector.adapters.sources.kdi.adapter:KdiRenderedAdapter
+homepage_url: https://www.kdi.re.kr
+list_url: https://www.kdi.re.kr/research/reportList
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+max_retries: 2
+active: false
+selectors:
+  list_item: div.page_list-group > ul > li
+  title: div.rpt_tit strong
+  detail_link: a[href*='reportView?pub_no=']
+detail:
+  institution: div.view_fixed-info
+  published_at: div.view_fixed-info
+  attachments: button.i02
+  license: div.view_content-license
+browser:
+  wait_for: div.page_list-group > ul > li
+  timeout_ms: 30000
+filters:
+  allowed_extensions: [pdf]
+  include_title_keywords: []
+  exclude_title_keywords: [채용, 입찰, 행사, 공고]
+  max_age_days: 7
+  max_items_per_run: 20

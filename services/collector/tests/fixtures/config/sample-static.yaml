@@ -1,0 +1,24 @@
+id: sample-static
+name: 가상 정적 연구원
+adapter: static_board
+homepage_url: https://fixtures.example
+list_url: https://fixtures.example/reports
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 500
+selectors:
+  list_item: ul.reports > li
+  title: a.title
+  detail_link: a.title
+  published_at: time
+  source_item_key_attr: data-id
+detail:
+  institution: .institution
+  published_at: time
+  attachments: a.attachment
+  summary: .summary
+  license: .license
+filters:
+  allowed_extensions: [pdf]
+  include_title_keywords: []
+  exclude_title_keywords: [채용]

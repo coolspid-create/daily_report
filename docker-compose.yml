@@ -1,0 +1,11 @@
+services:
+  collector:
+    build:
+      context: .
+      dockerfile: services/collector/Dockerfile
+    env_file: .env
+    volumes:
+      - ./.data:/app/.data
+      - ./config:/app/config:ro
+      - ./contracts:/app/contracts:ro
+    command: ["python", "-m", "report_collector", "--help"]

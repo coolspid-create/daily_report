@@ -1,0 +1,27 @@
+id: kei-research
+name: 한국환경연구원
+adapter: rendered_board
+homepage_url: https://www.kei.re.kr
+list_url: https://www.kei.re.kr
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+max_retries: 2
+active: true
+selectors:
+  list_item: ul.pub_slider li.item.report
+  title: p.all_txt
+  detail_link: a[href*="elibList.es"]
+  published_at: span.date
+detail:
+  summary: '#view2'
+filters:
+  allowed_extensions: [pdf]
+  include_title_keywords: []
+  exclude_title_keywords: [채용, 입찰, 행사, 공고]
+  max_age_days: 7
+  max_items_per_run: 20
+browser:
+  wait_for: ul.pub_slider li.item.report
+  timeout_ms: 30000

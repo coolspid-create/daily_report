@@ -1,0 +1,24 @@
+id: inss-issue-brief
+name: 국가안보전략연구원
+adapter: static_board
+implementation: report_collector.adapters.sources.inss.adapter:InssAdapter
+homepage_url: https://www.inss.re.kr
+list_url: https://www.inss.re.kr/publication/bbs/ib_list.do
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 180
+max_retries: 2
+active: true
+selectors:
+  list_item: ul.listType01 > li
+  title: .txtBox a[onclick*="setView"]
+  detail_link: .txtBox a[onclick*="setView"]
+  published_at: .txtBox ul li:first-child
+filters:
+  allowed_extensions: [pdf]
+  include_title_keywords: []
+  exclude_title_keywords: [채용, 입찰, 행사, 공고]
+  max_age_days: 7
+  max_items_per_run: 20

@@ -1,0 +1,45 @@
+from report_collector.services.telegram_briefing import build_telegram_briefing
+
+
+def test_briefing_uses_snapshot_links_and_digest() -> None:
+    snapshot = {
+        "reportsByTopic": {
+            "all": [
+                {
+                    "title": "AI & 공공정책",
+                    "publishedAt": "2026-08-22",
+                    "institution": "연구원",
+                    "shortSummary": "핵심 <요약>",
+                    "keyTags": ["AI", "정책"],
+                    "file": {
+                        "downloadUrl": "https://example.org/report.pdf",
+                        "sourceUrl": "https://example.org/report",
+                    },
+                }
+            ]
+        },
+        "digests": {"all": {"available": True, "url": "https://example.org/digest.pdf"}},
+    }
+    result = build_telegram_briefing(snapshot, "2026-08-21", "https://reports.example")
+    assert "AI &amp; 공공정책" in result.messages[0]
+    assert "(2026.08.22)" in result.messages[0]
+    assert "핵심 &lt;요약&gt;" not in result.messages[0]
+    assert "report.pdf" in result.messages[0]
+    assert result.digest_url == "https://example.org/digest.pdf"
+
+
+def test_briefing_omits_missing_or_invalid_report_date() -> None:
+    snapshot = {"reportsByTopic": {"all": [{"title": "날짜 없음", "file": {}}]}, "digests": {}}
+    result = build_telegram_briefing(snapshot, "2026-08-21")
+    assert "날짜 없음(" not in result.messages[0]
+
+
+def test_briefing_splits_long_messages() -> None:
+    report = {
+        "title": "긴 보고서" * 500,
+        "institution": "연구원",
+        "keyTags": [],
+        "file": {"sourceUrl": "https://example.org"},
+    }
+    snapshot = {"reportsByTopic": {"all": [report, report]}, "digests": {}}
+    assert len(build_telegram_briefing(snapshot, "2026-08-21").messages) == 2
