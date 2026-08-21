@@ -2,8 +2,6 @@ name: Collector
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "35 23 * * *"
 
 concurrency:
   group: daily-public-report

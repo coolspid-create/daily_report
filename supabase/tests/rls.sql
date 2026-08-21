@@ -1,5 +1,7 @@
 begin;
 
+select plan(1);
+
 do $$
 declare
   enabled_count integer;
@@ -64,5 +66,8 @@ begin
     raise exception 'admin claim was not recognized';
   end if;
 end $$;
+
+select ok(true, 'RLS policies and administrator access assertions passed');
+select * from finish();
 
 rollback;

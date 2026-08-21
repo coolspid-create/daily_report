@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import yaml
@@ -9,17 +10,18 @@ def main() -> None:
     path = ROOT / ".github/workflows/collector.yml"
     text = path.read_text(encoding="utf-8")
     workflow = yaml.safe_load(text)
-    schedules = workflow.get(True, {}).get("schedule", [])
-    crons = {item.get("cron") for item in schedules}
+    triggers = workflow.get(True, {})
+    vercel_config = json.loads((ROOT / "apps/web/vercel.json").read_text(encoding="utf-8"))
+    crons = vercel_config.get("crons", [])
     required = [
         "daily-publish --timezone Asia/Seoul --window-hours 168",
         "concurrency:",
-        'cron: "35 23 * * *"',
     ]
     missing = [item for item in required if item not in text]
-    if missing or crons != {"35 23 * * *"}:
+    expected_crons = [{"path": "/api/cron/daily-publish", "schedule": "35 23 * * *"}]
+    if missing or "workflow_dispatch" not in triggers or crons != expected_crons:
         raise SystemExit(f"automation workflow contract failed: {missing or crons}")
-    print("automation workflow passed: 08:35 KST and one seven-day orchestrator command")
+    print("automation workflow passed: Vercel Cron dispatches one seven-day orchestrator command at 08:35 KST")
 
 
 if __name__ == "__main__":
