@@ -25,6 +25,9 @@ from report_collector.repositories.supabase.postgres_telegram_delivery import (
     load_pending_telegram_deliveries,
 )
 
+DAILY_SCHEDULE_HOUR = 8
+DAILY_SCHEDULE_MINUTE = 35
+
 
 def daily_publish_command(
     root: Path, timezone: str, window_hours: int, output_dir: Path, dry_run: bool
@@ -32,7 +35,7 @@ def daily_publish_command(
     database_url = _required("DATABASE_URL")
     now = datetime.now(ZoneInfo(timezone))
     window_start = now - timedelta(hours=window_hours)
-    scheduled_for = now.replace(hour=8, minute=35, second=0, microsecond=0)
+    scheduled_for = _scheduled_slot(now)
     try:
         run = start_automation_run(database_url, scheduled_for, window_start, now)
     except AutomationAlreadyCompleted:
@@ -146,6 +149,16 @@ def _retry_pending_deliveries(database_url: str) -> None:
 
 def _enabled(name: str) -> bool:
     return os.getenv(name, "false").lower() in {"1", "true", "yes", "on"}
+
+
+def _scheduled_slot(now: datetime) -> datetime:
+    slot = now.replace(
+        hour=DAILY_SCHEDULE_HOUR,
+        minute=DAILY_SCHEDULE_MINUTE,
+        second=0,
+        microsecond=0,
+    )
+    return slot if now >= slot else slot - timedelta(days=1)
 
 
 def _required(name: str) -> str:

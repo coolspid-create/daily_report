@@ -78,4 +78,6 @@ supabase test db
 
 `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, AI 키와 Telegram 값은 브라우저에 노출하면 안 됩니다. `GITHUB_ACTIONS_DISPATCH_TOKEN`은 Vercel 서버에서만 사용하며 Actions workflow 실행 권한만 부여합니다. 기본 분석 provider는 외부 호출이 없는 `mock`입니다. 자동 승인은 기본값이 꺼져 있으며 `--dry-run`으로 정책 결과를 먼저 확인합니다.
 
+GitHub Actions에서는 민감한 값(`DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`)을 repository secret으로, `AUTO_APPROVAL_ENABLED`, `TELEGRAM_ENABLED`, `PUBLIC_WEB_URL`을 repository variable로 설정합니다.
+
 운영 세부사항은 `docs/source-adapter-guide.md`, `docs/rights-policy.md`, `docs/operations.md`, `docs/deployment.md`를 참고합니다.

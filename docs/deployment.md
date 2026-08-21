@@ -18,7 +18,7 @@ Vercel Project Root Directory를 `apps/web`으로 지정합니다. `next.config.
 
 Collector는 Vercel 함수에 직접 넣지 않습니다. Vercel Cron이 GitHub Actions의 `collector.yml`을 dispatch하고, Actions 러너가 `python -m report_collector daily-publish --timezone Asia/Seoul --window-hours 168`를 실행합니다. Playwright Chromium과 한글 폰트는 Actions 런타임에서 설치합니다. 중복 실행을 막기 위해 `collector.yml`에는 자체 schedule을 두지 않습니다.
 
-`AUTO_APPROVAL_ENABLED`와 `TELEGRAM_ENABLED`는 처음에는 `false`로 배포합니다. Telegram Bot token과 대상 chat ID는 GitHub Actions secret 또는 Collector 런타임에만 저장하며 Vercel의 `NEXT_PUBLIC_*`에 넣지 않습니다. 3일 dry-run 후 자동 승인, 비공개 시험 채팅, 실제 채널 순서로 단계적으로 켭니다.
+`AUTO_APPROVAL_ENABLED`, `TELEGRAM_ENABLED`, `PUBLIC_WEB_URL`은 GitHub Actions repository variable로 설정합니다. Telegram Bot token과 대상 chat ID는 GitHub Actions secret 또는 Collector 런타임에만 저장하며 Vercel의 `NEXT_PUBLIC_*`에 넣지 않습니다. 수동 실행이 정시보다 이른 경우에는 직전 08:35 KST 실행 슬롯으로 기록되어 당일 정시 실행을 막지 않습니다. 3일 dry-run 후 자동 승인, 비공개 시험 채팅, 실제 채널 순서로 단계적으로 켭니다.
 
 ## 배포 순서와 관찰
 
