@@ -1,0 +1,23 @@
+id: kb-research
+name: KB경영연구소
+adapter: static_board
+implementation: report_collector.adapters.sources.kb.adapter:KbResearchAdapter
+homepage_url: https://www.kbfg.com/kbresearch/report/reportList.do
+list_url: https://www.kbfg.com/kbresearch/report/reportList.do
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 180
+max_retries: 2
+active: true
+selectors:
+  list_item: .listWrap li
+  title: h3
+  detail_link: a[href*="reportView.do?reportId="]
+  published_at: dd
+filters:
+  allowed_extensions: [pdf]
+  exclude_title_keywords: [채용, 입찰, 행사, 공고]
+  max_age_days: 7
+  max_items_per_run: 20

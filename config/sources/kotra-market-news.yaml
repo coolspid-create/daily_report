@@ -1,0 +1,22 @@
+id: kotra-market-news
+name: KOTRA 해외시장뉴스
+adapter: static_board
+implementation: report_collector.adapters.sources.kotra.adapter:KotraMarketNewsAdapter
+homepage_url: https://dream.kotra.or.kr/kotranews/index.do
+list_url: https://dream.kotra.or.kr/kotranews/index.do
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 180
+max_retries: 2
+active: true
+selectors:
+  list_item: .mNewsList .list
+  title: strong.tit
+  detail_link: a[href*="actionKotraBoardDetail.do"]
+filters:
+  allowed_extensions: [pdf]
+  exclude_title_keywords: [채용, 입찰, 행사, 공고]
+  max_age_days: 7
+  max_items_per_run: 20

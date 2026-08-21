@@ -3,12 +3,19 @@ from pathlib import Path
 import pytest
 from report_collector.adapters.generic.static_board import StaticBoardAdapter
 from report_collector.adapters.sources.bok.adapter import BokRssAdapter
+from report_collector.adapters.sources.fsc.adapter import FinancialServicesCommissionAdapter
+from report_collector.adapters.sources.hana.adapter import HanaResearchAdapter
 from report_collector.adapters.sources.inss.adapter import InssAdapter
+from report_collector.adapters.sources.kb.adapter import KbResearchAdapter
 from report_collector.adapters.sources.kdi.adapter import KdiRenderedAdapter
 from report_collector.adapters.sources.kedi.adapter import KediAdapter
+from report_collector.adapters.sources.keis.adapter import KeisResearchAdapter
 from report_collector.adapters.sources.kipf.adapter import KipfAdapter
 from report_collector.adapters.sources.kli.adapter import KliAdapter
+from report_collector.adapters.sources.kmi.adapter import KmiResearchAdapter
+from report_collector.adapters.sources.kotra.adapter import KotraMarketNewsAdapter
 from report_collector.adapters.sources.krihs.adapter import KrihsAdapter
+from report_collector.adapters.sources.mof.adapter import MinistryOfOceansAdapter
 from report_collector.adapters.sources.nars.adapter import NarsAdapter
 from report_collector.adapters.sources.stepi.adapter import StepiAdapter
 from report_collector.config.source_config import load_source_config
@@ -201,3 +208,102 @@ async def test_inss_fixture_reads_public_abstract_and_direct_file(fixture_root: 
     assert detail.published_at.isoformat() == "2026-08-20"
     assert "/common/download.do?" in str(detail.attachments[0].url)
     assert "한국 외교" in (detail.official_summary or "")
+
+
+@pytest.mark.asyncio
+async def test_kotra_fixture_reads_public_detail_and_official_file(fixture_root: Path) -> None:
+    config = load_source_config(Path("config/sources/kotra-market-news.yaml"))
+    detail_url = "https://dream.kotra.or.kr/kotranews/cms/news/actionKotraBoardDetail.do?SITE_NO=3&MENU_ID=180&pNttSn=243526"
+    pages = {
+        str(config.list_url): (fixture_root / "html/kotra-list.html").read_text(encoding="utf-8"),
+        detail_url: (fixture_root / "html/kotra-detail.html").read_text(encoding="utf-8"),
+    }
+    adapter = KotraMarketNewsAdapter(config, FixtureHttp(pages))  # type: ignore[arg-type]
+    detail = await adapter.fetch_detail(await first(adapter))
+    assert detail.published_at.isoformat() == "2026-08-20"
+    assert "fileDown.do" in str(detail.attachments[0].url)
+
+
+@pytest.mark.asyncio
+async def test_keis_fixture_uses_public_detail_parameters(fixture_root: Path) -> None:
+    config = load_source_config(Path("config/sources/keis-research.yaml"))
+    detail_url = "https://www.keis.or.kr/keis/ko/proj/113/pblc/detail.do?categoryIdx=131&pubIdx=11352"
+    pages = {
+        str(config.list_url): (fixture_root / "html/keis-list.html").read_text(encoding="utf-8"),
+        detail_url: (fixture_root / "html/keis-detail.html").read_text(encoding="utf-8"),
+    }
+    adapter = KeisResearchAdapter(config, FixtureHttp(pages))  # type: ignore[arg-type]
+    detail = await adapter.fetch_detail(await first(adapter))
+    assert detail.published_at.isoformat() == "2026-08-14"
+    assert "/cmmn/download.do?" in str(detail.attachments[0].url)
+
+
+@pytest.mark.asyncio
+async def test_fsc_fixture_reads_policy_page_and_file(fixture_root: Path) -> None:
+    config = load_source_config(Path("config/sources/fsc-policy.yaml"))
+    detail_url = "https://www.fsc.go.kr/no010101/87572?curPage=1"
+    pages = {
+        str(config.list_url): (fixture_root / "html/fsc-list.html").read_text(encoding="utf-8"),
+        detail_url: (fixture_root / "html/fsc-detail.html").read_text(encoding="utf-8"),
+    }
+    adapter = FinancialServicesCommissionAdapter(config, FixtureHttp(pages))  # type: ignore[arg-type]
+    detail = await adapter.fetch_detail(await first(adapter))
+    assert detail.published_at.isoformat() == "2026-08-20"
+    assert "/comm/getFile?" in str(detail.attachments[0].url)
+
+
+@pytest.mark.asyncio
+async def test_kb_fixture_maps_public_download_function(fixture_root: Path) -> None:
+    config = load_source_config(Path("config/sources/kb-research.yaml"))
+    detail_url = "https://www.kbfg.com/kbresearch/report/reportView.do?reportId=2001342"
+    pages = {
+        str(config.list_url): (fixture_root / "html/kb-list.html").read_text(encoding="utf-8"),
+        detail_url: (fixture_root / "html/kb-detail.html").read_text(encoding="utf-8"),
+    }
+    adapter = KbResearchAdapter(config, FixtureHttp(pages))  # type: ignore[arg-type]
+    detail = await adapter.fetch_detail(await first(adapter))
+    assert detail.published_at.isoformat() == "2026-08-18"
+    assert "FileDown.do?atchFileId=FILE_000000002001564" in str(detail.attachments[0].url)
+
+
+@pytest.mark.asyncio
+async def test_kmi_fixture_reads_public_html_and_official_viewer(fixture_root: Path) -> None:
+    config = load_source_config(Path("config/sources/kmi-research.yaml"))
+    detail_url = "https://www.kmi.re.kr/web/board/view.do?rbsIdx=384&idx=1335"
+    pages = {
+        str(config.list_url): (fixture_root / "html/kmi-list.html").read_text(encoding="utf-8"),
+        detail_url: (fixture_root / "html/kmi-detail.html").read_text(encoding="utf-8"),
+    }
+    adapter = KmiResearchAdapter(config, FixtureHttp(pages))  # type: ignore[arg-type]
+    detail = await adapter.fetch_detail(await first(adapter))
+    assert detail.published_at.isoformat() == "2026-08-08"
+    assert "viewer.do" in str(detail.attachments[0].url)
+
+
+@pytest.mark.asyncio
+async def test_hana_fixture_maps_public_download(fixture_root: Path) -> None:
+    config = load_source_config(Path("config/sources/hana-research.yaml"))
+    detail_url = "https://www.hanaif.re.kr/boardDetail.do?hmpeSeqNo=37026"
+    pages = {
+        str(config.list_url): (fixture_root / "html/hana-list.html").read_text(encoding="utf-8"),
+        detail_url: (fixture_root / "html/hana-detail.html").read_text(encoding="utf-8"),
+    }
+    detail = await HanaResearchAdapter(config, FixtureHttp(pages)).fetch_detail(
+        await first(HanaResearchAdapter(config, FixtureHttp(pages)))
+    )  # type: ignore[arg-type]
+    assert detail.published_at.isoformat() == "2026-08-21"
+    assert "hanaifFileDownload.jsp?seq=103308" in str(detail.attachments[0].url)
+
+
+@pytest.mark.asyncio
+async def test_mof_fixture_maps_public_detail_and_pdf(fixture_root: Path) -> None:
+    config = load_source_config(Path("config/sources/mof-press.yaml"))
+    detail_url = "https://www.mof.go.kr/doc/ko/selectDoc.do?docSeq=68110&menuSeq=971&bbsSeq=10"
+    pages = {
+        str(config.list_url): (fixture_root / "html/mof-list.html").read_text(encoding="utf-8"),
+        detail_url: (fixture_root / "html/mof-detail.html").read_text(encoding="utf-8"),
+    }
+    adapter = MinistryOfOceansAdapter(config, FixtureHttp(pages))  # type: ignore[arg-type]
+    detail = await adapter.fetch_detail(await first(adapter))
+    assert detail.published_at.isoformat() == "2026-08-20"
+    assert "readDownloadFile.do" in str(detail.attachments[0].url)

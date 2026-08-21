@@ -1,0 +1,15 @@
+id: mof-press
+name: 해양수산부 보도자료
+adapter: static_board
+implementation: report_collector.adapters.sources.mof.adapter:MinistryOfOceansAdapter
+homepage_url: https://www.mof.go.kr/index.do?menuSeq=971
+list_url: https://www.mof.go.kr/doc/ko/selectDocList.do?menuSeq=971&bbsSeq=10
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 180
+max_retries: 2
+active: true
+selectors: {list_item: tbody tr, title: td.tit a, detail_link: td.tit a}
+filters: {allowed_extensions: [pdf, hwpx], exclude_title_keywords: [채용, 입찰, 행사, 공고], max_age_days: 7, max_items_per_run: 20}

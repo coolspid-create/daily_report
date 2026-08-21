@@ -1,0 +1,23 @@
+id: fsc-policy
+name: 금융위원회
+adapter: static_board
+implementation: report_collector.adapters.sources.fsc.adapter:FinancialServicesCommissionAdapter
+homepage_url: https://www.fsc.go.kr
+list_url: https://www.fsc.go.kr/no000000
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 180
+max_retries: 2
+active: true
+selectors:
+  list_item: .board-list-wrap > ul > li
+  title: .subject a[href*="/no"]
+  detail_link: .subject a[href*="/no"]
+  published_at: .day
+filters:
+  allowed_extensions: [pdf]
+  exclude_title_keywords: [채용, 입찰, 행사, 공고]
+  max_age_days: 7
+  max_items_per_run: 20

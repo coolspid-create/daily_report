@@ -1,0 +1,15 @@
+id: hana-focus
+name: 하나금융연구소 하나금융포커스
+adapter: static_board
+implementation: report_collector.adapters.sources.hana.adapter:HanaResearchAdapter
+homepage_url: https://www.hanaif.re.kr/main.do
+list_url: https://www.hanaif.re.kr/boardList.do?menuId=MN2100&tabMenuId=MN2102
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 180
+max_retries: 2
+active: true
+selectors: {list_item: .boardList li, title: a, detail_link: a}
+filters: {allowed_extensions: [pdf], exclude_title_keywords: [채용, 입찰, 행사, 공고], max_age_days: 7, max_items_per_run: 20}

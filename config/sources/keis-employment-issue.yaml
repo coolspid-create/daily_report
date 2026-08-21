@@ -1,0 +1,15 @@
+id: keis-employment-issue
+name: 한국고용정보원 고용이슈
+adapter: static_board
+implementation: report_collector.adapters.sources.keis.adapter:KeisResearchAdapter
+homepage_url: https://www.keis.or.kr/keis/ko/index.do
+list_url: https://www.keis.or.kr/keis/ko/proj/117/pblc/list.do?categoryIdx=130
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 180
+max_retries: 2
+active: true
+selectors: {list_item: tr.flex-md-order, title: .cell-subject a, detail_link: .cell-subject a}
+filters: {allowed_extensions: [pdf], exclude_title_keywords: [채용, 입찰, 행사, 공고], max_age_days: 7, max_items_per_run: 20}
