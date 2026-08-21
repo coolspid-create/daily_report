@@ -1,0 +1,27 @@
+id: kmi-research
+name: 한국해양수산개발원
+adapter: static_board
+implementation: report_collector.adapters.sources.kmi.adapter:KmiResearchAdapter
+homepage_url: https://www.kmi.re.kr
+list_url: https://www.kmi.re.kr/web/board/list.do?rbsIdx=384
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 180
+max_retries: 2
+active: true
+selectors:
+  list_item: tbody.alignC tr
+  title: td.tlt a
+  detail_link: td.tlt a
+  published_at: td:nth-of-type(3)
+detail:
+  published_at: table.bbsViewA.wviewT
+  attachments: a[href*="viewer.do"]
+  summary: table.bbsViewA.wviewT
+filters:
+  allowed_extensions: [pdf]
+  exclude_title_keywords: [채용, 입찰, 행사, 공고]
+  max_age_days: 7
+  max_items_per_run: 20
