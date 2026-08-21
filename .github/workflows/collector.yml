@@ -29,3 +29,4 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_DESTINATION_KEY: "daily-report-main"
+          PUBLIC_WEB_URL: ${{ vars.PUBLIC_WEB_URL }}
