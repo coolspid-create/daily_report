@@ -23,7 +23,8 @@ export function ReviewWorkbench({ items, sources, automation, publications, stor
   const [view, setView] = useState<"review" | "published" | "stored" | "sources">("review");
   const [activeId, setActiveId] = useState(items[0]?.id ?? null);
   const [message, setMessage] = useState<string | null>(null);
-  const active = items.find((item) => item.id === activeId) ?? null;
+  const selectedId = items.some((item) => item.id === activeId) ? activeId : (items[0]?.id ?? null);
+  const active = items.find((item) => item.id === selectedId) ?? null;
   const recentIds = items
     .filter((item) => item.workflowStatus === "NEEDS_REVIEW")
     .slice(0, 20)
@@ -60,7 +61,7 @@ export function ReviewWorkbench({ items, sources, automation, publications, stor
       {view === "review" && (
         <section className="admin-section">
           <div className="admin-section-heading"><div><h2>검수 대기</h2><p>자동 발행에서 제외된 자료입니다. 내용을 확인한 뒤 승인하거나 제외해 주세요.</p></div><button type="button" disabled={recentIds.length === 0} onClick={approveLatest}>최근 7일 {recentIds.length}건 일괄 승인</button></div>
-          <div className="workbench"><ReviewList items={items} activeId={activeId} onSelect={setActiveId} />{active ? <ReviewEditor key={active.id} item={active} onChanged={() => router.refresh()} /> : <p className="admin-empty">검수할 문서가 없습니다.</p>}</div>
+          <div className="workbench"><ReviewList items={items} activeId={selectedId} onSelect={setActiveId} />{active ? <ReviewEditor key={active.id} item={active} onChanged={() => router.refresh()} /> : <p className="admin-empty">검수할 문서가 없습니다.</p>}</div>
         </section>
       )}
       {view === "published" && <section className="admin-section"><div className="admin-section-heading"><div><h2>발행 이력</h2><p>날짜별 공개 피드를 확인할 수 있습니다.</p></div></div><PublicationHistoryList publications={publications} /></section>}
