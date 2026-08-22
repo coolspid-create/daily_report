@@ -1,0 +1,107 @@
+import re
+from collections.abc import AsyncIterator
+from datetime import UTC, date, datetime
+from urllib.parse import parse_qs, urljoin, urlparse
+
+from bs4 import BeautifulSoup, Tag
+from pydantic import HttpUrl
+from report_collector.adapters.base import SourceAdapter
+from report_collector.domain.errors import SourceParseError
+from report_collector.domain.models import (
+    DiscoveredItem,
+    SourceConfig,
+    SourceDocument,
+    SourceHealthResult,
+)
+from report_collector.providers.browser.base import BrowserRenderer
+from report_collector.providers.http.http_client import PublicHttpClient
+from report_collector.services.source_filter_service import title_allowed
+
+DATE_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}")
+
+
+class KifRenderedAdapter(SourceAdapter):
+    """공개 페이지를 정상 브라우저 렌더링한 결과만 파싱한다."""
+
+    def __init__(
+        self, config: SourceConfig, _: PublicHttpClient, browser: BrowserRenderer | None
+    ) -> None:
+        if browser is None:
+            raise ValueError("KIF adapter requires a browser renderer")
+        self.config = config
+        self.browser = browser
+
+    async def _render(self, url: str, wait_for: str | None) -> str:
+        return await self.browser.render(url, wait_for, self.config.browser.timeout_ms)
+
+    def _parse_list(self, html: str) -> list[DiscoveredItem]:
+        soup = BeautifulSoup(html, "html.parser")
+        results: list[DiscoveredItem] = []
+        for node in soup.select("#ContentsList .info, #maincontent .info"):
+            link = node.select_one("a.title[href*='pub_detail']")
+            if not link:
+                continue
+            title = link.get_text(" ", strip=True)
+            key = parse_qs(urlparse(str(link["href"])).query).get("cno", [""])[0]
+            if not key or not title_allowed(title, self.config.filters):
+                continue
+            results.append(
+                DiscoveredItem(
+                    source_item_key=key,
+                    title=title,
+                    detail_url=HttpUrl(urljoin(str(self.config.list_url), str(link["href"]))),
+                    published_at=_date(node.get_text(" ", strip=True)),
+                )
+            )
+        if not results:
+            raise SourceParseError("KIF publication list structure changed")
+        return results
+
+    async def discover(self, cursor: str | None) -> AsyncIterator[DiscoveredItem]:
+        html = await self._render(str(self.config.list_url), self.config.browser.wait_for)
+        for item in self._parse_list(html):
+            if item.source_item_key == cursor:
+                break
+            yield item
+
+    async def fetch_detail(self, item: DiscoveredItem) -> SourceDocument:
+        html = await self._render(str(item.detail_url), ".info_detail")
+        soup = BeautifulSoup(html, "html.parser")
+        detail = soup.select_one(f"#detail_{item.source_item_key}.info_detail")
+        if detail is None:
+            detail = soup.select_one(f"#info_{item.source_item_key} .info_detail")
+        summary = detail.select_one(".tab_content.current") if detail else None
+        return SourceDocument(
+            source_item_key=item.source_item_key,
+            title=item.title,
+            institution=self.config.name,
+            detail_url=item.detail_url,
+            published_at=_date(soup.get_text(" ", strip=True)) or item.published_at,
+            attachments=[],
+            official_summary=_text(summary),
+            rights_status=self.config.rights_default,
+        )
+
+    async def health_check(self) -> SourceHealthResult:
+        try:
+            html = await self._render(str(self.config.list_url), self.config.browser.wait_for)
+            count = len(self._parse_list(html))
+            return SourceHealthResult(
+                healthy=True, checked_at=datetime.now(UTC), message=f"{count} items parsed"
+            )
+        except Exception as error:
+            return SourceHealthResult(
+                healthy=False, checked_at=datetime.now(UTC), message=str(error)
+            )
+
+
+def _date(value: str) -> date | None:
+    match = DATE_PATTERN.search(value)
+    return date.fromisoformat(match.group()) if match else None
+
+
+def _text(node: Tag | None) -> str | None:
+    if node is None:
+        return None
+    text = re.sub(r"\s+", " ", node.get_text(" ", strip=True)).strip()
+    return text[:3000] or None

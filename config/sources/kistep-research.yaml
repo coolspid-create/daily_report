@@ -1,0 +1,22 @@
+id: kistep-research
+name: 한국과학기술기획평가원 연구보고서
+adapter: static_board
+implementation: report_collector.adapters.sources.kistep.adapter:KistepAdapter
+homepage_url: https://www.kistep.re.kr
+list_url: https://www.kistep.re.kr/reportAllList.es?mid=a10305010000
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 180
+max_retries: 2
+selectors:
+  list_item: ul.report_list > li
+  title: strong.title a
+  detail_link: strong.title a
+  published_at: .date
+filters:
+  allowed_extensions: [pdf]
+  exclude_title_keywords: [채용, 입찰, 행사, 공고, 보도자료]
+  max_age_days: 7
+  max_items_per_run: 20

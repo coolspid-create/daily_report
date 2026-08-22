@@ -1,0 +1,1 @@
+"""KISDI public report adapters."""

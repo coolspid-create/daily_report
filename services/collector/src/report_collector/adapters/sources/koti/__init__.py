@@ -1,0 +1,1 @@
+"""KOTI public publication adapters."""

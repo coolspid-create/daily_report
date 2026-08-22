@@ -1,0 +1,22 @@
+id: koti-brief
+name: 한국교통연구원 KOTI 브리프
+adapter: static_board
+implementation: report_collector.adapters.sources.koti.adapter:KotiAdapter
+homepage_url: https://www.koti.re.kr
+list_url: https://www.koti.re.kr/user/bbs/briefList.do
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 180
+max_retries: 2
+selectors:
+  list_item: .list_thumb .item
+  title: .title
+  detail_link: "a[href*='View.do?bbs_no=']"
+  published_at: .date
+filters:
+  allowed_extensions: [pdf]
+  exclude_title_keywords: [채용, 입찰, 행사, 공고, 보도자료]
+  max_age_days: 7
+  max_items_per_run: 20

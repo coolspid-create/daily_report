@@ -10,6 +10,6 @@ request_delay_ms: 1500
 timeout_seconds: 30
 run_timeout_seconds: 180
 max_retries: 2
-active: true
+active: false
 selectors: {list_item: tbody tr, title: td.tit a, detail_link: td.tit a}
 filters: {allowed_extensions: [pdf, hwpx], exclude_title_keywords: [채용, 입찰, 행사, 공고], max_age_days: 7, max_items_per_run: 20}

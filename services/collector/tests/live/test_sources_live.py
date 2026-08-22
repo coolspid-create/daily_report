@@ -20,6 +20,16 @@ SOURCE_IDS = (
     "kinu-research",
     "kipf-research",
     "inss-issue-brief",
+    "kistep-research",
+    "kistep-brief",
+    "kisdi-policy",
+    "kisdi-stat",
+    "nabo-analysis",
+    "nabo-brief",
+    "koti-research",
+    "koti-brief",
+    "kif-financial-brief",
+    "kif-research",
 )
 ROOT = Path(__file__).resolve().parents[4]
 

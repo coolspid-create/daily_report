@@ -10,7 +10,7 @@ request_delay_ms: 1500
 timeout_seconds: 30
 run_timeout_seconds: 300
 max_retries: 2
-active: true
+active: false
 selectors:
   list_item: .board-list-wrap > ul > li
   title: .subject a[href*="/no"]

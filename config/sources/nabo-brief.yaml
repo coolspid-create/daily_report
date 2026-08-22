@@ -1,0 +1,22 @@
+id: nabo-brief
+name: 국회예산정책처 재정경제통계 브리프
+adapter: static_board
+implementation: report_collector.adapters.sources.nabo.adapter:NaboAdapter
+homepage_url: https://www.nabo.go.kr
+list_url: https://www.nabo.go.kr/ko/periodical/briefList.do?key=2507040016
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 180
+max_retries: 2
+selectors:
+  list_item: .item_wrap
+  title: .report_name a
+  detail_link: .report_name a
+  published_at: .date
+filters:
+  allowed_extensions: [pdf, hwp, hwpx]
+  exclude_title_keywords: [채용, 입찰, 행사, 공고, 보도자료]
+  max_age_days: 7
+  max_items_per_run: 20

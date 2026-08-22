@@ -1,0 +1,25 @@
+id: kif-financial-brief
+name: 한국금융연구원 금융브리프
+adapter: rendered_board
+implementation: report_collector.adapters.sources.kif.adapter:KifRenderedAdapter
+homepage_url: https://www.kif.re.kr
+list_url: https://www.kif.re.kr/kif4/publication/pub_list?mid=20
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 240
+max_retries: 2
+selectors:
+  list_item: '#ContentsList .info'
+  title: a.title
+  detail_link: a.title
+  published_at: .date
+browser:
+  wait_for: "#ContentsList .info a.title[href*='pub_detail']"
+  timeout_ms: 30000
+filters:
+  allowed_extensions: [pdf]
+  exclude_title_keywords: [채용, 입찰, 행사, 공고, 보도자료]
+  max_age_days: 7
+  max_items_per_run: 20
