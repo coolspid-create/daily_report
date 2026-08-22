@@ -14,6 +14,11 @@ on:
         type: choice
         options: [scheduled, refresh]
         default: scheduled
+      reprocess_sources:
+        description: AI 분석을 다시 수행할 출처 slug 목록(쉼표 구분). Telegram은 발송하지 않습니다.
+        required: false
+        type: string
+        default: ""
 
 concurrency:
   group: daily-public-report
@@ -31,7 +36,13 @@ jobs:
       - run: python -m pip install -e ./services/collector
       - run: python -m playwright install --with-deps chromium
       - run: |
-          if [ "${{ inputs.run_mode }}" = "refresh" ]; then
+          if [ -n "${{ inputs.reprocess_sources }}" ]; then
+            IFS=',' read -ra SOURCES <<< "${{ inputs.reprocess_sources }}"
+            for source in "${SOURCES[@]}"; do
+              python -m report_collector collect --source "$source" --refresh-recent
+            done
+            python -m report_collector publish-approved --timezone Asia/Seoul --no-telegram
+          elif [ "${{ inputs.run_mode }}" = "refresh" ]; then
             python -m report_collector publish-approved --timezone Asia/Seoul
           elif [ "${{ inputs.scheduled_run }}" = "true" ]; then
             python -m report_collector daily-publish --timezone Asia/Seoul --window-hours 168 --scheduled-run
