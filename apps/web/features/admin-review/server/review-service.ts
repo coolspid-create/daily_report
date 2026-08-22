@@ -44,7 +44,7 @@ export async function approveReviewBatch(payload: unknown, user: User) {
   const { documentIds } = batchApproveSchema.parse(payload);
   const client = createServiceClient();
   const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - 1);
+  cutoff.setDate(cutoff.getDate() - 7);
   const today = new Date();
   const { data, error } = await client
     .from("documents")

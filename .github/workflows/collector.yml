@@ -8,6 +8,12 @@ on:
         required: false
         type: boolean
         default: false
+      run_mode:
+        description: 정기 수집 또는 관리자 승인 후 재발행
+        required: false
+        type: choice
+        options: [scheduled, refresh]
+        default: scheduled
 
 concurrency:
   group: daily-public-report
@@ -25,7 +31,9 @@ jobs:
       - run: python -m pip install -e ./services/collector
       - run: python -m playwright install --with-deps chromium
       - run: |
-          if [ "${{ inputs.scheduled_run }}" = "true" ]; then
+          if [ "${{ inputs.run_mode }}" = "refresh" ]; then
+            python -m report_collector publish-approved --timezone Asia/Seoul
+          elif [ "${{ inputs.scheduled_run }}" = "true" ]; then
             python -m report_collector daily-publish --timezone Asia/Seoul --window-hours 168 --scheduled-run
           else
             python -m report_collector daily-publish --timezone Asia/Seoul --window-hours 168

@@ -17,7 +17,7 @@ export const reviewFormSchema = z.object({
 
 export const rejectSchema = z.object({ reason: z.string().trim().min(1).max(300) });
 export const batchApproveSchema = z.object({
-  documentIds: z.array(z.uuid()).min(1).max(8),
+  documentIds: z.array(z.uuid()).min(1).max(20),
 });
 export const mergeSchema = z.object({
   targetDocumentId: z.uuid(),

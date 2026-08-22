@@ -7,6 +7,7 @@ from .cleanup_command import cleanup_command
 from .collect_command import collect_command
 from .daily_publish_command import daily_publish_command
 from .digest_command import digest_command
+from .publish_approved_command import publish_approved_command
 from .snapshot_command import snapshot_command
 
 
@@ -38,6 +39,10 @@ def parser() -> ArgumentParser:
     daily.add_argument("--output-dir", type=Path, default=root / "output/pdf")
     daily.add_argument("--dry-run", action="store_true")
     daily.add_argument("--scheduled-run", action="store_true")
+    refresh = commands.add_parser("publish-approved")
+    refresh.add_argument("--timezone", default=os.getenv("AUTOMATION_TIMEZONE", "Asia/Seoul"))
+    refresh.add_argument("--output-dir", type=Path, default=root / "output/pdf")
+    refresh.add_argument("--no-telegram", action="store_true")
     return result
 
 
@@ -78,4 +83,11 @@ def main() -> None:
             arguments.output_dir,
             arguments.dry_run,
             arguments.scheduled_run,
+        )
+    elif arguments.command == "publish-approved":
+        publish_approved_command(
+            root,
+            arguments.timezone,
+            arguments.output_dir,
+            not arguments.no_telegram,
         )

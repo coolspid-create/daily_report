@@ -17,14 +17,23 @@ describe("Vercel Cron collector dispatch", () => {
       GITHUB_ACTIONS_DISPATCH_TOKEN: "token",
       GITHUB_REPOSITORY: "coolspid-create/daily_report",
     });
-    await dispatchCollectorWorkflow(settings, fetcher);
+    await dispatchCollectorWorkflow(settings, "scheduled", fetcher);
     expect(fetcher).toHaveBeenCalledWith(
       "https://api.github.com/repos/coolspid-create/daily_report/actions/workflows/collector.yml/dispatches",
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({ ref: "main", inputs: { scheduled_run: "true" } }),
+        body: JSON.stringify({ ref: "main", inputs: { scheduled_run: "true", run_mode: "scheduled" } }),
       }),
     );
+  });
+
+  it("dispatches a publish-only refresh after an admin approval", async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
+    const settings = readGitHubDispatchSettings({ GITHUB_ACTIONS_DISPATCH_TOKEN: "token", GITHUB_REPOSITORY: "coolspid-create/daily_report" });
+    await dispatchCollectorWorkflow(settings, "refresh", fetcher);
+    expect(fetcher).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({
+      body: JSON.stringify({ ref: "main", inputs: { scheduled_run: "false", run_mode: "refresh" } }),
+    }));
   });
 
   it("fails closed when dispatch credentials are absent", () => {

@@ -16,6 +16,8 @@ def main() -> None:
     required = [
         "daily-publish --timezone Asia/Seoul --window-hours 168",
         "scheduled_run",
+        "run_mode",
+        "publish-approved",
         "concurrency:",
     ]
     missing = [item for item in required if item not in text]

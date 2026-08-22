@@ -7,6 +7,8 @@ export type GitHubDispatchSettings = {
   token: string;
 };
 
+export type CollectorRunMode = "scheduled" | "refresh";
+
 export function readGitHubDispatchSettings(environment: Environment = process.env): GitHubDispatchSettings {
   const token = environment.GITHUB_ACTIONS_DISPATCH_TOKEN;
   const repository = environment.GITHUB_REPOSITORY;
@@ -21,6 +23,7 @@ export function readGitHubDispatchSettings(environment: Environment = process.en
 
 export async function dispatchCollectorWorkflow(
   settings: GitHubDispatchSettings,
+  mode: CollectorRunMode = "scheduled",
   request: typeof fetch = fetch,
 ): Promise<void> {
   const endpoint = `https://api.github.com/repos/${settings.repository}/actions/workflows/${encodeURIComponent(settings.workflow)}/dispatches`;
@@ -32,7 +35,10 @@ export async function dispatchCollectorWorkflow(
       "Content-Type": "application/json",
       "X-GitHub-Api-Version": "2022-11-28",
     },
-    body: JSON.stringify({ ref: settings.ref, inputs: { scheduled_run: "true" } }),
+    body: JSON.stringify({
+      ref: settings.ref,
+      inputs: { scheduled_run: String(mode === "scheduled"), run_mode: mode },
+    }),
   });
   if (!response.ok) throw new Error(`GitHub Actions 실행 요청이 실패했습니다. (${response.status})`);
 }
