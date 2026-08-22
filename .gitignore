@@ -18,3 +18,4 @@ test-results/
 browser-*.png
 output/pdf/rendered/
 supabase/.temp/
+.agents/
