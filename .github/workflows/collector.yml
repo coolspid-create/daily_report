@@ -63,3 +63,16 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_DESTINATION_KEY: "daily-report-main"
           PUBLIC_WEB_URL: ${{ vars.PUBLIC_WEB_URL }}
+      - name: Revalidate published public feed
+        if: ${{ success() }}
+        run: |
+          if [ -z "$PUBLIC_WEB_URL" ] || [ -z "$PUBLIC_FEED_REVALIDATION_SECRET" ]; then
+            echo "public feed revalidation skipped: required configuration is missing"
+            exit 0
+          fi
+          curl --fail --retry 2 --retry-delay 2 --request POST \
+            "${PUBLIC_WEB_URL%/}/api/cron/revalidate-public-feed" \
+            --header "Authorization: Bearer $PUBLIC_FEED_REVALIDATION_SECRET"
+        env:
+          PUBLIC_WEB_URL: ${{ vars.PUBLIC_WEB_URL }}
+          PUBLIC_FEED_REVALIDATION_SECRET: ${{ secrets.PUBLIC_FEED_REVALIDATION_SECRET }}

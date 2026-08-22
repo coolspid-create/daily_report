@@ -39,12 +39,18 @@ async def test_exception_is_recorded_and_returns_a_failure_result() -> None:
 def test_collection_continues_after_source_initialization_error(monkeypatch, tmp_path: Path) -> None:
     calls: list[str] = []
 
-    async def fake_run_source(path: Path, *_: object) -> None:
+    async def fake_run_source(path: Path, *_: object) -> int:
         calls.append(path.stem)
         if path.stem == "first":
             raise RuntimeError("configuration unavailable")
+        return 0
+
+    async def no_browser(*_: object) -> None:
+        return None
 
     monkeypatch.setattr(collect_command_module, "run_source", fake_run_source)
+    monkeypatch.setattr(collect_command_module, "_start_shared_browser", no_browser)
+    monkeypatch.setattr(collect_command_module, "_source_host", lambda *_: "fixture.test")
     first = tmp_path / "first.yaml"
     second = tmp_path / "second.yaml"
     first.touch()
@@ -57,4 +63,32 @@ def test_collection_continues_after_source_initialization_error(monkeypatch, tmp
 
     collect_command_module.collect_command(None, True, Path("config"), Path("schema.json"))
 
-    assert calls == ["first", "second"]
+    assert set(calls) == {"first", "second"}
+
+
+def test_collection_limits_parallel_sources(monkeypatch, tmp_path: Path) -> None:
+    active = 0
+    peak = 0
+
+    async def fake_run_source(*_: object) -> int:
+        nonlocal active, peak
+        active += 1
+        peak = max(peak, active)
+        await asyncio.sleep(0.01)
+        active -= 1
+        return 0
+
+    async def no_browser(*_: object) -> None:
+        return None
+
+    paths = [tmp_path / f"source-{index}.yaml" for index in range(4)]
+    for path in paths:
+        path.touch()
+    monkeypatch.setattr(collect_command_module, "run_source", fake_run_source)
+    monkeypatch.setattr(collect_command_module, "_start_shared_browser", no_browser)
+    monkeypatch.setattr(collect_command_module, "_source_paths", lambda *_: paths)
+    monkeypatch.setattr(collect_command_module, "_source_host", lambda path, _: path.stem)
+    monkeypatch.setenv("MAX_SOURCE_CONCURRENCY", "2")
+
+    assert collect_command_module.collect_command(None, True, Path("config"), Path("schema.json")) == 0
+    assert peak == 2

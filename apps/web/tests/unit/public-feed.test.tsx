@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import rawSnapshots from "@/data/public-snapshots.json";
 import { PublicFeed } from "@/features/public-feed/components/public-feed";
 import { validatePublicSnapshot } from "@/features/public-feed/server/validate-public-snapshot";
@@ -12,7 +12,8 @@ function archive(): PublicArchive {
   return {
     currentDate: "2026-08-21",
     dates: ["2026-08-21", "2026-08-20"],
-    snapshotsByDate: { "2026-08-21": current, "2026-08-20": previous },
+    loadedDate: "2026-08-21",
+    snapshot: current,
   };
 }
 
@@ -56,7 +57,9 @@ describe("public feed", () => {
     );
   });
 
-  it("switches the already-loaded daily archive without a page transition", () => {
+  it("loads a selected daily archive without a page transition", async () => {
+    const previous = validatePublicSnapshot({ ...rawSnapshots.today, generatedAt: "2026-08-20T00:00:00Z", range: "7d" });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => previous }));
     render(
       <PublicFeed
         archive={archive()} fallbackSnapshot={validatePublicSnapshot({ ...rawSnapshots["1d"], range: "7d" })}
@@ -64,7 +67,8 @@ describe("public feed", () => {
       />,
     );
     fireEvent.change(screen.getByLabelText("일일 아카이브 날짜"), { target: { value: "2026-08-20" } });
-    expect(screen.getByText("최근 7일 꼭 볼 자료 3건")).toBeVisible();
+    await waitFor(() => expect(screen.getByText("최근 7일 꼭 볼 자료 3건")).toBeVisible());
     expect(window.location.search).toBe("?date=2026-08-20");
+    vi.unstubAllGlobals();
   });
 });

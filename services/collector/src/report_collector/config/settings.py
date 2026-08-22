@@ -25,6 +25,8 @@ class Settings(BaseModel):
     temp_file_ttl_hours: int = Field(default=48, ge=24, le=72)
     pdf_processing_attempts: int = Field(default=3, ge=1, le=5)
     pdf_ocr_enabled: bool = False
+    max_source_concurrency: int = Field(default=3, ge=1, le=6)
+    max_sources_per_host: int = Field(default=1, ge=1, le=3)
 
     @classmethod
     def from_environment(cls) -> "Settings":
@@ -36,4 +38,6 @@ class Settings(BaseModel):
             temp_file_ttl_hours=int(os.getenv("TEMP_FILE_TTL_HOURS", "48")),
             pdf_processing_attempts=int(os.getenv("PDF_PROCESSING_ATTEMPTS", "3")),
             pdf_ocr_enabled=os.getenv("PDF_OCR_ENABLED", "false").lower() == "true",
+            max_source_concurrency=int(os.getenv("MAX_SOURCE_CONCURRENCY", "3")),
+            max_sources_per_host=int(os.getenv("MAX_SOURCES_PER_HOST", "1")),
         )

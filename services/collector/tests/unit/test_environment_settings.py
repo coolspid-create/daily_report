@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from report_collector.config.settings import load_repository_environment
+from report_collector.config.settings import Settings, load_repository_environment
 
 
 def test_load_repository_environment_preserves_existing_values(
@@ -18,3 +18,13 @@ def test_load_repository_environment_preserves_existing_values(
 
     assert os.environ["DATABASE_URL"] == "postgresql://existing"
     assert os.environ["EMPTY"] == ""
+
+
+def test_settings_reads_collection_concurrency_limits(monkeypatch) -> None:
+    monkeypatch.setenv("MAX_SOURCE_CONCURRENCY", "2")
+    monkeypatch.setenv("MAX_SOURCES_PER_HOST", "1")
+
+    settings = Settings.from_environment()
+
+    assert settings.max_source_concurrency == 2
+    assert settings.max_sources_per_host == 1

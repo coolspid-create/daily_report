@@ -25,5 +25,6 @@ export interface PublicFeedSnapshot {
 export interface PublicArchive {
   currentDate: string | null;
   dates: string[];
-  snapshotsByDate: Record<string, PublicFeedSnapshot>;
+  loadedDate: string | null;
+  snapshot: PublicFeedSnapshot | null;
 }

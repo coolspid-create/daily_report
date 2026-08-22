@@ -21,7 +21,7 @@ export function useFeedSelection(initial: FeedSelection, archive: PublicArchive)
     () => initial.topic,
   );
   const [archiveDate, setArchiveDateState] = useState(
-    initial.archiveDate && archive.snapshotsByDate[initial.archiveDate]
+    initial.archiveDate && archive.dates.includes(initial.archiveDate)
       ? initial.archiveDate
       : archive.currentDate,
   );
@@ -35,7 +35,7 @@ export function useFeedSelection(initial: FeedSelection, archive: PublicArchive)
   }
 
   function setArchiveDate(next: string) {
-    if (archive.snapshotsByDate[next]) setArchiveDateState(next);
+    if (archive.dates.includes(next)) setArchiveDateState(next);
   }
 
   return { topic, archiveDate, setTopic, setArchiveDate };
