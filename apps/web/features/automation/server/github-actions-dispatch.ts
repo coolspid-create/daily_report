@@ -32,7 +32,7 @@ export async function dispatchCollectorWorkflow(
       "Content-Type": "application/json",
       "X-GitHub-Api-Version": "2022-11-28",
     },
-    body: JSON.stringify({ ref: settings.ref }),
+    body: JSON.stringify({ ref: settings.ref, inputs: { scheduled_run: "true" } }),
   });
   if (!response.ok) throw new Error(`GitHub Actions 실행 요청이 실패했습니다. (${response.status})`);
 }

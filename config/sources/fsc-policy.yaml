@@ -8,7 +8,7 @@ rights_default: LINK_ONLY
 poll_interval_minutes: 720
 request_delay_ms: 1500
 timeout_seconds: 30
-run_timeout_seconds: 180
+run_timeout_seconds: 300
 max_retries: 2
 active: true
 selectors:

@@ -24,9 +24,9 @@ python -m report_collector cleanup --expired-files
 
 ## 일일 자동 발행
 
-GitHub Actions는 매일 08:35 KST에 `daily-publish` 하나만 실행합니다. 동일 예약 시각은 `automation_runs.scheduled_for` unique 제약으로 중복 실행되지 않습니다. 출처별 timeout은 다음 출처 진행을 막지 않으며 일부 실패는 `PARTIAL`로 기록됩니다.
+Vercel Cron이 GitHub Actions의 `daily-publish`를 매일 08:35 KST에 정기 실행으로 호출합니다. 동일 예약 시각은 `automation_runs.scheduled_for` unique 제약으로 중복 실행되지 않으며, GitHub Actions 화면에서 시작한 수동 실행은 별도 실행 키를 사용하므로 정기 실행을 막지 않습니다. 출처별 timeout은 다음 출처 진행을 막지 않으며 일부 실패는 `PARTIAL`로 기록됩니다.
 
-자동 품질 정책을 모두 통과한 문서만 시스템이 승인합니다. 조건이 불확실하면 `AUTO_HOLD` 감사 기록과 사유 코드를 남기고 관리자 예외 검수함으로 보냅니다. 적격 문서가 없으면 `NO_CONTENT`로 종료하고 current snapshot을 교체하지 않습니다.
+자동 품질 정책을 모두 통과한 문서만 시스템이 승인합니다. 조건이 불확실하면 `AUTO_HOLD` 감사 기록과 사유 코드를 남기고 관리자 예외 검수함으로 보냅니다. 적격 문서가 없으면 `NO_CONTENT`로 종료하고 current snapshot을 교체하지 않으며, 정기 실행에서는 Telegram으로 신규 발행 자료가 없다는 안내를 보냅니다.
 
 ```bash
 python -m report_collector daily-publish --timezone Asia/Seoul --window-hours 168 --dry-run

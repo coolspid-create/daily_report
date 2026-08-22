@@ -15,6 +15,7 @@ def main() -> None:
     crons = vercel_config.get("crons", [])
     required = [
         "daily-publish --timezone Asia/Seoul --window-hours 168",
+        "scheduled_run",
         "concurrency:",
     ]
     missing = [item for item in required if item not in text]

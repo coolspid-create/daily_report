@@ -18,7 +18,9 @@ from report_collector.providers.browser.base import BrowserRenderer
 from report_collector.providers.http.http_client import PublicHttpClient
 from report_collector.services.source_filter_service import title_allowed
 
-DATE_PATTERN = re.compile(r"\d{4}[.-]\d{2}[.-]\d{2}")
+DATE_PATTERN = re.compile(
+    r"(?P<year>\d{4})\s*(?:[./-]|년)\s*(?P<month>\d{1,2})\s*(?:[./-]|월)\s*(?P<day>\d{1,2})(?:일)?"
+)
 DETAIL_PATTERN = re.compile(r"hmpeSeqNo=(\d+)")
 DOWNLOAD_PATTERN = re.compile(r"downloadItem\(\d+,\s*(\d+)\)")
 
@@ -72,7 +74,12 @@ def _item(node: Tag, config: SourceConfig) -> DiscoveredItem | None:
 
 def _date(value: str) -> date | None:
     match = DATE_PATTERN.search(value)
-    return date.fromisoformat(match.group().replace(".", "-")) if match else None
+    if not match:
+        return None
+    try:
+        return date(int(match.group("year")), int(match.group("month")), int(match.group("day")))
+    except ValueError:
+        return None
 
 
 def _attachments(html: str) -> list[Attachment]:

@@ -1,10 +1,16 @@
+from collections.abc import Callable
+from datetime import date
 from pathlib import Path
 
 import pytest
+from bs4 import BeautifulSoup
 from report_collector.adapters.generic.static_board import StaticBoardAdapter
 from report_collector.adapters.sources.bok.adapter import BokRssAdapter
 from report_collector.adapters.sources.fsc.adapter import FinancialServicesCommissionAdapter
+from report_collector.adapters.sources.fsc.adapter import _date as fsc_date
+from report_collector.adapters.sources.fsc.adapter import _summary as fsc_summary
 from report_collector.adapters.sources.hana.adapter import HanaResearchAdapter
+from report_collector.adapters.sources.hana.adapter import _date as hana_date
 from report_collector.adapters.sources.inss.adapter import InssAdapter
 from report_collector.adapters.sources.kb.adapter import KbResearchAdapter
 from report_collector.adapters.sources.kdi.adapter import KdiRenderedAdapter
@@ -17,6 +23,7 @@ from report_collector.adapters.sources.kotra.adapter import KotraMarketNewsAdapt
 from report_collector.adapters.sources.krihs.adapter import KrihsAdapter
 from report_collector.adapters.sources.mof.adapter import MinistryOfOceansAdapter
 from report_collector.adapters.sources.nars.adapter import NarsAdapter
+from report_collector.adapters.sources.nars.adapter import _date as nars_date
 from report_collector.adapters.sources.stepi.adapter import StepiAdapter
 from report_collector.config.source_config import load_source_config
 
@@ -307,3 +314,20 @@ async def test_mof_fixture_maps_public_detail_and_pdf(fixture_root: Path) -> Non
     detail = await adapter.fetch_detail(await first(adapter))
     assert detail.published_at.isoformat() == "2026-08-20"
     assert "readDownloadFile.do" in str(detail.attachments[0].url)
+
+
+@pytest.mark.parametrize("parser", [fsc_date, hana_date, nars_date])
+def test_source_dates_accept_one_digit_and_korean_date_formats(
+    parser: Callable[[str], date | None],
+) -> None:
+    assert parser("등록일 2026년 8월 2일") == date(2026, 8, 2)
+    assert parser("2026.8.2") == date(2026, 8, 2)
+
+
+def test_fsc_summary_is_limited_to_document_schema_length() -> None:
+    soup = BeautifulSoup(f"<div class='view-cont'>{'summary ' * 1_000}</div>", "html.parser")
+
+    summary = fsc_summary(soup)
+
+    assert summary is not None
+    assert len(summary) <= 3_000

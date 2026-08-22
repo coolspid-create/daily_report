@@ -20,7 +20,10 @@ describe("Vercel Cron collector dispatch", () => {
     await dispatchCollectorWorkflow(settings, fetcher);
     expect(fetcher).toHaveBeenCalledWith(
       "https://api.github.com/repos/coolspid-create/daily_report/actions/workflows/collector.yml/dispatches",
-      expect.objectContaining({ method: "POST", body: JSON.stringify({ ref: "main" }) }),
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ ref: "main", inputs: { scheduled_run: "true" } }),
+      }),
     );
   });
 

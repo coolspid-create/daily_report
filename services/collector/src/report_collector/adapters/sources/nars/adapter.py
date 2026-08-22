@@ -23,7 +23,9 @@ FILE_PATTERN = re.compile(
     r"openPdfViewer\('\S*?doc_id=([^&']+).*?','([^']+?\.pdf)'\)", re.DOTALL
 )
 DOWNLOAD_PATTERN = re.compile(r"fileDownLoad\('\s*([^',]+)\s*'\s*,\s*'([^']+?\.pdf)'\)")
-DATE_PATTERN = re.compile(r"\d{4}\.\d{2}\.\d{2}")
+DATE_PATTERN = re.compile(
+    r"(?P<year>\d{4})\s*(?:[./-]|년)\s*(?P<month>\d{1,2})\s*(?:[./-]|월)\s*(?P<day>\d{1,2})(?:일)?"
+)
 
 
 class NarsAdapter(SourceAdapter):
@@ -45,10 +47,7 @@ class NarsAdapter(SourceAdapter):
             if not title_allowed(title, self.config.filters):
                 continue
             item_id = match.group(1)
-            date_match = DATE_PATTERN.search(node.get_text(" ", strip=True))
-            published = (
-                date.fromisoformat(date_match.group().replace(".", "-")) if date_match else None
-            )
+            published = _date(node.get_text(" ", strip=True))
             url = f"https://www.nars.go.kr/report/view.do?brdSeq={item_id}&cmsCode=CM0043"
             results.append(
                 DiscoveredItem(
@@ -101,6 +100,16 @@ def _official_summary(soup: BeautifulSoup) -> str | None:
         return None
     summary = re.sub(r"\s+", " ", content.get_text(" ", strip=True)).strip()
     return summary or None
+
+
+def _date(value: str) -> date | None:
+    match = DATE_PATTERN.search(value)
+    if not match:
+        return None
+    try:
+        return date(int(match.group("year")), int(match.group("month")), int(match.group("day")))
+    except ValueError:
+        return None
 
 
 def _attachments(html: str) -> list[Attachment]:

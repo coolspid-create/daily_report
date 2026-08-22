@@ -2,6 +2,12 @@ name: Collector
 
 on:
   workflow_dispatch:
+    inputs:
+      scheduled_run:
+        description: Vercel Cron에서 호출한 정기 실행인지 여부
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: daily-public-report
@@ -18,7 +24,12 @@ jobs:
           python-version: "3.12"
       - run: python -m pip install -e ./services/collector
       - run: python -m playwright install --with-deps chromium
-      - run: python -m report_collector daily-publish --timezone Asia/Seoul --window-hours 168
+      - run: |
+          if [ "${{ inputs.scheduled_run }}" = "true" ]; then
+            python -m report_collector daily-publish --timezone Asia/Seoul --window-hours 168 --scheduled-run
+          else
+            python -m report_collector daily-publish --timezone Asia/Seoul --window-hours 168
+          fi
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}

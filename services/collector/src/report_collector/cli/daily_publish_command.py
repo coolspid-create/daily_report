@@ -30,12 +30,17 @@ DAILY_SCHEDULE_MINUTE = 35
 
 
 def daily_publish_command(
-    root: Path, timezone: str, window_hours: int, output_dir: Path, dry_run: bool
+    root: Path,
+    timezone: str,
+    window_hours: int,
+    output_dir: Path,
+    dry_run: bool,
+    scheduled_run: bool = False,
 ) -> None:
     database_url = _required("DATABASE_URL")
     now = datetime.now(ZoneInfo(timezone))
     window_start = now - timedelta(hours=window_hours)
-    scheduled_for = _scheduled_slot(now)
+    scheduled_for = _run_key(now, scheduled_run)
     try:
         run = start_automation_run(database_url, scheduled_for, window_start, now)
     except AutomationAlreadyCompleted:
@@ -55,15 +60,23 @@ def daily_publish_command(
             ),
             dry_run=not enabled,
         )
+        telegram_count = outcome.telegram_count
+        final_status = outcome.status
+        if outcome.status == "NO_CONTENT" and scheduled_run and _enabled("TELEGRAM_ENABLED"):
+            try:
+                telegram_count = _deliver_no_content_notice(now)
+            except Exception as error:
+                print(f"no-content Telegram notice failed: {type(error).__name__}")
+                final_status = "PARTIAL"
         counts.update(
             collected=outcome.review.candidate_count,
             approved=outcome.review.approved_count,
             exceptions=outcome.review.exception_count,
             published=outcome.publication.document_count if outcome.publication else 0,
-            telegram=outcome.telegram_count,
+            telegram=telegram_count,
         )
-        finish_automation_run(database_url, run.run_id, outcome.status, counts)
-        print(f"daily publication finished: {outcome.status} {counts}")
+        finish_automation_run(database_url, run.run_id, final_status, counts)
+        print(f"daily publication finished: {final_status} {counts}")
     except Exception as error:
         finish_automation_run(database_url, run.run_id, "FAILED", counts, str(error)[:1000])
         raise
@@ -129,6 +142,24 @@ def _deliver_with_stage(
     return _deliver(database_url, result, date_value)
 
 
+def _deliver_no_content_notice(now: datetime) -> int:
+    provider = TelegramNotificationProvider(
+        _required("TELEGRAM_BOT_TOKEN"),
+        _required("TELEGRAM_CHAT_ID"),
+        int(os.getenv("TELEGRAM_MAX_ATTEMPTS", "3")),
+    )
+    public_url = os.getenv("PUBLIC_WEB_URL", "").strip()
+    message = (
+        f"<b>오늘의 공공리포트 ({now:%Y.%m.%d})</b>\n"
+        "오늘 발행할 신규 리포트가 없습니다.\n"
+        "수집 결과, 발행 요건을 충족한 자료가 없어 안내만 드립니다."
+    )
+    if public_url:
+        message += f'\n<a href="{public_url}">웹에서 아카이브 보기</a>'
+    provider.send_message(message)
+    return 1
+
+
 def _retry_pending_deliveries(database_url: str) -> None:
     provider = TelegramNotificationProvider(
         _required("TELEGRAM_BOT_TOKEN"),
@@ -149,6 +180,12 @@ def _retry_pending_deliveries(database_url: str) -> None:
 
 def _enabled(name: str) -> bool:
     return os.getenv(name, "false").lower() in {"1", "true", "yes", "on"}
+
+
+def _run_key(now: datetime, scheduled_run: bool) -> datetime:
+    if not scheduled_run:
+        return now
+    return _scheduled_slot(now)
 
 
 def _scheduled_slot(now: datetime) -> datetime:

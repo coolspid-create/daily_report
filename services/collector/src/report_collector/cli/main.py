@@ -37,6 +37,7 @@ def parser() -> ArgumentParser:
     daily.add_argument("--window-hours", type=int, default=int(os.getenv("AUTOMATION_WINDOW_HOURS", "168")))
     daily.add_argument("--output-dir", type=Path, default=root / "output/pdf")
     daily.add_argument("--dry-run", action="store_true")
+    daily.add_argument("--scheduled-run", action="store_true")
     return result
 
 
@@ -76,4 +77,5 @@ def main() -> None:
             arguments.window_hours,
             arguments.output_dir,
             arguments.dry_run,
+            arguments.scheduled_run,
         )

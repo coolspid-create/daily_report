@@ -9,6 +9,13 @@ from report_collector.services.deduplication_service import normalize_title
 from report_collector.services.rights_service import choose_delivery, is_session_dependent_url
 
 
+def load_active_source_slugs(database_url: str) -> set[str]:
+    query = "select slug from public.sources where active=true"
+    with psycopg.connect(database_url) as connection, connection.cursor() as cursor:
+        cursor.execute(query)
+        return {str(row[0]) for row in cursor.fetchall()}
+
+
 class PostgresSourceRepository:
     def __init__(self, database_url: str) -> None:
         self.database_url = database_url

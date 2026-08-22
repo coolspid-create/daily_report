@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 from jsonschema import ValidationError
-from report_collector.cli.collect_command import _source_paths
+from report_collector.cli.collect_command import _filter_database_active_paths, _source_paths
 from report_collector.config.source_config import load_source_config
 
 
@@ -57,3 +57,16 @@ def test_all_active_uses_enabled_source_configs(contract_root: Path) -> None:
     assert "kihasa-research" not in names
     assert "stepi-research" not in names
     assert "kli-research" not in names
+
+
+def test_database_deactivation_excludes_an_enabled_source(contract_root: Path) -> None:
+    paths = _source_paths(
+        None,
+        True,
+        Path("config/sources"),
+        contract_root / "source-config.schema.json",
+    )
+
+    filtered = _filter_database_active_paths(paths, {"nars"})
+
+    assert [path.stem for path in filtered] == ["nars"]

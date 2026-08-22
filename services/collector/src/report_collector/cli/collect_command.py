@@ -15,6 +15,7 @@ from report_collector.providers.http.http_client import PublicHttpClient
 from report_collector.repositories.source_repository import MemorySourceRepository, SourceRepository
 from report_collector.repositories.supabase.postgres_source_repository import (
     PostgresSourceRepository,
+    load_active_source_slugs,
 )
 
 
@@ -78,6 +79,8 @@ def collect_command(
     refresh_recent: bool = False,
 ) -> int:
     paths = _source_paths(source, all_active, config_root, schema_path)
+    if all_active and (database_url := os.getenv("DATABASE_URL")):
+        paths = _filter_database_active_paths(paths, load_active_source_slugs(database_url))
     if not paths or any(not path.exists() for path in paths):
         raise SystemExit("source config not found")
     failed_sources = 0
@@ -100,3 +103,7 @@ def _source_paths(
         for path in sorted(config_root.glob("*.yaml"))
         if load_source_config(path, schema_path).active
     ]
+
+
+def _filter_database_active_paths(paths: list[Path], active_source_slugs: set[str]) -> list[Path]:
+    return [path for path in paths if path.stem in active_source_slugs]
