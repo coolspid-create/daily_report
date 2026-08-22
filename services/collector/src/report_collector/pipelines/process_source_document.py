@@ -65,13 +65,14 @@ class SourceDocumentProcessor:
     async def _official_summary_analysis(self, document: SourceDocument) -> AnalysisResult | None:
         if not document.official_summary:
             return None
-        result = await self.summarizer.summarize(
-            AnalysisRequest(
-                title=document.title,
-                institution=document.institution,
-                text=document.official_summary,
-            )
+        request = AnalysisRequest(
+            title=document.title,
+            institution=document.institution,
+            text=document.official_summary,
         )
+        result = await self.summarizer.summarize(request)
+        if result.summary_kind == "UNAVAILABLE" and len(document.official_summary) >= 400:
+            result = await self.summarizer.summarize(request)
         if result.summary_kind == "UNAVAILABLE":
             return None
         return result.model_copy(update={"content_tag": "공식 본문 분석"})
@@ -114,13 +115,13 @@ class SourceDocumentProcessor:
             validation, path, extracted = await self._download_and_extract(document_id, file_url)
         except FileValidationError:
             mark_file_invalid(self.database_url, document_id, file_url)
-            analysis = await self._title_analysis(document)
+            analysis = await self._official_summary_analysis(document) or await self._title_analysis(document)
             save_processing_result(
                 self.database_url, document_id, analysis, None, None, None, self.ttl_hours
             )
             return
         except (OSError, RuntimeError, ValueError):
-            analysis = await self._title_analysis(document)
+            analysis = await self._official_summary_analysis(document) or await self._title_analysis(document)
             save_processing_result(
                 self.database_url, document_id, analysis, None, None, None, self.ttl_hours
             )

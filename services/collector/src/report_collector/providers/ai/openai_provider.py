@@ -53,7 +53,8 @@ def _instructions() -> str:
         "외부 사실을 추가하거나 추측하지 마세요. why_it_matters에는 독자가 바로 이해할 수 있는 "
         "자연스러운 한국어 2~3문장을 쓰고 240자 이내로 제한하세요. key_points는 핵심 문장 1~3개, "
         "key_tags는 2~8자 한국어 중심 키워드 1~3개로 작성하세요. 원문이 너무 짧거나 의미를 판단할 수 "
-        "없으면 summary_kind을 UNAVAILABLE로 하고 그 이유를 why_it_matters에 간결히 쓰세요. "
+        "없으면 summary_kind을 UNAVAILABLE로 하고 그 이유를 why_it_matters에 간결히 쓰세요. 단, "
+        "본문이 400자 이상인 일반 문서라면 반드시 ANALYZED로 분석하세요. "
         "페이지 정보가 제공되지 않았다면 evidence_pages는 빈 배열이어야 합니다."
     )
 
@@ -75,10 +76,16 @@ def _response_schema() -> dict[str, object]:
             "content_tag", "confidence", "evidence_pages",
         ],
         "properties": {
-            "why_it_matters": {"type": "string"},
+            "why_it_matters": {"type": "string", "minLength": 1, "maxLength": 240},
             "summary_kind": {"type": "string", "enum": ["ANALYZED", "OFFICIAL_ABSTRACT", "UNAVAILABLE"]},
-            "key_points": {"type": "array", "items": {"type": "string"}},
-            "key_tags": {"type": "array", "items": {"type": "string"}},
+            "key_points": {
+                "type": "array", "minItems": 1, "maxItems": 3,
+                "items": {"type": "string", "minLength": 1, "maxLength": 240},
+            },
+            "key_tags": {
+                "type": "array", "minItems": 1, "maxItems": 3,
+                "items": {"type": "string", "minLength": 1, "maxLength": 16},
+            },
             "topic_candidates": {
                 "type": "array",
                 "items": {
@@ -86,7 +93,7 @@ def _response_schema() -> dict[str, object]:
                     "enum": ["economy", "industry", "ai-tech", "labor-welfare", "education-population", "land-environment", "law-security"],
                 },
             },
-            "content_tag": {"type": "string"},
+            "content_tag": {"type": "string", "minLength": 1, "maxLength": 40},
             "confidence": {"type": "number"},
             "evidence_pages": {"type": "array", "items": {"type": "integer"}},
         },
