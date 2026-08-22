@@ -10,7 +10,7 @@ from report_collector.domain.models import (
     SourceDocument,
 )
 from report_collector.extractors.pdf_text_extractor import ExtractedText, extract_pdf_text
-from report_collector.providers.ai.extractive_provider import ExtractiveAnalysisProvider
+from report_collector.providers.ai.provider_factory import build_analysis_provider
 from report_collector.providers.http.http_client import PublicHttpClient
 from report_collector.repositories.supabase.postgres_processing_repository import (
     mark_file_invalid,
@@ -39,7 +39,7 @@ class SourceDocumentProcessor:
         self.ttl_hours = ttl_hours
         self.pdf_processing_attempts = pdf_processing_attempts
         self.pdf_ocr_enabled = pdf_ocr_enabled
-        self.summarizer = SummarizationService(ExtractiveAnalysisProvider(), analysis_schema)
+        self.summarizer = SummarizationService(build_analysis_provider(), analysis_schema)
 
     @staticmethod
     def _pdf_attachment(document: SourceDocument) -> Attachment | None:
@@ -74,9 +74,7 @@ class SourceDocumentProcessor:
         )
         if result.summary_kind == "UNAVAILABLE":
             return None
-        return result.model_copy(
-            update={"summary_kind": "OFFICIAL_ABSTRACT", "content_tag": "공식 초록"}
-        )
+        return result.model_copy(update={"content_tag": "공식 본문 분석"})
 
     async def _download_and_extract(
         self, document_id: str, file_url: str
@@ -105,7 +103,8 @@ class SourceDocumentProcessor:
     async def process(self, document_id: str, document: SourceDocument) -> None:
         attachment = self._pdf_attachment(document)
         if not attachment:
-            analysis = await self._title_analysis(document)
+            official_analysis = await self._official_summary_analysis(document)
+            analysis = official_analysis or await self._title_analysis(document)
             save_processing_result(
                 self.database_url, document_id, analysis, None, None, None, self.ttl_hours
             )

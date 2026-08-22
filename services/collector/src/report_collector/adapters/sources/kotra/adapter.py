@@ -81,10 +81,38 @@ def _detail_date_text(soup: BeautifulSoup) -> str:
 
 
 def _summary(soup: BeautifulSoup) -> str | None:
-    node = soup.select_one("meta[name='description']") or soup.select_one(".view_txt")
-    text = node.get("content", "") if node and node.name == "meta" else node.get_text(" ", strip=True) if node else ""
-    normalized = re.sub(r"\s+", " ", str(text)).strip()
-    return normalized[:3000].rsplit(" ", 1)[0] if len(normalized) > 3000 else normalized or None
+    content = _detail_content(soup)
+    if content:
+        return _limit_summary(content)
+    description = soup.select_one("meta[name='description']")
+    fallback = str(description.get("content", "")) if description else ""
+    return _limit_summary(fallback)
+
+
+def _detail_content(soup: BeautifulSoup) -> str:
+    selectors = (
+        ".view_txt",
+        ".view_txt_area",
+        ".view_cont",
+        ".viewCont",
+        ".board_view .content",
+        ".boardView .content",
+        "article",
+    )
+    node = next((soup.select_one(selector) for selector in selectors if soup.select_one(selector)), None)
+    if node is None:
+        return ""
+    for ignored in node.select("script, style, noscript, nav, header, footer, .file, .attach, .download"):
+        ignored.decompose()
+    return node.get_text(" ", strip=True)
+
+
+def _limit_summary(text: str) -> str | None:
+    normalized = re.sub(r"\s+", " ", text).strip()
+    if len(normalized) <= 3000:
+        return normalized or None
+    boundary = normalized.rfind(".", 0, 3000)
+    return normalized[:boundary + 1] if boundary > 500 else normalized[:3000].rsplit(" ", 1)[0]
 
 
 def _attachments(html: str, base_url: str) -> list[Attachment]:

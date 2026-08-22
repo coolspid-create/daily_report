@@ -4,10 +4,13 @@ import { getReviewItems } from "@/features/admin-review/server/get-review-items"
 import { getSourceHealth } from "@/features/source-health/server/get-source-health";
 import { ReviewWorkbench } from "@/features/admin-review/components/review-workbench";
 import { getAutomationStatus } from "@/features/admin-review/server/get-automation-status";
+import { getPublicationHistory, getStoredDocuments } from "@/features/admin-review/server/get-review-history";
 
 export default async function AdminPage() {
   const user = await getAdminUser();
   if (!user) redirect("/admin/login");
-  const [items, sources, automation] = await Promise.all([getReviewItems(), getSourceHealth(), getAutomationStatus()]);
-  return <ReviewWorkbench items={items} sources={sources} automation={automation} />;
+  const [items, sources, automation, publications, storedDocuments] = await Promise.all([
+    getReviewItems(), getSourceHealth(), getAutomationStatus(), getPublicationHistory(), getStoredDocuments(),
+  ]);
+  return <ReviewWorkbench items={items} sources={sources} automation={automation} publications={publications} storedDocuments={storedDocuments} />;
 }

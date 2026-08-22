@@ -229,6 +229,8 @@ async def test_kotra_fixture_reads_public_detail_and_official_file(fixture_root:
     detail = await adapter.fetch_detail(await first(adapter))
     assert detail.published_at.isoformat() == "2026-08-20"
     assert "fileDown.do" in str(detail.attachments[0].url)
+    assert "탈탄소 규제" in (detail.official_summary or "")
+    assert "첨부파일" not in (detail.official_summary or "")
 
 
 @pytest.mark.asyncio

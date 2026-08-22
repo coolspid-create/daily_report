@@ -44,6 +44,9 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           AUTO_APPROVAL_ENABLED: ${{ vars.AUTO_APPROVAL_ENABLED || 'false' }}
           AUTO_APPROVAL_POLICY_VERSION: "2026-08-v1"
+          ANALYSIS_PROVIDER: ${{ vars.ANALYSIS_PROVIDER || 'extractive' }}
+          ANALYSIS_API_KEY: ${{ secrets.ANALYSIS_API_KEY }}
+          ANALYSIS_MODEL: ${{ vars.ANALYSIS_MODEL || 'gpt-5-mini' }}
           TELEGRAM_ENABLED: ${{ vars.TELEGRAM_ENABLED || 'false' }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

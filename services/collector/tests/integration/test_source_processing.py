@@ -97,3 +97,31 @@ async def test_source_pdf_processing_retries_transient_failure(
     await processor.process("document-id", document)
     assert http.calls == 2
     assert saved
+
+
+@pytest.mark.asyncio
+async def test_public_html_summary_is_analyzed_without_a_pdf(
+    contract_root: Path,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    saved: list[tuple] = []
+    schema = json.loads((contract_root / "analysis-result.schema.json").read_text())
+    processor = SourceDocumentProcessor(
+        "postgresql://fixture", FixtureHttp(b""), tmp_path, 2_000_000, 48, schema  # type: ignore[arg-type]
+    )
+    document = SourceDocument(
+        source_item_key="kotra-html",
+        title="칠레 푸드테크 시장 동향",
+        institution="KOTRA 해외시장뉴스",
+        detail_url=HttpUrl("https://example.com/news/1"),
+        official_summary=(
+            "칠레 푸드테크 시장은 대체 단백질과 식품 유통 기술을 중심으로 성장하고 있습니다. "
+            "현지 기업은 지속가능한 식품 생산을 위해 해외 기술 협력과 투자 유치에 나서고 있습니다."
+        ),
+        rights_status=RightsStatus.LINK_ONLY,
+    )
+    monkeypatch.setattr(process_module, "save_processing_result", lambda *args: saved.append(args))
+    await processor.process("document-id", document)
+    assert saved[0][2].summary_kind == "ANALYZED"
+    assert "푸드테크" in saved[0][2].why_it_matters

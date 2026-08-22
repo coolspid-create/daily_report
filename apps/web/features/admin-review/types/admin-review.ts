@@ -40,3 +40,19 @@ export interface AutomationStatus {
   telegramStatus: "PENDING" | "SENDING" | "SENT" | "FAILED" | null;
   telegramError: string | null;
 }
+
+export interface PublicationHistory {
+  publicationDate: string;
+  publishedAt: string | null;
+  reportCount: number;
+}
+
+export interface StoredDocument {
+  id: string;
+  canonicalTitle: string;
+  institution: string;
+  publishedAt: string;
+  primarySourceUrl: string;
+  workflowStatus: "APPROVED" | "REJECTED";
+  updatedAt: string;
+}
