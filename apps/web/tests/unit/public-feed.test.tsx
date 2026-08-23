@@ -8,7 +8,6 @@ import { TOPIC_STORAGE_KEY } from "@/features/public-feed/lib/topic-storage";
 
 function archive(): PublicArchive {
   const current = validatePublicSnapshot({ ...rawSnapshots["1d"], range: "7d" });
-  const previous = validatePublicSnapshot({ ...rawSnapshots.today, generatedAt: "2026-08-20T00:00:00Z", range: "7d" });
   return {
     currentDate: "2026-08-21",
     dates: ["2026-08-21", "2026-08-20"],

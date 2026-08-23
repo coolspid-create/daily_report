@@ -3,7 +3,7 @@ from typing import Any
 
 from report_collector.domain.enums import DeliveryMode, WorkflowStatus
 from report_collector.domain.models import PublicationDocument
-from report_collector.services.ranking_service import rank_documents, select_featured_documents
+from report_collector.services.ranking_service import rank_documents
 
 TOPIC_LABELS = {
     "all": "전체",
@@ -55,16 +55,26 @@ def build_snapshot(
         and item.delivery_mode is not DeliveryMode.BLOCKED
     ]
     ranked = rank_documents(approved, publication_date)
-    featured = select_featured_documents(approved, publication_date)
     reports: dict[str, list[dict[str, Any]]] = {}
     for topic in TOPIC_LABELS:
-        candidates = (
-            featured if topic == "all" else [item for item in ranked if item.primary_topic == topic]
-        )
+        if topic == "all":
+            continue
+        candidates = [item for item in ranked if item.primary_topic == topic]
         reports[topic] = [
             _report(item, publication_date)
             for item in _limited(candidates, 8)
         ]
+    visible_ids = {
+        str(report["id"])
+        for topic, topic_reports in reports.items()
+        if topic != "all"
+        for report in topic_reports
+    }
+    reports["all"] = [
+        _report(item, publication_date)
+        for item in ranked
+        if item.id in visible_ids
+    ]
     topics = [
         {"id": topic, "label": label, "count": len(reports[topic])}
         for topic, label in TOPIC_LABELS.items()

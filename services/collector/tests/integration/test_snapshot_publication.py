@@ -44,6 +44,18 @@ def test_only_approved_documents_are_published(contract_root: Path) -> None:
     assert repository.current_payload("today") == snapshot
 
 
+def test_all_topic_contains_the_sum_of_topic_documents() -> None:
+    first = document("ai")
+    second = document("economy").model_copy(update={"primary_topic": "economy"})
+
+    snapshot = build_snapshot([first, second], date(2026, 8, 21), "today")
+
+    assert snapshot["topics"][0]["count"] == 2
+    assert len(snapshot["reportsByTopic"]["all"]) == 2
+    assert len(snapshot["reportsByTopic"]["ai-tech"]) == 1
+    assert len(snapshot["reportsByTopic"]["economy"]) == 1
+
+
 def test_failed_snapshot_build_keeps_previous(contract_root: Path) -> None:
     schema = json.loads((contract_root / "public-feed.schema.json").read_text(encoding="utf-8"))
     repository = MemoryPublicationRepository()

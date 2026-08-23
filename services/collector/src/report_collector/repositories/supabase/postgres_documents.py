@@ -4,6 +4,7 @@ import psycopg
 from psycopg.rows import dict_row
 from report_collector.domain.enums import DeliveryMode, WorkflowStatus
 from report_collector.domain.models import PublicationDocument
+from report_collector.services.publication_eligibility import EXCLUDED_PUBLIC_SOURCE_SLUGS
 
 
 def load_approved_documents(
@@ -26,6 +27,14 @@ def load_approved_documents(
     where d.workflow_status='APPROVED' and d.published_at between %s and %s
       and not exists (
         select 1
+        from public.document_sources excluded_document_source
+        join public.sources excluded_source
+          on excluded_source.id=excluded_document_source.source_id
+        where excluded_document_source.document_id=d.id
+          and excluded_source.slug = any(%s)
+      )
+      and not exists (
+        select 1
         from public.publication_items previous_item
         join public.daily_publications previous_publication
           on previous_publication.id=previous_item.publication_id
@@ -39,7 +48,16 @@ def load_approved_documents(
         psycopg.connect(database_url, row_factory=dict_row) as connection,
         connection.cursor() as cursor,
     ):
-        cursor.execute(query, (earliest, publication_date, range_key, publication_date))
+        cursor.execute(
+            query,
+            (
+                earliest,
+                publication_date,
+                list(EXCLUDED_PUBLIC_SOURCE_SLUGS),
+                range_key,
+                publication_date,
+            ),
+        )
         rows = cursor.fetchall()
     return [
         PublicationDocument(
