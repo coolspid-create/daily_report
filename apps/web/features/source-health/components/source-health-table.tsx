@@ -14,7 +14,11 @@ export function SourceHealthTable({ sources, onChanged }: SourceHealthTableProps
   }
   return (
     <section className="source-table" aria-label="출처 상태">
+      <div className="active-sources-heading">
+        <span>활성 출처 {activeSources.length}곳</span>
+      </div>
       <div role="table" aria-label="활성 출처 상태">
+
       {activeSources.map((source) => (
         <div className="source-row" role="row" key={source.id}>
           <div className="source-name-cell">

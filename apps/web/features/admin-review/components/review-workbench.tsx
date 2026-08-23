@@ -45,6 +45,9 @@ export function ReviewWorkbench({ items, sources, automation, publications, stor
       : `${result.count ?? 0}건을 승인했습니다. ${result.refresh?.message ?? "재발행 요청은 다시 시도해 주세요."}`);
     router.refresh();
   };
+  const activeSourcesCount = sources.filter((s) => s.active).length;
+  const inactiveSourcesCount = sources.length - activeSourcesCount;
+
   return (
     <main className="admin-shell">
       <header className="admin-header">
@@ -53,7 +56,7 @@ export function ReviewWorkbench({ items, sources, automation, publications, stor
           <button aria-pressed={view === "review"} onClick={() => setView("review")}>검수 대기 {items.length}</button>
           <button aria-pressed={view === "published"} onClick={() => setView("published")}>발행 이력 {publications.length}</button>
           <button aria-pressed={view === "stored"} onClick={() => setView("stored")}>보관함 {storedDocuments.length}</button>
-          <button aria-pressed={view === "sources"} onClick={() => setView("sources")}>출처 상태</button>
+          <button aria-pressed={view === "sources"} onClick={() => setView("sources")}>출처 상태 {activeSourcesCount}</button>
         </nav>
       </header>
       {message && <p className="form-message" role="status">{message}</p>}
@@ -66,7 +69,18 @@ export function ReviewWorkbench({ items, sources, automation, publications, stor
       )}
       {view === "published" && <section className="admin-section"><div className="admin-section-heading"><div><h2>발행 이력</h2><p>날짜별 공개 피드를 확인할 수 있습니다.</p></div></div><PublicationHistoryList publications={publications} /></section>}
       {view === "stored" && <section className="admin-section"><div className="admin-section-heading"><div><h2>보관함</h2><p>승인 또는 제외 처리한 자료를 최근 처리 순서로 확인합니다.</p></div></div><StoredDocumentList documents={storedDocuments} /></section>}
-      {view === "sources" && <section className="admin-section"><div className="admin-section-heading"><div><h2>출처 상태</h2><p>수집 출처를 활성화하거나 상태를 확인합니다.</p></div></div><SourceHealthTable sources={sources} onChanged={() => router.refresh()} /></section>}
+      {view === "sources" && (
+        <section className="admin-section">
+          <div className="admin-section-heading">
+            <div>
+              <h2>출처 상태</h2>
+              <p>수집 출처를 활성화하거나 상태를 확인합니다. (활성 {activeSourcesCount}곳 / 비활성 {inactiveSourcesCount}곳, 총 {sources.length}곳)</p>
+            </div>
+          </div>
+          <SourceHealthTable sources={sources} onChanged={() => router.refresh()} />
+        </section>
+      )}
     </main>
   );
 }
+

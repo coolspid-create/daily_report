@@ -151,7 +151,9 @@
 .admin-shell .stored-document-list a { grid-column: 3; grid-row: 1 / span 2; }
 
 .admin-shell .source-table { display: grid; gap: 16px; }
+.admin-shell .active-sources-heading { font-weight: 750; font-size: .95rem; color: var(--color-text); margin-bottom: 2px; }
 .admin-shell .source-row { display: grid; grid-template-columns: minmax(220px, 1.3fr) 100px 120px minmax(160px, 1fr) auto; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--color-border); font-size: .88rem; }
+
 .admin-shell .source-row > span { color: var(--color-text-secondary); }
 .admin-shell .source-name-cell { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
 .admin-shell .reason-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: .72rem; font-weight: 750; background: var(--color-accent-soft, #f4f4f6); color: var(--color-text-secondary, #555); }
