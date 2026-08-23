@@ -138,10 +138,15 @@ export function PublicFeed({ archive, pressArchive, fallbackSnapshot, initialSel
           <p>보도자료 발행본을 불러오는 중입니다.</p>
         </section>
       ) : isPressReleaseTab ? (
-        <PressReleaseSection reports={selectedPressReports} archiveDate={selection.pressArchiveDate} />
+        <PressReleaseSection
+          reports={selectedPressReports}
+          archiveDate={selection.pressArchiveDate}
+          viewMode={viewMode}
+        />
       ) : (
         <ReportList reports={researchReports} topicLabel={topicLabel} viewMode={viewMode} />
       )}
+
       <footer className="site-footer">원문 및 PDF 저작권은 각 발행기관의 공식 정책을 따릅니다.</footer>
     </main>
   );

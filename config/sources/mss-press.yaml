@@ -1,0 +1,23 @@
+id: mss-press
+name: 중소벤처기업부 보도자료
+adapter: static_board
+implementation: report_collector.adapters.sources.ministry_press.adapter:MinistryPressAdapter
+homepage_url: https://www.mss.go.kr
+list_url: https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=86
+rights_default: LINK_ONLY
+content_type: PRESS_RELEASE
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 180
+max_retries: 2
+active: true
+selectors:
+  list_item: tbody tr
+  title: td.subject a
+  detail_link: td.subject a
+filters:
+  allowed_extensions: [pdf, hwpx, hwp]
+  exclude_title_keywords: [채용, 입찰, 행사, 공고, 동정, 포토, 인사]
+  max_age_days: 1
+  max_items_per_run: 20

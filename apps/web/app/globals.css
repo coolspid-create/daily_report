@@ -958,6 +958,77 @@ h1 {
   border-top: 1px solid var(--color-border);
 }
 
+.press-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--color-border);
+}
+
+.press-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 8px;
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color 0.12s ease;
+}
+
+.press-list-item:hover {
+  background-color: var(--color-surface-subtle, #f9fafb);
+}
+
+.press-list-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.press-list-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.press-list-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+.press-list-title a {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.press-list-title a:hover {
+  color: var(--color-accent-strong, #1d4ed8);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.press-list-summary {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: var(--color-text-secondary, #4b5563);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+}
+
+.press-list-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+
 /* ==========================================================================
    Mobile Responsive
    ========================================================================== */

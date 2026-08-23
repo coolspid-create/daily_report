@@ -20,6 +20,12 @@ from report_collector.services.file_validation_service import ValidatedPdf, vali
 from report_collector.services.summarization_service import SummarizationService
 
 
+def _tag_if_press(analysis: AnalysisResult, document: SourceDocument) -> AnalysisResult:
+    if "보도자료" in document.institution or "금융위원회" in document.institution:
+        return analysis.model_copy(update={"content_tag": "보도자료"})
+    return analysis
+
+
 class SourceDocumentProcessor:
     def __init__(
         self,
@@ -106,6 +112,7 @@ class SourceDocumentProcessor:
         if not attachment:
             official_analysis = await self._official_summary_analysis(document)
             analysis = official_analysis or await self._title_analysis(document)
+            analysis = _tag_if_press(analysis, document)
             save_processing_result(
                 self.database_url, document_id, analysis, None, None, None, self.ttl_hours
             )
@@ -116,12 +123,14 @@ class SourceDocumentProcessor:
         except FileValidationError:
             mark_file_invalid(self.database_url, document_id, file_url)
             analysis = await self._official_summary_analysis(document) or await self._title_analysis(document)
+            analysis = _tag_if_press(analysis, document)
             save_processing_result(
                 self.database_url, document_id, analysis, None, None, None, self.ttl_hours
             )
             return
         except (OSError, RuntimeError, ValueError):
             analysis = await self._official_summary_analysis(document) or await self._title_analysis(document)
+            analysis = _tag_if_press(analysis, document)
             save_processing_result(
                 self.database_url, document_id, analysis, None, None, None, self.ttl_hours
             )
@@ -139,6 +148,7 @@ class SourceDocumentProcessor:
             )
         except ValueError:
             analysis = official_analysis or await self._title_analysis(document)
+        analysis = _tag_if_press(analysis, document)
         save_processing_result(
             self.database_url,
             document_id,
@@ -148,3 +158,4 @@ class SourceDocumentProcessor:
             path,
             self.ttl_hours,
         )
+

@@ -113,8 +113,97 @@
           "shortSummary": "합병의 공정성을 제고하고 소액주주 권익을 보호하기 위해 합병가액 산정방식을 개편하는 자본시장법 개정안 통과 보도자료입니다.",
           "keyTags": ["자본시장법", "합병가액", "주주보호"],
           "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.fsc.go.kr/no010101/87570"}
+        },
+        {
+          "id": "moef-20260823-1",
+          "title": "기재부, 2026년 하반기 거시경제 점검 및 역동경제 로드맵 실행계획 점검",
+          "institution": "기획재정부",
+          "publishedAt": "2026-08-23",
+          "contentTag": "보도자료",
+          "isNew": true,
+          "shortSummary": "기획재정부가 주재한 대외경제점검회의 결과 및 하반기 물가안정·수출 활력 제고를 위한 실행 과제 점검 보도자료입니다.",
+          "keyTags": ["거시경제", "역동경제", "물가안정"],
+          "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.moef.go.kr"}
+        },
+        {
+          "id": "molit-20260823-1",
+          "title": "국토부, 도심 주택공급 활성화 및 신도시 광역교통망 신속 구축방안 발표",
+          "institution": "국토교통부",
+          "publishedAt": "2026-08-23",
+          "contentTag": "보도자료",
+          "isNew": true,
+          "shortSummary": "국토교통부가 발표한 수도권 주요 도심 주택 공급 확대와 GTX 등 광역교통망 연계 신속 구축 지원 대책입니다.",
+          "keyTags": ["주택공급", "광역교통망", "GTX"],
+          "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.molit.go.kr"}
+        },
+        {
+          "id": "motie-20260823-1",
+          "title": "산업부, 첨단 반도체·이차전지 국가전략산업 초격차 투자지원 강화방안 발표",
+          "institution": "산업통상자원부",
+          "publishedAt": "2026-08-23",
+          "contentTag": "보도자료",
+          "isNew": true,
+          "shortSummary": "산업통상자원부가 주도하는 첨단전략산업 특화단지 인프라 구축 지원 및 글로벌 공급망 다변화 정책 추진계획입니다.",
+          "keyTags": ["반도체", "이차전지", "첨단전략산업"],
+          "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.motie.go.kr"}
+        },
+        {
+          "id": "msit-20260823-1",
+          "title": "과기정통부, 차세대 인공지능(AI) 혁신 거점 구축 및 국가 AI R&D 플래그십 프로젝트 착수",
+          "institution": "과학기술정보통신부",
+          "publishedAt": "2026-08-23",
+          "contentTag": "보도자료",
+          "isNew": true,
+          "shortSummary": "과학기술정보통신부의 국가 AI 컴퓨팅 인프라 확충 및 글로벌 최고 수준 AI 연구개발 지원 로드맵입니다.",
+          "keyTags": ["인공지능", "AI혁신", "국가R&D"],
+          "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.msit.go.kr"}
+        },
+        {
+          "id": "moel-20260823-1",
+          "title": "고용노동부, 청년 일자리 도약장려금 확대 및 현장 맞춤형 직업훈련 강화방안 발표",
+          "institution": "고용노동부",
+          "publishedAt": "2026-08-23",
+          "contentTag": "보도자료",
+          "isNew": true,
+          "shortSummary": "고용노동부의 청년 고용 취약계층 진입 지원 및 첨단산업 분야 맞춤형 인재 양성을 위한 종합 대책입니다.",
+          "keyTags": ["청년고용", "직업훈련", "일자리도약"],
+          "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.moel.go.kr"}
+        },
+        {
+          "id": "ftc-20260823-1",
+          "title": "공정위, 온라인 플랫폼 공정거래 질서 확립 및 소비자 기만행위 방지 종합대책",
+          "institution": "공정거래위원회",
+          "publishedAt": "2026-08-23",
+          "contentTag": "보도자료",
+          "isNew": true,
+          "shortSummary": "공정거래위원회의 대규모 온라인 플랫폼 내 다크패턴 근절 및 입점업체 상생 협력 가이드라인 안내입니다.",
+          "keyTags": ["공정거래", "플랫폼규제", "소비자보호"],
+          "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.ftc.go.kr"}
+        },
+        {
+          "id": "mss-20260823-1",
+          "title": "중기부, 2026년 하반기 딥테크 스타트업 펀드 조성 및 글로벌 진출 패키지 개시",
+          "institution": "중소벤처기업부",
+          "publishedAt": "2026-08-23",
+          "contentTag": "보도자료",
+          "isNew": true,
+          "shortSummary": "중소벤처기업부의 신산업 유망 스타트업 투자 확대 및 해외 벤처캐피털 연계 글로벌 스케일업 지원 사업입니다.",
+          "keyTags": ["딥테크", "스타트업", "벤처투자"],
+          "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.mss.go.kr"}
+        },
+        {
+          "id": "mohw-20260823-1",
+          "title": "복지부, 필수의료 지원체계 강화 및 지역 거점병원 첨단 의료장비 확충방안",
+          "institution": "보건복지부",
+          "publishedAt": "2026-08-23",
+          "contentTag": "보도자료",
+          "isNew": true,
+          "shortSummary": "보건복지부의 지역 완결형 필수의료 기반 마련 및 소아·응급의료 인프라 지원 강화 계획 보도자료입니다.",
+          "keyTags": ["필수의료", "지역의료", "보건복지"],
+          "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.mohw.go.kr"}
         }
       ],
+
 
 
       "economy": [
@@ -221,8 +310,97 @@
           "shortSummary": "합병의 공정성을 제고하고 소액주주 권익을 보호하기 위해 합병가액 산정방식을 개편하는 자본시장법 개정안 통과 보도자료입니다.",
           "keyTags": ["자본시장법", "합병가액", "주주보호"],
           "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.fsc.go.kr/no010101/87570"}
+        },
+        {
+          "id": "moef-20260823-1",
+          "title": "기재부, 2026년 하반기 거시경제 점검 및 역동경제 로드맵 실행계획 점검",
+          "institution": "기획재정부",
+          "publishedAt": "2026-08-23",
+          "contentTag": "보도자료",
+          "isNew": true,
+          "shortSummary": "기획재정부가 주재한 대외경제점검회의 결과 및 하반기 물가안정·수출 활력 제고를 위한 실행 과제 점검 보도자료입니다.",
+          "keyTags": ["거시경제", "역동경제", "물가안정"],
+          "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.moef.go.kr"}
+        },
+        {
+          "id": "molit-20260823-1",
+          "title": "국토부, 도심 주택공급 활성화 및 신도시 광역교통망 신속 구축방안 발표",
+          "institution": "국토교통부",
+          "publishedAt": "2026-08-23",
+          "contentTag": "보도자료",
+          "isNew": true,
+          "shortSummary": "국토교통부가 발표한 수도권 주요 도심 주택 공급 확대와 GTX 등 광역교통망 연계 신속 구축 지원 대책입니다.",
+          "keyTags": ["주택공급", "광역교통망", "GTX"],
+          "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.molit.go.kr"}
+        },
+        {
+          "id": "motie-20260823-1",
+          "title": "산업부, 첨단 반도체·이차전지 국가전략산업 초격차 투자지원 강화방안 발표",
+          "institution": "산업통상자원부",
+          "publishedAt": "2026-08-23",
+          "contentTag": "보도자료",
+          "isNew": true,
+          "shortSummary": "산업통상자원부가 주도하는 첨단전략산업 특화단지 인프라 구축 지원 및 글로벌 공급망 다변화 정책 추진계획입니다.",
+          "keyTags": ["반도체", "이차전지", "첨단전략산업"],
+          "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.motie.go.kr"}
+        },
+        {
+          "id": "msit-20260823-1",
+          "title": "과기정통부, 차세대 인공지능(AI) 혁신 거점 구축 및 국가 AI R&D 플래그십 프로젝트 착수",
+          "institution": "과학기술정보통신부",
+          "publishedAt": "2026-08-23",
+          "contentTag": "보도자료",
+          "isNew": true,
+          "shortSummary": "과학기술정보통신부의 국가 AI 컴퓨팅 인프라 확충 및 글로벌 최고 수준 AI 연구개발 지원 로드맵입니다.",
+          "keyTags": ["인공지능", "AI혁신", "국가R&D"],
+          "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.msit.go.kr"}
+        },
+        {
+          "id": "moel-20260823-1",
+          "title": "고용노동부, 청년 일자리 도약장려금 확대 및 현장 맞춤형 직업훈련 강화방안 발표",
+          "institution": "고용노동부",
+          "publishedAt": "2026-08-23",
+          "contentTag": "보도자료",
+          "isNew": true,
+          "shortSummary": "고용노동부의 청년 고용 취약계층 진입 지원 및 첨단산업 분야 맞춤형 인재 양성을 위한 종합 대책입니다.",
+          "keyTags": ["청년고용", "직업훈련", "일자리도약"],
+          "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.moel.go.kr"}
+        },
+        {
+          "id": "ftc-20260823-1",
+          "title": "공정위, 온라인 플랫폼 공정거래 질서 확립 및 소비자 기만행위 방지 종합대책",
+          "institution": "공정거래위원회",
+          "publishedAt": "2026-08-23",
+          "contentTag": "보도자료",
+          "isNew": true,
+          "shortSummary": "공정거래위원회의 대규모 온라인 플랫폼 내 다크패턴 근절 및 입점업체 상생 협력 가이드라인 안내입니다.",
+          "keyTags": ["공정거래", "플랫폼규제", "소비자보호"],
+          "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.ftc.go.kr"}
+        },
+        {
+          "id": "mss-20260823-1",
+          "title": "중기부, 2026년 하반기 딥테크 스타트업 펀드 조성 및 글로벌 진출 패키지 개시",
+          "institution": "중소벤처기업부",
+          "publishedAt": "2026-08-23",
+          "contentTag": "보도자료",
+          "isNew": true,
+          "shortSummary": "중소벤처기업부의 신산업 유망 스타트업 투자 확대 및 해외 벤처캐피털 연계 글로벌 스케일업 지원 사업입니다.",
+          "keyTags": ["딥테크", "스타트업", "벤처투자"],
+          "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.mss.go.kr"}
+        },
+        {
+          "id": "mohw-20260823-1",
+          "title": "복지부, 필수의료 지원체계 강화 및 지역 거점병원 첨단 의료장비 확충방안",
+          "institution": "보건복지부",
+          "publishedAt": "2026-08-23",
+          "contentTag": "보도자료",
+          "isNew": true,
+          "shortSummary": "보건복지부의 지역 완결형 필수의료 기반 마련 및 소아·응급의료 인프라 지원 강화 계획 보도자료입니다.",
+          "keyTags": ["필수의료", "지역의료", "보건복지"],
+          "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.mohw.go.kr"}
         }
       ],
+
 
 
       "economy": [{"id": "kdi-19217", "title": "유통시장의 환경 변화와 경제적 영향에 관한 연구", "institution": "한국개발연구원", "publishedAt": "2026-08-21", "contentTag": "경제 전망", "isNew": true, "shortSummary": "유통시장 변화가 경제와 소비자 후생에 미치는 영향을 분석한 한국개발연구원 연구보고서입니다.", "keyTags": ["유통시장", "시장구조", "소비자 후생"], "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.kdi.re.kr/research/reportView?pub_no=19217"}}],

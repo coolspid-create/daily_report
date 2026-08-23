@@ -1,0 +1,23 @@
+id: moef-press
+name: 기획재정부 보도자료
+adapter: static_board
+implementation: report_collector.adapters.sources.ministry_press.adapter:MinistryPressAdapter
+homepage_url: https://www.moef.go.kr
+list_url: https://www.moef.go.kr/nw/nes/nesdta.do?bbsId=MOSFBBS_000000000028&menuNo=4010100
+rights_default: LINK_ONLY
+content_type: PRESS_RELEASE
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 180
+max_retries: 2
+active: true
+selectors:
+  list_item: tbody tr
+  title: td.tit a
+  detail_link: td.tit a
+filters:
+  allowed_extensions: [pdf, hwpx, hwp]
+  exclude_title_keywords: [채용, 입찰, 행사, 공고, 동정, 포토, 인사]
+  max_age_days: 1
+  max_items_per_run: 20
