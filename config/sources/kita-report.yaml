@@ -1,0 +1,22 @@
+id: kita-report
+name: 한국무역협회 KITA 리포트
+adapter: static_board
+implementation: report_collector.adapters.sources.kita.adapter:KitaReportAdapter
+homepage_url: https://www.kita.net/researchTrade/report/reportMain/reportMainList.do
+list_url: https://www.kita.net/researchTrade/report/reportMain/reportMainList.do
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 180
+max_retries: 2
+active: true
+selectors:
+  list_item: ul.board-list-gallery li
+  title: .subject a
+  detail_link: .subject a
+filters:
+  allowed_extensions: [pdf]
+  exclude_title_keywords: [보도자료, 채용, 입찰, 행사, 공고]
+  max_age_days: 7
+  max_items_per_run: 20

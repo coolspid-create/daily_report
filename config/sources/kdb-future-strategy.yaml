@@ -1,0 +1,27 @@
+id: kdb-future-strategy
+name: KDB미래전략연구소
+adapter: rendered_board
+implementation: report_collector.adapters.sources.kdb.adapter:KdbFutureStrategyAdapter
+homepage_url: https://rd.kdb.co.kr/FLMNMN00N01.act
+list_url: https://rd.kdb.co.kr/FLSRIA02N01.act
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 180
+max_retries: 2
+active: true
+selectors:
+  list_item: '#tableList tbody tr'
+  title: td.al a.links
+  detail_link: td.al a.links
+  published_at: td
+detail: {}
+filters:
+  allowed_extensions: [pdf]
+  exclude_title_keywords: [보도자료, 채용, 입찰, 행사, 공고]
+  max_age_days: 7
+  max_items_per_run: 20
+browser:
+  wait_for: '#tableList tbody tr'
+  timeout_ms: 30000

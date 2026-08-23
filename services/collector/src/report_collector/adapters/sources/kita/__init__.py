@@ -1,0 +1,1 @@
+"""KITA public report adapter."""

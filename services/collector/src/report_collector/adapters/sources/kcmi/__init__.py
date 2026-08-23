@@ -1,0 +1,1 @@
+"""KCMI public report adapter."""

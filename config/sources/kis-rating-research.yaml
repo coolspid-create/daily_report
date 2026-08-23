@@ -1,0 +1,22 @@
+id: kis-rating-research
+name: 한국신용평가
+adapter: static_board
+homepage_url: https://www.kisrating.com
+list_url: https://www.kisrating.com
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 180
+max_retries: 2
+# 공개 화면의 파일 링크가 스크립트 인자에만 있어 일반 링크로 검증되기 전까지 비활성화합니다.
+active: false
+selectors:
+  list_item: .research li
+  title: a
+  detail_link: a
+filters:
+  allowed_extensions: [pdf]
+  exclude_title_keywords: [보도자료, 채용, 입찰, 행사, 공고]
+  max_age_days: 7
+  max_items_per_run: 20

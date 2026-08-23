@@ -1,0 +1,1 @@
+"""KCIF public report adapter."""

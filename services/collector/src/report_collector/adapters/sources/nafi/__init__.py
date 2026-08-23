@@ -1,0 +1,1 @@
+"""NAFI public research adapter."""
