@@ -5,6 +5,26 @@ from playwright.async_api import Browser, BrowserContext, Page, Playwright, Rout
 from report_collector.providers.http.url_policy import ensure_public_url
 
 
+class PlaywrightBrowserSession:
+    def __init__(self, context: BrowserContext, page: Page) -> None:
+        self.context = context
+        self.page = page
+
+    async def render(
+        self, url: str, wait_for: str | None, timeout_ms: int, referer: str | None = None
+    ) -> str:
+        await ensure_public_url(url)
+        await self.page.goto(
+            url, wait_until="domcontentloaded", timeout=timeout_ms, referer=referer
+        )
+        if wait_for:
+            await self.page.wait_for_selector(wait_for, timeout=timeout_ms)
+        return await self.page.content()
+
+    async def close(self) -> None:
+        await self.context.close()
+
+
 class PlaywrightBrowserRenderer:
     def __init__(self, delay_ms: int = 1200) -> None:
         self.delay_seconds = delay_ms / 1000
@@ -36,24 +56,17 @@ class PlaywrightBrowserRenderer:
         context = await self._browser.new_context()
         return context, await context.new_page()
 
-    async def render(self, url: str, wait_for: str | None, timeout_ms: int) -> str:
-        await ensure_public_url(url)
+    async def open_session(self) -> PlaywrightBrowserSession:
         context, page = await self._new_page()
-        try:
-            async def guard(route: Route) -> None:
-                try:
-                    await ensure_public_url(route.request.url)
-                    await route.continue_()
-                except Exception:
-                    await route.abort()
+        await page.route("**/*", _public_request_guard)
+        return PlaywrightBrowserSession(context, page)
 
-            await page.route("**/*", guard)
-            await page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
-            if wait_for:
-                await page.wait_for_selector(wait_for, timeout=timeout_ms)
-            return await page.content()
+    async def render(self, url: str, wait_for: str | None, timeout_ms: int) -> str:
+        session = await self.open_session()
+        try:
+            return await session.render(url, wait_for, timeout_ms)
         finally:
-            await context.close()
+            await session.close()
             await asyncio.sleep(self.delay_seconds)
 
     async def submit_form(
@@ -71,14 +84,7 @@ class PlaywrightBrowserRenderer:
         context, page = await self._new_page()
         try:
 
-            async def guard(route: Route) -> None:
-                try:
-                    await ensure_public_url(route.request.url)
-                    await route.continue_()
-                except Exception:
-                    await route.abort()
-
-            await page.route("**/*", guard)
+            await page.route("**/*", _public_request_guard)
             await page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
             form = page.locator(form_selector)
             for name, value in fields.items():
@@ -94,3 +100,11 @@ class PlaywrightBrowserRenderer:
         finally:
             await context.close()
             await asyncio.sleep(self.delay_seconds)
+
+
+async def _public_request_guard(route: Route) -> None:
+    try:
+        await ensure_public_url(route.request.url)
+        await route.continue_()
+    except Exception:
+        await route.abort()

@@ -29,26 +29,31 @@ async def collect_source(
     discovered = 0
     failed = 0
     newest_key: str | None = None
-    async for item in adapter.discover(cursor):
-        if item.published_at is not None and not _within_publication_window(
-            item.published_at, oldest_published_at, latest_published_at
-        ):
-            continue
-        if max_items is not None and discovered >= max_items:
-            break
-        try:
-            document = await adapter.fetch_detail(item)
-            if not _within_publication_window(
-                document.published_at, oldest_published_at, latest_published_at
+    try:
+        async for item in adapter.discover(cursor):
+            if item.published_at is not None and not _within_publication_window(
+                item.published_at, oldest_published_at, latest_published_at
             ):
                 continue
-            newest_key = newest_key or item.source_item_key
-            discovered += 1
-            document_id = repository.save_document(source_id, document)
-            if document_id and after_save:
-                await after_save(document_id, document)
-        except Exception:
-            failed += 1
+            if max_items is not None and discovered >= max_items:
+                break
+            try:
+                document = await adapter.fetch_detail(item)
+                if not _within_publication_window(
+                    document.published_at, oldest_published_at, latest_published_at
+                ):
+                    continue
+                newest_key = newest_key or item.source_item_key
+                discovered += 1
+                document_id = repository.save_document(source_id, document)
+                if document_id and after_save:
+                    await after_save(document_id, document)
+            except Exception:
+                failed += 1
+    finally:
+        closer = getattr(adapter, "close", None)
+        if callable(closer):
+            await closer()
     repository.finish_run(source_id, newest_key or cursor, discovered, failed)
     return CollectionResult(source_id, discovered, failed, newest_key or cursor)
 

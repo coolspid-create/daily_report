@@ -87,9 +87,7 @@ export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: Publ
       ) : (
         <ReportList reports={reports} topicLabel={topicLabel} viewMode={viewMode} />
       )}
-      <footer className="site-footer">
-        원문 및 PDF 저작권은 각 발행기관의 공식 정책을 따릅니다. · SWISS INTERNATIONAL TYPOGRAPHIC SYSTEM
-      </footer>
+      <footer className="site-footer">원문 및 PDF 저작권은 각 발행기관의 공식 정책을 따릅니다.</footer>
     </main>
   );
 }

@@ -70,4 +70,26 @@ describe("public feed", () => {
     expect(window.location.search).toBe("?date=2026-08-20");
     vi.unstubAllGlobals();
   });
+
+  it("shows an empty-state topic label without a stray character", () => {
+    const source = rawSnapshots["1d"];
+    const emptyArchive = {
+      ...archive(),
+      snapshot: validatePublicSnapshot({
+        ...source,
+        topics: rawSnapshots["1d"].topics.map((topic) =>
+          topic.id === "economy" ? { ...topic, count: 0 } : topic,
+        ),
+        reportsByTopic: { ...source.reportsByTopic, economy: [] },
+      }),
+    };
+    render(
+      <PublicFeed
+        archive={emptyArchive}
+        fallbackSnapshot={emptyArchive.snapshot}
+        initialSelection={{ topic: "economy", archiveDate: null, topicFromQuery: false }}
+      />,
+    );
+    expect(screen.getByText("최근 7일 발행본에 경제·금융 자료가 없습니다.")).toBeVisible();
+  });
 });

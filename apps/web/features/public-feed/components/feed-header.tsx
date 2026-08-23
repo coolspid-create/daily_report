@@ -19,11 +19,8 @@ export function FeedHeader({ generatedAt }: FeedHeaderProps) {
   return (
     <header className="feed-header">
       <div className="feed-header-left">
-        <p className="eyebrow">SWISS INDEX · DAILY PUBLIC REPORT</p>
         <h1>오늘의 공공리포트</h1>
-        <p className="subtitle">
-          정부·국회·공공 연구기관의 핵심 보고서를 선별하여 인덱스 형태로 신속하게 제공합니다.
-        </p>
+        <p className="subtitle">정부·국회·공공 연구기관의 핵심 보고서를 수집하여 제공합니다.</p>
       </div>
       <div className="feed-header-right">
         <time className="updated-at" dateTime={generatedAt}>

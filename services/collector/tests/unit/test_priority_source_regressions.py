@@ -25,6 +25,25 @@ class FixtureBrowser:
         return self.pages[url]
 
 
+class SessionFixtureBrowser(FixtureBrowser):
+    def __init__(self, pages: dict[str, str]) -> None:
+        super().__init__(pages)
+        self.requests: list[tuple[str, str | None]] = []
+        self.closed = False
+
+    async def open_session(self) -> "SessionFixtureBrowser":
+        return self
+
+    async def render(
+        self, url: str, wait_for: str | None, timeout_ms: int, referer: str | None = None
+    ) -> str:
+        self.requests.append((url, referer))
+        return self.pages[url]
+
+    async def close(self) -> None:
+        self.closed = True
+
+
 def fixture(fixture_root: Path, name: str) -> str:
     return (fixture_root / f"html/{name}.html").read_text(encoding="utf-8")
 
@@ -172,3 +191,19 @@ async def test_kif_rendered_boards(
     assert bool(detail.attachments) is has_file
     if has_file:
         assert "viewer?mid=20&vid=0&cno=3101" in str(detail.attachments[0].url)
+
+
+@pytest.mark.asyncio
+async def test_kif_keeps_the_list_session_for_detail_pages(fixture_root: Path) -> None:
+    config = load_source_config(Path("config/sources/kif-financial-brief.yaml"))
+    list_html = fixture(fixture_root, "kif-financial-brief-list")
+    browser = SessionFixtureBrowser({str(config.list_url): list_html})
+    adapter = KifRenderedAdapter(config, FixtureHttp({}), browser)  # type: ignore[arg-type]
+    async for item in adapter.discover(None):
+        browser.pages[str(item.detail_url)] = fixture(fixture_root, "kif-financial-brief-detail")
+        detail = await adapter.fetch_detail(item)
+        break
+    await adapter.close()
+    assert detail.attachments
+    assert browser.requests[1] == (str(item.detail_url), str(config.list_url))
+    assert browser.closed

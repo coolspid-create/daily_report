@@ -43,8 +43,13 @@
   cursor: pointer;
 }
 
-.admin-shell button:hover:not(:disabled),
-.admin-shell button[aria-pressed="true"] {
+.admin-shell button:hover:not(:disabled) {
+  border-color: var(--color-text);
+  background: var(--color-text);
+  color: #fff;
+}
+
+.admin-shell .admin-header nav button[aria-pressed="true"] {
   border-color: var(--color-text);
   background: var(--color-text);
   color: #fff;
@@ -113,6 +118,8 @@
 .admin-shell .review-list-item small { color: var(--color-text-secondary); }
 .admin-shell .review-list-item[aria-pressed="true"] { border-left: 4px solid var(--color-accent); color: var(--color-text); background: #fff0e8; }
 .admin-shell .review-list-item[aria-pressed="true"] strong { color: var(--color-text); }
+.admin-shell .review-list-item[aria-pressed="true"] small { color: var(--color-text-secondary); }
+.admin-shell .review-list-item[aria-pressed="true"] .badge { color: var(--color-accent-strong); }
 .admin-shell .badge { width: fit-content; padding: 3px 7px; color: var(--color-accent-strong); background: var(--color-accent-soft); font-size: .72rem; font-weight: 800; letter-spacing: .04em; }
 
 .admin-shell .review-editor { display: grid; align-content: start; gap: 14px; max-height: 760px; overflow: auto; padding: 24px; }

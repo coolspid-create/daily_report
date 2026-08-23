@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from pydantic import HttpUrl
 from report_collector.domain.enums import RightsStatus
-from report_collector.domain.models import Attachment, SourceDocument
+from report_collector.domain.models import AnalysisResult, Attachment, SourceDocument
 from report_collector.pipelines import process_source_document as process_module
 from report_collector.pipelines.process_source_document import SourceDocumentProcessor
 from report_collector.providers.http.http_client import DownloadedFile
@@ -29,6 +29,22 @@ class RetryingFixtureHttp(FixtureHttp):
         if self.calls == 1:
             raise OSError("temporary download failure")
         return await super().fetch(url, max_bytes)
+
+
+class PdfEvidenceFailureSummarizer:
+    async def summarize(self, request: object) -> AnalysisResult:
+        if getattr(request, "page_count", None):
+            raise ValueError("evidence page exceeds document page count")
+        return AnalysisResult(
+            why_it_matters="공식 상세페이지의 요약을 바탕으로 핵심 쟁점을 정리했습니다.",
+            summary_kind="ANALYZED",
+            key_points=["일본 코스닥시장 세그먼트 개편 사례를 분석합니다."],
+            key_tags=["코스닥", "세그먼트"],
+            topic_candidates=["economy"],
+            content_tag="공식 본문 분석",
+            confidence=0.82,
+            evidence_pages=[],
+        )
 
 
 @pytest.mark.asyncio
@@ -125,3 +141,36 @@ async def test_public_html_summary_is_analyzed_without_a_pdf(
     await processor.process("document-id", document)
     assert saved[0][2].summary_kind == "ANALYZED"
     assert "푸드테크" in saved[0][2].why_it_matters
+
+
+@pytest.mark.asyncio
+async def test_pdf_evidence_failure_falls_back_to_official_summary(
+    fixture_root: Path,
+    contract_root: Path,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    saved: list[tuple] = []
+    content = b64decode((fixture_root / "pdf/valid.pdf.b64").read_text(encoding="ascii"))
+    schema = json.loads((contract_root / "analysis-result.schema.json").read_text())
+    processor = SourceDocumentProcessor(
+        "postgresql://fixture", FixtureHttp(content), tmp_path, 2_000_000, 48, schema  # type: ignore[arg-type]
+    )
+    processor.summarizer = PdfEvidenceFailureSummarizer()  # type: ignore[assignment]
+    document = SourceDocument(
+        source_item_key="kif-1",
+        title="코스닥시장 세그먼트 개편",
+        institution="한국금융연구원",
+        detail_url=HttpUrl("https://example.com/report/3"),
+        official_summary="일본의 시장구분 재편 사례와 국내 코스닥시장에 주는 시사점을 분석합니다.",
+        attachments=[Attachment(
+            url=HttpUrl("https://example.com/report.pdf"),
+            file_name="report.pdf",
+            declared_type="application/pdf",
+        )],
+        rights_status=RightsStatus.LINK_ONLY,
+    )
+    monkeypatch.setattr(process_module, "save_processing_result", lambda *args: saved.append(args))
+    await processor.process("document-id", document)
+    assert saved[0][2].summary_kind == "ANALYZED"
+    assert saved[0][2].content_tag == "공식 본문 분석"

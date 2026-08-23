@@ -34,8 +34,11 @@ class KifRenderedAdapter(SourceAdapter):
             raise ValueError("KIF adapter requires a browser renderer")
         self.config = config
         self.browser = browser
+        self._session = None
 
-    async def _render(self, url: str, wait_for: str | None) -> str:
+    async def _render(self, url: str, wait_for: str | None, referer: str | None = None) -> str:
+        if self._session is not None:
+            return await self._session.render(url, wait_for, self.config.browser.timeout_ms, referer)
         return await self.browser.render(url, wait_for, self.config.browser.timeout_ms)
 
     def _parse_list(self, html: str) -> list[DiscoveredItem]:
@@ -62,14 +65,21 @@ class KifRenderedAdapter(SourceAdapter):
         return results
 
     async def discover(self, cursor: str | None) -> AsyncIterator[DiscoveredItem]:
-        html = await self._render(str(self.config.list_url), self.config.browser.wait_for)
-        for item in self._parse_list(html):
-            if item.source_item_key == cursor:
-                break
-            yield item
+        opener = getattr(self.browser, "open_session", None)
+        self._session = await opener() if callable(opener) else None
+        try:
+            html = await self._render(str(self.config.list_url), self.config.browser.wait_for)
+            for item in self._parse_list(html):
+                if item.source_item_key == cursor:
+                    break
+                yield item
+        finally:
+            if self._session is not None:
+                await self._session.close()
+                self._session = None
 
     async def fetch_detail(self, item: DiscoveredItem) -> SourceDocument:
-        html = await self._render(str(item.detail_url), ".info_detail")
+        html = await self._render(str(item.detail_url), ".info_detail", str(self.config.list_url))
         soup = BeautifulSoup(html, "html.parser")
         detail = soup.select_one(f"#detail_{item.source_item_key}.info_detail")
         if detail is None:
@@ -85,6 +95,11 @@ class KifRenderedAdapter(SourceAdapter):
             official_summary=_text(summary),
             rights_status=self.config.rights_default,
         )
+
+    async def close(self) -> None:
+        if self._session is not None:
+            await self._session.close()
+            self._session = None
 
     async def health_check(self) -> SourceHealthResult:
         try:

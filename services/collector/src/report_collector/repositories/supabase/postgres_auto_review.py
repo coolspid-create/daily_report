@@ -46,7 +46,7 @@ def load_auto_review_candidates(
     where d.workflow_status in ('NEW','NEEDS_REVIEW')
       and coalesce(seen.first_seen_at,d.created_at) between %s and %s
       and d.published_at between %s and %s
-      and (%s is null or exists(
+      and (%s::text is null or exists(
         select 1 from public.document_sources filtered_ds
         join public.sources filtered_source on filtered_source.id=filtered_ds.source_id
         where filtered_ds.document_id=d.id and filtered_source.slug=%s

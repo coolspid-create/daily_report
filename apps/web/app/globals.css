@@ -77,8 +77,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   padding: 40px 0 80px;
 }
 
-/* ==========================================================================
-   Swiss Architectural Masthead (Header)
+/* ===========================================================================
+   Public Feed Masthead
    ========================================================================== */
 .feed-header {
   display: flex;
@@ -92,16 +92,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .feed-header-left {
   display: grid;
   gap: 8px;
-}
-
-.eyebrow {
-  margin: 0;
-  font-family: var(--font-body);
-  color: var(--color-accent);
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 
 /* 히어로 메인 타이틀: Paperlogy-8ExtraBold 유지 */
@@ -333,8 +323,8 @@ h1 {
   border-color: var(--color-accent);
 }
 
-/* ==========================================================================
-   Swiss Index List View (Default View)
+/* ===========================================================================
+   Index List View (Default View)
    ========================================================================== */
 .report-list.view-list {
   display: flex;
@@ -375,9 +365,8 @@ h1 {
 }
 
 .index-inst-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  display: inline-block;
+  max-width: 100%;
   font-family: var(--font-body);
   font-size: 0.8rem;
   font-weight: 700;
@@ -385,9 +374,10 @@ h1 {
   background: var(--color-surface-subtle);
   padding: 4px 8px;
   border-radius: var(--radius-sm);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: keep-all;
+  line-height: 1.25;
   letter-spacing: -0.01em;
 }
 
@@ -556,8 +546,8 @@ h1 {
   letter-spacing: -0.01em;
 }
 
-/* ==========================================================================
-   Swiss 2-Column Grid View (Grid View)
+/* ===========================================================================
+   Two-Column Grid View
    ========================================================================== */
 .report-list.view-grid {
   display: grid;

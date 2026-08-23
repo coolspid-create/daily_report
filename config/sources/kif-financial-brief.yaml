@@ -1,5 +1,6 @@
 id: kif-financial-brief
 name: 한국금융연구원 금융브리프
+active: false
 adapter: rendered_board
 implementation: report_collector.adapters.sources.kif.adapter:KifRenderedAdapter
 homepage_url: https://www.kif.re.kr

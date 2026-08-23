@@ -57,12 +57,14 @@ def main() -> None:
     load_repository_environment(root)
     arguments = parser().parse_args()
     if arguments.command == "collect":
-        collect_command(
-            arguments.source,
-            arguments.all_active,
-            arguments.config_root,
-            root / "contracts/source-config.schema.json",
-            arguments.refresh_recent,
+        raise SystemExit(
+            collect_command(
+                arguments.source,
+                arguments.all_active,
+                arguments.config_root,
+                root / "contracts/source-config.schema.json",
+                arguments.refresh_recent,
+            )
         )
     elif arguments.command == "build-snapshot":
         snapshot_command(

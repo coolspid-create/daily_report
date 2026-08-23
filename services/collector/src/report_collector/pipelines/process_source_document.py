@@ -126,15 +126,18 @@ class SourceDocumentProcessor:
                 self.database_url, document_id, analysis, None, None, None, self.ttl_hours
             )
             return
-        analysis = await self.summarizer.summarize(
-            AnalysisRequest(
-                title=document.title,
-                institution=document.institution,
-                text=extracted.text,
-                page_count=extracted.page_count,
-            )
-        )
         official_analysis = await self._official_summary_analysis(document)
+        try:
+            analysis = await self.summarizer.summarize(
+                AnalysisRequest(
+                    title=document.title,
+                    institution=document.institution,
+                    text=extracted.text,
+                    page_count=extracted.page_count,
+                )
+            )
+        except ValueError:
+            analysis = official_analysis or await self._title_analysis(document)
         if analysis.summary_kind == "UNAVAILABLE" and official_analysis is not None:
             analysis = official_analysis
         save_processing_result(
