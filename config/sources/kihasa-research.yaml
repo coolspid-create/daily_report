@@ -1,6 +1,7 @@
 id: kihasa-research
 name: 한국보건사회연구원
 adapter: rendered_board
+implementation: report_collector.adapters.sources.kihasa.adapter:KihasaAdapter
 homepage_url: https://www.kihasa.re.kr
 list_url: https://www.kihasa.re.kr/publish/report/list?type=research
 rights_default: LINK_ONLY
@@ -23,3 +24,4 @@ filters:
   exclude_title_keywords: [채용, 입찰, 행사, 공고]
   max_age_days: 7
   max_items_per_run: 20
+

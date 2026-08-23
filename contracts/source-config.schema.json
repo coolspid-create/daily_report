@@ -19,6 +19,8 @@
     "max_retries": {"type": "integer", "minimum": 0, "maximum": 5},
     "active": {"type": "boolean"},
     "implementation": {"type": "string", "pattern": "^report_collector\\.adapters\\.sources\\.[a-z0-9_]+\\.[a-z0-9_]+:[A-Za-z][A-Za-z0-9]+$"},
+    "detail_url_template": {"type": "string", "pattern": "^https://.*\\{key\\}.*$"},
+    "source_item_key_pattern": {"type": "string", "minLength": 1},
     "selectors": {"$ref": "#/$defs/selectors"},
     "detail": {"$ref": "#/$defs/detail"},
     "filters": {"$ref": "#/$defs/filters"},

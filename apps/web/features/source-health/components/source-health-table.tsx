@@ -17,8 +17,18 @@ export function SourceHealthTable({ sources, onChanged }: SourceHealthTableProps
       <div role="table" aria-label="활성 출처 상태">
       {activeSources.map((source) => (
         <div className="source-row" role="row" key={source.id}>
-          <strong>{source.name}</strong><span className="badge">{source.status}</span>
-          <span>연속 실패 {source.consecutiveFailures}회</span><span>{source.lastSuccessAt ?? "성공 기록 없음"}</span>
+          <div className="source-name-cell">
+            <strong>{source.name}</strong>
+            {source.reasonCategory ? <span className="reason-tag">{source.reasonCategory}</span> : null}
+            {source.lastErrorMessage ? (
+              <span className="source-error-hint" title={`최근 오류: ${source.lastErrorMessage}`}>
+                ⚠ {source.lastErrorMessage}
+              </span>
+            ) : null}
+          </div>
+          <span className="badge">{source.status}</span>
+          <span>연속 실패 {source.consecutiveFailures}회</span>
+          <span>{source.lastSuccessAt ?? "성공 기록 없음"}</span>
           <button type="button" onClick={() => toggle(source)}>{source.active ? "비활성화" : "활성화"}</button>
         </div>
       ))}
@@ -29,8 +39,18 @@ export function SourceHealthTable({ sources, onChanged }: SourceHealthTableProps
           <div role="table" aria-label="비활성 출처 상태">
             {inactiveSources.map((source) => (
               <div className="source-row" role="row" key={source.id}>
-                <strong>{source.name}</strong><span className="badge">{source.status}</span>
-                <span>연속 실패 {source.consecutiveFailures}회</span><span>{source.lastSuccessAt ?? "성공 기록 없음"}</span>
+                <div className="source-name-cell">
+                  <strong>{source.name}</strong>
+                  {source.reasonCategory ? <span className="reason-tag">{source.reasonCategory}</span> : null}
+                  {source.lastErrorMessage ? (
+                    <span className="source-error-hint" title={`최근 오류: ${source.lastErrorMessage}`}>
+                      ⚠ {source.lastErrorMessage}
+                    </span>
+                  ) : null}
+                </div>
+                <span className="badge">{source.status}</span>
+                <span>연속 실패 {source.consecutiveFailures}회</span>
+                <span>{source.lastSuccessAt ?? "성공 기록 없음"}</span>
                 <button type="button" onClick={() => toggle(source)}>활성화</button>
               </div>
             ))}
@@ -39,4 +59,5 @@ export function SourceHealthTable({ sources, onChanged }: SourceHealthTableProps
       ) : null}
     </section>
   );
+
 }

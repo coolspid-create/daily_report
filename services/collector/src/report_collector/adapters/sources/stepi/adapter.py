@@ -72,20 +72,35 @@ class StepiAdapter(SourceAdapter):
 
 
 def _item(node: Tag, config: SourceConfig) -> DiscoveredItem | None:
-    link = node.select_one("a[href*='reportView']")
-    href = link.get("href") if link else None
-    match = REPORT_PATTERN.search(href) if isinstance(href, str) else None
-    if not link or not match:
+    link = (
+        node.select_one("a[href*='reportView']")
+        or node.select_one("a[onclick*='reportView']")
+        or node.select_one("a[href*='reIdx']")
+    )
+    if not link:
         return None
+    href = str(link.get("href", "")) + " " + str(link.get("onclick", ""))
+    match = REPORT_PATTERN.search(href)
     title = link.get_text(" ", strip=True)
     if not title or not title_allowed(title, config.filters):
         return None
+
+    if match:
+        category, report_id = match.group(2), match.group(1)
+        detail_url = DETAIL_URL.format(category=category, report_id=report_id)
+        item_key = report_id
+    else:
+        re_idx_match = re.search(r"reIdx=(\d+)", href)
+        item_key = re_idx_match.group(1) if re_idx_match else str(hash(title))
+        detail_url = str(link.get("href", str(config.list_url)))
+
     return DiscoveredItem(
-        source_item_key=match.group(1),
+        source_item_key=item_key,
         title=title,
-        detail_url=HttpUrl(DETAIL_URL.format(category=match.group(2), report_id=match.group(1))),
+        detail_url=HttpUrl(detail_url),
         published_at=_date(node.get_text(" ", strip=True)),
     )
+
 
 
 def _date(value: str) -> date | None:

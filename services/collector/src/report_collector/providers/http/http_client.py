@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from dataclasses import dataclass
 from urllib.parse import urljoin
 
@@ -62,4 +63,17 @@ class PublicHttpClient:
 
     async def fetch_text(self, url: str) -> str:
         result = await self.fetch(url)
-        return result.content.decode("utf-8", errors="replace")
+        return _decode_text(result.content, result.content_type)
+
+
+def _decode_text(content: bytes, content_type: str) -> str:
+    """Decode public Korean pages using their declared charset when available."""
+    match = re.search(r"charset=([\w-]+)", content_type, flags=re.IGNORECASE)
+    encodings = [match.group(1)] if match else []
+    encodings.extend(["utf-8", "euc-kr", "cp949"])
+    for encoding in dict.fromkeys(encodings):
+        try:
+            return content.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    return content.decode("utf-8", errors="replace")

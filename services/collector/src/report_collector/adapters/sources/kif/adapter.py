@@ -79,11 +79,14 @@ class KifRenderedAdapter(SourceAdapter):
                 self._session = None
 
     async def fetch_detail(self, item: DiscoveredItem) -> SourceDocument:
-        html = await self._render(str(item.detail_url), ".info_detail", str(self.config.list_url))
+        try:
+            html = await self._render(str(item.detail_url), ".info_detail", str(self.config.list_url))
+        except Exception:
+            html = await self._render(str(item.detail_url), "body", str(self.config.list_url))
         soup = BeautifulSoup(html, "html.parser")
         detail = soup.select_one(f"#detail_{item.source_item_key}.info_detail")
         if detail is None:
-            detail = soup.select_one(f"#info_{item.source_item_key} .info_detail")
+            detail = soup.select_one(f"#info_{item.source_item_key} .info_detail") or soup.select_one(".info_detail, #maincontent")
         summary = detail.select_one(".tab_content.current, .summary, .info_summary") if detail else None
         return SourceDocument(
             source_item_key=item.source_item_key,
@@ -95,6 +98,7 @@ class KifRenderedAdapter(SourceAdapter):
             official_summary=_text(summary),
             rights_status=self.config.rights_default,
         )
+
 
     async def close(self) -> None:
         if self._session is not None:

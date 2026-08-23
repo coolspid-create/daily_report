@@ -10,7 +10,7 @@ request_delay_ms: 1500
 timeout_seconds: 30
 run_timeout_seconds: 300
 max_retries: 2
-active: false
+active: true
 selectors:
   list_item: .board-list-wrap > ul > li
   title: .subject a[href*="/no"]
@@ -19,5 +19,5 @@ selectors:
 filters:
   allowed_extensions: [pdf]
   exclude_title_keywords: [채용, 입찰, 행사, 공고]
-  max_age_days: 7
+  max_age_days: 1
   max_items_per_run: 20

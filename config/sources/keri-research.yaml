@@ -1,0 +1,26 @@
+id: keri-research
+name: 한국경제연구원 KERI 연구자료
+adapter: static_board
+implementation: report_collector.adapters.sources.public_research.adapter:PublicResearchAdapter
+homepage_url: https://www.keri.org/keri/main.do
+list_url: https://www.keri.org/keri/publication/research.do
+detail_url_template: https://www.keri.org/keri/publication/research_detail.do?category=RE&bbs_id={key}&lang=kr
+source_item_key_pattern: "detailNT\\('([0-9]+)'\\)"
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 180
+max_retries: 2
+active: true
+selectors:
+  list_item: .list_item:has(.item_name)
+  title: .item_name
+  detail_link: .item_name
+detail:
+  attachments: a[href*='fileDown']
+  summary: .view-content, .board-view, article
+filters:
+  exclude_title_keywords: [보도자료, 채용, 입찰, 행사, 공고]
+  max_age_days: 7
+  max_items_per_run: 20

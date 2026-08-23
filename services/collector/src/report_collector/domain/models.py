@@ -63,6 +63,8 @@ class SourceConfig(BaseModel):
     max_retries: int = Field(default=2, ge=0, le=5)
     active: bool = True
     implementation: str | None = None
+    detail_url_template: str | None = None
+    source_item_key_pattern: str | None = None
     selectors: SelectorConfig | None = None
     detail: DetailConfig = Field(default_factory=DetailConfig)
     filters: FilterConfig = Field(default_factory=FilterConfig)

@@ -9,6 +9,7 @@ import type { PublicArchive, PublicFeedSnapshot } from "../types/public-feed";
 import { ArchiveSelector } from "./archive-selector";
 import { FeedHeader } from "./feed-header";
 import { FeedSummary, type ViewMode } from "./feed-summary";
+import { PressReleaseSection } from "./press-release-section";
 import { ReportList } from "./report-list";
 import { TopicSelector } from "./topic-selector";
 
@@ -34,6 +35,12 @@ export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: Publ
     : archive.snapshot ?? fallbackSnapshot;
 
   const reports = snapshot ? filterFeed(snapshot, selection.topic) : [];
+  const researchReports = reports.filter(
+    (r) => r.contentTag !== "보도자료" && !r.institution.includes("보도자료")
+  );
+  const pressReleases = reports.filter(
+    (r) => r.contentTag === "보도자료" || r.institution.includes("보도자료")
+  );
   const topicLabel = TOPICS.find((topic) => topic.id === selection.topic)?.label ?? "전체";
 
   useEffect(() => {
@@ -75,7 +82,7 @@ export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: Publ
       <FeedSummary
         topic={topicLabel}
         topicId={selection.topic}
-        count={reports.length}
+        count={researchReports.length}
         digest={snapshot?.digests[selection.topic]}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
@@ -85,9 +92,13 @@ export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: Publ
           <p>발행본을 불러오는 중입니다.</p>
         </section>
       ) : (
-        <ReportList reports={reports} topicLabel={topicLabel} viewMode={viewMode} />
+        <>
+          <ReportList reports={researchReports} topicLabel={topicLabel} viewMode={viewMode} />
+          <PressReleaseSection reports={pressReleases} />
+        </>
       )}
       <footer className="site-footer">원문 및 PDF 저작권은 각 발행기관의 공식 정책을 따릅니다.</footer>
     </main>
   );
 }
+

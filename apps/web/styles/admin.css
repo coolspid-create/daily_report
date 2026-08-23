@@ -151,10 +151,14 @@
 .admin-shell .stored-document-list a { grid-column: 3; grid-row: 1 / span 2; }
 
 .admin-shell .source-table { display: grid; gap: 16px; }
-.admin-shell .source-row { display: grid; grid-template-columns: minmax(180px, 1fr) 120px 130px minmax(160px, 1fr) auto; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--color-border); font-size: .88rem; }
+.admin-shell .source-row { display: grid; grid-template-columns: minmax(220px, 1.3fr) 100px 120px minmax(160px, 1fr) auto; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--color-border); font-size: .88rem; }
 .admin-shell .source-row > span { color: var(--color-text-secondary); }
+.admin-shell .source-name-cell { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.admin-shell .reason-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: .72rem; font-weight: 750; background: var(--color-accent-soft, #f4f4f6); color: var(--color-text-secondary, #555); }
+.admin-shell .source-error-hint { font-size: .72rem; color: var(--color-danger, #d9383a); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: help; }
 .admin-shell .inactive-sources { padding: 14px 0 0; border-top: 1px solid var(--color-border); }
 .admin-shell .inactive-sources summary { cursor: pointer; font-weight: 750; }
+
 
 @media (max-width: 800px) {
   .admin-shell { width: min(calc(100% - 24px), 1180px); padding: 28px 0 48px; }

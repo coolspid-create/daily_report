@@ -18,12 +18,17 @@ export interface ReviewItem {
 
 export interface SourceHealth {
   id: string;
+  slug?: string;
   name: string;
   status: "HEALTHY" | "DEGRADED" | "DISABLED";
   active: boolean;
   lastSuccessAt: string | null;
   consecutiveFailures: number;
+  reasonCategory?: string;
+  lastErrorMessage?: string | null;
+  lastErrorCode?: string | null;
 }
+
 
 export interface AutomationStatus {
   id: string;
