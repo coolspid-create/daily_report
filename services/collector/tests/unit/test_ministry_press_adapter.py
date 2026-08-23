@@ -1,10 +1,10 @@
 from datetime import date
-from pydantic import HttpUrl
-import pytest
-from report_collector.adapters.sources.ministry_press.adapter import MinistryPressAdapter
-from report_collector.domain.models import SourceConfig
-from report_collector.providers.http.http_client import PublicHttpClient
 
+import pytest
+from pydantic import HttpUrl
+from report_collector.adapters.sources.ministry_press.adapter import MinistryPressAdapter
+from report_collector.domain.models import DiscoveredItem, SourceConfig
+from report_collector.providers.http.http_client import PublicHttpClient
 
 SAMPLE_LIST_HTML = """
 <html>
@@ -119,13 +119,6 @@ async def test_ministry_press_adapter_fetches_detail(
     monkeypatch.setattr(http, "fetch_text", mock_fetch_text)
 
     adapter = MinistryPressAdapter(mock_config, http)
-    item = (
-        [item async for item in adapter.discover(None)][0]
-        if False
-        else None
-    )
-
-    from report_collector.domain.models import DiscoveredItem
 
     doc = await adapter.fetch_detail(
         DiscoveredItem(
@@ -142,4 +135,3 @@ async def test_ministry_press_adapter_fetches_detail(
     assert "주거 안정을 위해" in doc.official_summary
     assert len(doc.attachments) == 1
     assert doc.attachments[0].declared_type == "PDF"
-

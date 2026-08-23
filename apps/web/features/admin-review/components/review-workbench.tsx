@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AutomationStatus, PublicationHistory, ReviewItem, SourceHealth, StoredDocument } from "../types/admin-review";
@@ -34,10 +33,8 @@ const isPressStored = (doc: StoredDocument) =>
   doc.institution.includes("보도자료") ||
   doc.canonicalTitle.includes("보도자료");
 
-
 const isWithinLast24Hours = (createdAt: string) =>
   Date.now() - new Date(createdAt).getTime() <= 24 * 60 * 60 * 1000;
-
 
 export function ReviewWorkbench({
   items,

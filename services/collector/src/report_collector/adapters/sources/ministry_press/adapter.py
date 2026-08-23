@@ -109,7 +109,7 @@ def _parse_row(node: Tag, config: SourceConfig) -> DiscoveredItem | None:
 
     title = link.get_text(" ", strip=True)
     if not title:
-        title = link.get("title", "").strip()
+        title = str(link.get("title", "")).strip()
     if not title or len(title) < 2:
         return None
 
