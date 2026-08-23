@@ -13,8 +13,13 @@ class TelegramBriefing:
 def build_telegram_briefing(
     snapshot: dict[str, Any], publication_date: str, web_url: str | None = None
 ) -> TelegramBriefing:
-    reports = list(snapshot.get("reportsByTopic", {}).get("all", []))
+    reports = [
+        item
+        for item in snapshot.get("reportsByTopic", {}).get("all", [])
+        if item.get("contentTag") != "보도자료" and "보도자료" not in str(item.get("institution", ""))
+    ]
     header = f"<b>오늘의 공공리포트 · {escape(publication_date)}</b>\n오늘 읽을 자료 {len(reports)}건"
+
     blocks = [_report_block(index, report) for index, report in enumerate(reports, 1)]
     footer = f'\n<a href="{escape(web_url)}">웹에서 전체 보기</a>' if web_url else ""
     messages = _pack_messages(header, blocks, footer)
