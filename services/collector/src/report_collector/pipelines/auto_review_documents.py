@@ -21,8 +21,9 @@ def auto_review_documents(
     window_end: datetime,
     policy_version: str,
     apply_changes: bool,
+    source_slug: str | None = None,
 ) -> AutoReviewSummary:
-    candidates = load_auto_review_candidates(database_url, window_start, window_end)
+    candidates = load_auto_review_candidates(database_url, window_start, window_end, source_slug)
     decisions = [evaluate_candidate(item, window_start, window_end) for item in candidates]
     if not apply_changes:
         approved = sum(decision.approved for decision in decisions)

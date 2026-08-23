@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from ..config.settings import load_repository_environment
+from .auto_review_command import auto_review_command
 from .cleanup_command import cleanup_command
 from .collect_command import collect_command
 from .daily_publish_command import daily_publish_command
@@ -43,6 +44,11 @@ def parser() -> ArgumentParser:
     refresh.add_argument("--timezone", default=os.getenv("AUTOMATION_TIMEZONE", "Asia/Seoul"))
     refresh.add_argument("--output-dir", type=Path, default=root / "output/pdf")
     refresh.add_argument("--no-telegram", action="store_true")
+    review = commands.add_parser("auto-review")
+    review.add_argument("--timezone", default=os.getenv("AUTOMATION_TIMEZONE", "Asia/Seoul"))
+    review.add_argument("--window-hours", type=int, default=int(os.getenv("AUTOMATION_WINDOW_HOURS", "168")))
+    review.add_argument("--apply", action="store_true")
+    review.add_argument("--source")
     return result
 
 
@@ -90,4 +96,11 @@ def main() -> None:
             arguments.timezone,
             arguments.output_dir,
             not arguments.no_telegram,
+        )
+    elif arguments.command == "auto-review":
+        auto_review_command(
+            arguments.timezone,
+            arguments.window_hours,
+            arguments.apply,
+            arguments.source,
         )

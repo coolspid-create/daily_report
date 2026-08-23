@@ -40,6 +40,7 @@ jobs:
             IFS=',' read -ra SOURCES <<< "${{ inputs.reprocess_sources }}"
             for source in "${SOURCES[@]}"; do
               python -m report_collector collect --source "$source" --refresh-recent
+              python -m report_collector auto-review --timezone Asia/Seoul --window-hours 168 --source "$source" --apply
             done
             python -m report_collector publish-approved --timezone Asia/Seoul --no-telegram
           elif [ "${{ inputs.run_mode }}" = "refresh" ]; then

@@ -11,7 +11,10 @@ from report_collector.services.auto_approval_policy import (
 
 
 def load_auto_review_candidates(
-    database_url: str, window_start: datetime, window_end: datetime
+    database_url: str,
+    window_start: datetime,
+    window_end: datetime,
+    source_slug: str | None = None,
 ) -> list[AutoApprovalCandidate]:
     query = """
     select d.id,d.published_at,coalesce(seen.first_seen_at,d.created_at) first_seen_at,
@@ -43,11 +46,17 @@ def load_auto_review_candidates(
     where d.workflow_status in ('NEW','NEEDS_REVIEW')
       and coalesce(seen.first_seen_at,d.created_at) between %s and %s
       and d.published_at between %s and %s
+      and (%s is null or exists(
+        select 1 from public.document_sources filtered_ds
+        join public.sources filtered_source on filtered_source.id=filtered_ds.source_id
+        where filtered_ds.document_id=d.id and filtered_source.slug=%s
+      ))
     order by d.created_at
     """
     with psycopg.connect(database_url, row_factory=dict_row) as connection:
         rows = connection.execute(
-            query, (window_start, window_end, window_start.date(), window_end.date())
+            query,
+            (window_start, window_end, window_start.date(), window_end.date(), source_slug, source_slug),
         ).fetchall()
     return [_candidate(row) for row in rows]
 
