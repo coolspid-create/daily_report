@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import rawSnapshots from "@/data/public-snapshots.json";
 import { PublicFeed } from "@/features/public-feed/components/public-feed";
 import { validatePublicSnapshot } from "@/features/public-feed/server/validate-public-snapshot";
-import type { PublicArchive } from "@/features/public-feed/types/public-feed";
+import type { PublicArchive, PublicPressArchive } from "@/features/public-feed/types/public-feed";
 import { TOPIC_STORAGE_KEY } from "@/features/public-feed/lib/topic-storage";
 
 function archive(): PublicArchive {
@@ -16,12 +16,17 @@ function archive(): PublicArchive {
   };
 }
 
+function pressArchive(): PublicPressArchive {
+  return { currentDate: null, dates: [], loadedDate: null, reports: [] };
+}
+
 describe("public feed", () => {
   it("filters an already-loaded snapshot without navigation", () => {
     render(
       <PublicFeed
         archive={archive()} fallbackSnapshot={validatePublicSnapshot({ ...rawSnapshots["1d"], range: "7d" })}
-        initialSelection={{ topic: "all", archiveDate: null, topicFromQuery: false }}
+        pressArchive={pressArchive()}
+        initialSelection={{ topic: "all", archiveDate: null, pressArchiveDate: null, topicFromQuery: false }}
       />,
     );
     fireEvent.click(screen.getByRole("button", { name: "법·외교·안보" }));
@@ -35,7 +40,8 @@ describe("public feed", () => {
     render(
       <PublicFeed
         archive={archive()} fallbackSnapshot={validatePublicSnapshot({ ...rawSnapshots["1d"], range: "7d" })}
-        initialSelection={{ topic: "all", archiveDate: null, topicFromQuery: false }}
+        pressArchive={pressArchive()}
+        initialSelection={{ topic: "all", archiveDate: null, pressArchiveDate: null, topicFromQuery: false }}
       />,
     );
     await waitFor(() => expect(screen.getByRole("button", { name: "경제·금융" })).toHaveAttribute("aria-pressed", "true"));
@@ -47,7 +53,8 @@ describe("public feed", () => {
     render(
       <PublicFeed
         archive={archive()} fallbackSnapshot={validatePublicSnapshot({ ...rawSnapshots["1d"], range: "7d" })}
-        initialSelection={{ topic: "all", archiveDate: null, topicFromQuery: true }}
+        pressArchive={pressArchive()}
+        initialSelection={{ topic: "all", archiveDate: null, pressArchiveDate: null, topicFromQuery: true }}
       />,
     );
     expect(screen.getByRole("button", { name: "전체" })).toHaveAttribute(
@@ -62,10 +69,11 @@ describe("public feed", () => {
     render(
       <PublicFeed
         archive={archive()} fallbackSnapshot={validatePublicSnapshot({ ...rawSnapshots["1d"], range: "7d" })}
-        initialSelection={{ topic: "all", archiveDate: null, topicFromQuery: false }}
+        pressArchive={pressArchive()}
+        initialSelection={{ topic: "all", archiveDate: null, pressArchiveDate: null, topicFromQuery: false }}
       />,
     );
-    fireEvent.change(screen.getByLabelText("일일 아카이브 날짜"), { target: { value: "2026-08-20" } });
+    fireEvent.change(screen.getByLabelText("리포트 아카이브 날짜"), { target: { value: "2026-08-20" } });
     await waitFor(() => expect(screen.getByText("최근 7일 꼭 볼 자료 3건")).toBeVisible());
     expect(window.location.search).toBe("?date=2026-08-20");
     vi.unstubAllGlobals();
@@ -87,7 +95,8 @@ describe("public feed", () => {
       <PublicFeed
         archive={emptyArchive}
         fallbackSnapshot={emptyArchive.snapshot}
-        initialSelection={{ topic: "economy", archiveDate: null, topicFromQuery: false }}
+        pressArchive={pressArchive()}
+        initialSelection={{ topic: "economy", archiveDate: null, pressArchiveDate: null, topicFromQuery: false }}
       />,
     );
     expect(screen.getByText("최근 7일 발행본에 경제·금융 자료가 없습니다.")).toBeVisible();

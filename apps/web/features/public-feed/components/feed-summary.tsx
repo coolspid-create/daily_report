@@ -8,12 +8,16 @@ interface FeedSummaryProps {
   topicId: string;
   count: number;
   digest?: DigestLink;
+  archiveDate?: string | null;
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
 }
 
-function description(topicId: string, count: number): string {
-  if (topicId === "press-release") return `최근 24시간 정부·공공기관 보도자료 ${count}건`;
+function description(topicId: string, count: number, archiveDate?: string | null): string {
+  if (topicId === "press-release") {
+    const dateLabel = archiveDate ? `${archiveDate.replaceAll("-", ".")} 발행 보도자료` : "보도자료";
+    return `${dateLabel} ${count}건`;
+  }
   if (topicId === "all") return `최근 7일 꼭 볼 자료 ${count}건`;
   return `최근 7일 선정 자료 ${count}건`;
 }
@@ -24,6 +28,7 @@ export function FeedSummary({
   topicId,
   count,
   digest,
+  archiveDate,
   viewMode,
   onViewModeChange,
 }: FeedSummaryProps) {
@@ -32,7 +37,7 @@ export function FeedSummary({
       <div className="feed-summary-left">
         <div>
           <h2>{topic}</h2>
-          <p>{description(topicId, count)}</p>
+          <p>{description(topicId, count, archiveDate)}</p>
         </div>
       </div>
       <div className="feed-summary-right">

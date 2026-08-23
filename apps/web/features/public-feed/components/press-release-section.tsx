@@ -5,25 +5,29 @@ import { ReportActions } from "./report-actions";
 
 interface PressReleaseSectionProps {
   reports: PublicReport[];
+  archiveDate: string | null;
 }
 
-export function PressReleaseSection({ reports }: PressReleaseSectionProps) {
+function archiveLabel(date: string | null): string {
+  return date ? `${date.replaceAll("-", ".")} 발행본` : "보도자료";
+}
+
+export function PressReleaseSection({ reports, archiveDate }: PressReleaseSectionProps) {
   if (reports.length === 0) {
     return (
       <section className="empty-feed" aria-live="polite">
-        <p>최근 24시간 발행본에 보도자료가 없습니다.</p>
+        <p>{archiveLabel(archiveDate)}에 보도자료가 없습니다.</p>
       </section>
     );
   }
 
 
   return (
-    <section className="press-release-section" aria-label="최신 24시간 보도자료">
+    <section className="press-release-section" aria-label={`${archiveLabel(archiveDate)} 보도자료`}>
       <div className="press-section-header">
         <div className="press-title-wrap">
           <span className="press-icon" aria-hidden="true">📰</span>
-          <h3>최신 24시간 정부·공공기관 보도자료</h3>
-          <span className="press-live-badge">24H LIVE</span>
+          <h3>{archiveLabel(archiveDate)} 정부·공공기관 보도자료</h3>
         </div>
         <span className="press-count">{reports.length}건</span>
       </div>

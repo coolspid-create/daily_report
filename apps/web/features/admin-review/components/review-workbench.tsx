@@ -122,7 +122,7 @@ export function ReviewWorkbench({
           type="button"
           className={`admin-mode-tab ${adminMode === "reports" ? "is-active" : ""}`}
           onClick={() => handleModeChange("reports")}
-          aria-selected={adminMode === "reports"}
+          aria-pressed={adminMode === "reports"}
         >
           📑 공공리포트 관리 ({items.filter((i) => !isPressItem(i)).length})
         </button>
@@ -130,9 +130,9 @@ export function ReviewWorkbench({
           type="button"
           className={`admin-mode-tab ${adminMode === "press" ? "is-active" : ""}`}
           onClick={() => handleModeChange("press")}
-          aria-selected={adminMode === "press"}
+          aria-pressed={adminMode === "press"}
         >
-          📰 보도자료 관리 (24H) ({pressItems.length})
+          📰 보도자료 관리 ({pressItems.length})
         </button>
       </div>
 

@@ -44,13 +44,12 @@ export function TopicSelector({
         <button
           className="pill pill-press-release"
           type="button"
-          aria-label="보도자료 (24H)"
+          aria-label="보도자료"
           aria-pressed={activeTopic === "press-release"}
           onClick={() => onChange("press-release")}
         >
           <span className="press-tab-icon" aria-hidden="true">📰</span>
           <span>보도자료</span>
-          <span className="press-24h-tag">24H</span>
           {pressReleaseCount !== undefined && pressReleaseCount > 0 && (
             <span className="topic-count" aria-hidden="true">
               {pressReleaseCount}
@@ -61,4 +60,3 @@ export function TopicSelector({
     </div>
   );
 }
-

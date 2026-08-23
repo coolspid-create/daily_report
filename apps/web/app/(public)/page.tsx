@@ -1,7 +1,7 @@
 import { PublicFeed } from "@/features/public-feed/components/public-feed";
 import { parseInitialSelection } from "@/features/public-feed/lib/initial-selection";
 import { getFallbackSnapshot, getPublicArchive } from "@/features/public-feed/server/get-public-snapshots";
-import { getLatestPressReleases } from "@/features/public-feed/server/get-press-releases";
+import { getPublicPressArchive } from "@/features/public-feed/server/get-press-releases";
 
 export const revalidate = 60;
 
@@ -12,16 +12,16 @@ interface PageProps {
 export default async function HomePage({ searchParams }: PageProps) {
   const query = await searchParams;
   const selection = parseInitialSelection(query);
-  const [archive, pressReleases] = await Promise.all([
+  const [archive, pressArchive] = await Promise.all([
     getPublicArchive(selection.archiveDate),
-    getLatestPressReleases(),
+    getPublicPressArchive(selection.pressArchiveDate),
   ]);
   return (
     <PublicFeed
       archive={archive}
       fallbackSnapshot={getFallbackSnapshot()}
       initialSelection={selection}
-      pressReleases={pressReleases}
+      pressArchive={pressArchive}
     />
   );
 }

@@ -28,6 +28,13 @@ REQUIRED = {
         "mof-press",
         "fsc-policy",
     ],
+    "0031_fix_public_archives_and_press_sources.sql": [
+        "public_archive_dates",
+        "reportsbytopic,all",
+        "mof-press",
+        "fsc-policy",
+        "healthy",
+    ],
 }
 
 

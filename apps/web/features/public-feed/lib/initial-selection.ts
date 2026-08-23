@@ -3,6 +3,7 @@ import { TOPIC_IDS, type TopicId } from "../constants/topics";
 export interface FeedSelection {
   topic: TopicId;
   archiveDate: string | null;
+  pressArchiveDate: string | null;
   topicFromQuery: boolean;
 }
 
@@ -15,9 +16,13 @@ export function parseInitialSelection(
 ): FeedSelection {
   const topic = first(query.topic);
   const archiveDate = first(query.date);
+  const pressArchiveDate = first(query.pressDate);
   return {
     topic: topic && TOPIC_IDS.has(topic as TopicId) ? (topic as TopicId) : "all",
-    archiveDate: archiveDate && /^\\d{4}-\\d{2}-\\d{2}$/.test(archiveDate) ? archiveDate : null,
+    archiveDate: archiveDate && /^\d{4}-\d{2}-\d{2}$/.test(archiveDate) ? archiveDate : null,
+    pressArchiveDate: pressArchiveDate && /^\d{4}-\d{2}-\d{2}$/.test(pressArchiveDate)
+      ? pressArchiveDate
+      : null,
     topicFromQuery: Boolean(topic && TOPIC_IDS.has(topic as TopicId)),
   };
 }

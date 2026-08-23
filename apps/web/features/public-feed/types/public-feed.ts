@@ -28,3 +28,10 @@ export interface PublicArchive {
   loadedDate: string | null;
   snapshot: PublicFeedSnapshot | null;
 }
+
+export interface PublicPressArchive {
+  currentDate: string | null;
+  dates: string[];
+  loadedDate: string | null;
+  reports: PublicReport[];
+}
