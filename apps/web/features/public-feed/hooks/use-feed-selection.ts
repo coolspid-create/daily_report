@@ -1,25 +1,22 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import type { TopicId } from "../constants/topics";
 import { buildFeedUrl } from "../lib/build-feed-url";
 import type { FeedSelection } from "../lib/initial-selection";
-import {
-  readStoredTopic,
-  storeTopic,
-  subscribeToStoredTopic,
-} from "../lib/topic-storage";
+import { readStoredTopic, storeTopic } from "../lib/topic-storage";
 import type { PublicArchive } from "../types/public-feed";
 
 export function useFeedSelection(initial: FeedSelection, archive: PublicArchive) {
-  const topic = useSyncExternalStore(
-    subscribeToStoredTopic,
-    () =>
-      initial.topicFromQuery
-        ? initial.topic
-        : readStoredTopic(window.localStorage) ?? initial.topic,
-    () => initial.topic,
-  );
+  const [topic, setTopicState] = useState<TopicId>(() => {
+    if (initial.topicFromQuery) return initial.topic;
+    if (typeof window !== "undefined") {
+      const stored = readStoredTopic(window.localStorage);
+      if (stored) return stored;
+    }
+    return initial.topic;
+  });
+
   const [archiveDate, setArchiveDateState] = useState(
     initial.archiveDate && archive.dates.includes(initial.archiveDate)
       ? initial.archiveDate
@@ -31,7 +28,10 @@ export function useFeedSelection(initial: FeedSelection, archive: PublicArchive)
   }, [topic, archiveDate, archive.currentDate]);
 
   function setTopic(next: TopicId) {
-    storeTopic(window.localStorage, next);
+    setTopicState(next);
+    if (typeof window !== "undefined") {
+      storeTopic(window.localStorage, next);
+    }
   }
 
   function setArchiveDate(next: string) {
@@ -40,3 +40,4 @@ export function useFeedSelection(initial: FeedSelection, archive: PublicArchive)
 
   return { topic, archiveDate, setTopic, setArchiveDate };
 }
+
