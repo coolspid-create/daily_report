@@ -1,5 +1,8 @@
 import type { DeliveryMode, SourceContentType } from "@/features/public-feed/types/public-report";
 
+export type { SourceContentType };
+
+
 export interface ReviewItem {
   id: string;
   canonicalTitle: string;

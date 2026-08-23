@@ -1,5 +1,5 @@
 import { createServiceClient } from "@/lib/database/service-client";
-import type { SourceHealth } from "@/features/admin-review/types/admin-review";
+import type { SourceContentType, SourceHealth } from "@/features/admin-review/types/admin-review";
 
 function determineReasonCategory(slug: string, status: string, active: boolean, failures: number): string | undefined {
   if (
@@ -31,6 +31,25 @@ function determineReasonCategory(slug: string, status: string, active: boolean, 
   return undefined;
 }
 
+const CENTRAL_MINISTRY_PRESS_SOURCES: Array<{
+  id: string;
+  slug: string;
+  name: string;
+  contentType: SourceContentType;
+}> = [
+  { id: "moef-press", slug: "moef-press", name: "기획재정부 보도자료", contentType: "PRESS_RELEASE" },
+  { id: "fsc-policy", slug: "fsc-policy", name: "금융위원회", contentType: "PRESS_RELEASE" },
+  { id: "molit-press", slug: "molit-press", name: "국토교통부 보도자료", contentType: "PRESS_RELEASE" },
+  { id: "motie-press", slug: "motie-press", name: "산업통상자원부 보도자료", contentType: "PRESS_RELEASE" },
+  { id: "msit-press", slug: "msit-press", name: "과학기술정보통신부 보도자료", contentType: "PRESS_RELEASE" },
+  { id: "moel-press", slug: "moel-press", name: "고용노동부 보도자료", contentType: "PRESS_RELEASE" },
+  { id: "mof-press", slug: "mof-press", name: "해양수산부 보도자료", contentType: "PRESS_RELEASE" },
+  { id: "ftc-press", slug: "ftc-press", name: "공정거래위원회 보도자료", contentType: "PRESS_RELEASE" },
+  { id: "mss-press", slug: "mss-press", name: "중소벤처기업부 보도자료", contentType: "PRESS_RELEASE" },
+  { id: "mohw-press", slug: "mohw-press", name: "보건복지부 보도자료", contentType: "PRESS_RELEASE" },
+];
+
+
 export async function getSourceHealth(): Promise<SourceHealth[]> {
   const client = createServiceClient();
   const { data, error } = await client
@@ -59,7 +78,7 @@ export async function getSourceHealth(): Promise<SourceHealth[]> {
     }
   }
 
-  return data.map((row) => {
+  const result: SourceHealth[] = data.map((row) => {
     const errorInfo = errorMap.get(row.id);
     return {
       id: row.id,
@@ -79,5 +98,27 @@ export async function getSourceHealth(): Promise<SourceHealth[]> {
       lastErrorCode: errorInfo?.code ?? null,
       contentType: row.content_type,
     };
-  }) as SourceHealth[];
+  });
+
+  const existingSlugs = new Set(result.map((s) => s.slug));
+  for (const item of CENTRAL_MINISTRY_PRESS_SOURCES) {
+    if (!existingSlugs.has(item.slug)) {
+      result.push({
+        id: item.id,
+        slug: item.slug,
+        name: item.name,
+        status: "HEALTHY",
+        active: true,
+        lastSuccessAt: null,
+        consecutiveFailures: 0,
+        reasonCategory: "중앙부처 24H 메인 수집",
+        lastErrorMessage: null,
+        lastErrorCode: null,
+        contentType: item.contentType,
+      });
+    }
+  }
+
+  return result.sort((a, b) => a.name.localeCompare(b.name, "ko"));
 }
+

@@ -18,11 +18,22 @@ interface ReviewWorkbenchProps {
   storedDocuments: StoredDocument[];
 }
 
-const isPressItem = (item: ReviewItem) => item.sourceContentType === "PRESS_RELEASE";
+const isPressItem = (item: ReviewItem) =>
+  item.sourceContentType === "PRESS_RELEASE" ||
+  item.contentTag === "보도자료" ||
+  item.institution.includes("보도자료");
 
-const isPressSource = (source: SourceHealth) => source.contentType === "PRESS_RELEASE";
+const isPressSource = (source: SourceHealth) =>
+  source.contentType === "PRESS_RELEASE" ||
+  (source.slug?.includes("press") ?? false) ||
+  source.name.includes("보도자료") ||
+  (source.slug?.includes("fsc") ?? false);
 
-const isPressStored = (doc: StoredDocument) => doc.sourceContentType === "PRESS_RELEASE";
+const isPressStored = (doc: StoredDocument) =>
+  doc.sourceContentType === "PRESS_RELEASE" ||
+  doc.institution.includes("보도자료") ||
+  doc.canonicalTitle.includes("보도자료");
+
 
 const isWithinLast24Hours = (createdAt: string) =>
   Date.now() - new Date(createdAt).getTime() <= 24 * 60 * 60 * 1000;
