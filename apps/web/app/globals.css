@@ -285,6 +285,31 @@ h1 {
   border-color: var(--color-text);
 }
 
+.press-live-indicator-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm, 4px);
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  font-family: var(--font-body);
+  color: #991b1b;
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.press-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #dc2626;
+  box-shadow: 0 0 0 2px #fecaca;
+  display: inline-block;
+}
+
+
 /* ==========================================================================
    Feed Summary Bar & View Mode Toggle
    ========================================================================== */

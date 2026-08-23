@@ -28,25 +28,28 @@ export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: Publ
   );
   const [loadingDate, setLoadingDate] = useState<string | null>(null);
 
-  const snapshot = selection.archiveDate
+  // 1. Current latest snapshot (always reflects latest live data for press releases)
+  const latestSnapshot = archive.snapshot ?? fallbackSnapshot;
+  const latestAllReports = latestSnapshot ? (latestSnapshot.reportsByTopic["all"] ?? []) : [];
+  const latestPressReleases = latestAllReports.filter(
+    (r) => r.contentTag === "보도자료" || r.institution.includes("보도자료")
+  );
+
+  // 2. Selected historical archive snapshot (used strictly for research topics)
+  const isPressReleaseTab = selection.topic === "press-release";
+  const researchSnapshot = selection.archiveDate
     ? snapshots[selection.archiveDate] ??
       (selection.archiveDate === archive.loadedDate ? archive.snapshot : null) ??
       fallbackSnapshot
     : archive.snapshot ?? fallbackSnapshot;
 
-  const allReports = snapshot ? (snapshot.reportsByTopic["all"] ?? []) : [];
-  const allPressReleases = allReports.filter(
-    (r) => r.contentTag === "보도자료" || r.institution.includes("보도자료")
-  );
-
-  const isPressReleaseTab = selection.topic === "press-release";
-  const topicReports = snapshot ? filterFeed(snapshot, selection.topic) : [];
+  const topicReports = researchSnapshot ? filterFeed(researchSnapshot, selection.topic) : [];
   const researchReports = topicReports.filter(
     (r) => r.contentTag !== "보도자료" && !r.institution.includes("보도자료")
   );
 
   const topicLabel = TOPICS.find((topic) => topic.id === selection.topic)?.label ?? "전체";
-  const displayCount = isPressReleaseTab ? allPressReleases.length : researchReports.length;
+  const displayCount = isPressReleaseTab ? latestPressReleases.length : researchReports.length;
 
   useEffect(() => {
     mainRef.current?.setAttribute("data-hydrated", "true");
@@ -71,34 +74,47 @@ export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: Publ
 
   return (
     <main className="page-shell" ref={mainRef}>
-      <FeedHeader generatedAt={snapshot?.generatedAt ?? fallbackSnapshot.generatedAt} />
+      <FeedHeader
+        generatedAt={
+          isPressReleaseTab
+            ? latestSnapshot?.generatedAt ?? fallbackSnapshot.generatedAt
+            : researchSnapshot?.generatedAt ?? fallbackSnapshot.generatedAt
+        }
+      />
       <section className="feed-controls" aria-label="피드 선택">
         <TopicSelector
           activeTopic={selection.topic}
-          topicSummaries={snapshot?.topics}
-          pressReleaseCount={allPressReleases.length}
+          topicSummaries={researchSnapshot?.topics}
+          pressReleaseCount={latestPressReleases.length}
           onChange={selection.setTopic}
         />
-        <ArchiveSelector
-          activeDate={selection.archiveDate}
-          dates={archive.dates}
-          onChange={handleArchiveDateChange}
-        />
+        {!isPressReleaseTab ? (
+          <ArchiveSelector
+            activeDate={selection.archiveDate}
+            dates={archive.dates}
+            onChange={handleArchiveDateChange}
+          />
+        ) : (
+          <div className="press-live-indicator-bar" aria-label="수집 주기 안내">
+            <span className="press-live-dot" aria-hidden="true" />
+            <span>최근 24시간 실시간 수집 기준 (일일 아카이브와 별도 운영)</span>
+          </div>
+        )}
       </section>
       <FeedSummary
         topic={topicLabel}
         topicId={selection.topic}
         count={displayCount}
-        digest={isPressReleaseTab ? undefined : snapshot?.digests[selection.topic]}
+        digest={isPressReleaseTab ? undefined : researchSnapshot?.digests[selection.topic]}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
       />
-      {loadingDate === selection.archiveDate ? (
+      {!isPressReleaseTab && loadingDate === selection.archiveDate ? (
         <section className="empty-feed" aria-live="polite">
           <p>발행본을 불러오는 중입니다.</p>
         </section>
       ) : isPressReleaseTab ? (
-        <PressReleaseSection reports={allPressReleases} />
+        <PressReleaseSection reports={latestPressReleases} />
       ) : (
         <ReportList reports={researchReports} topicLabel={topicLabel} viewMode={viewMode} />
       )}
@@ -106,5 +122,6 @@ export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: Publ
     </main>
   );
 }
+
 
 
