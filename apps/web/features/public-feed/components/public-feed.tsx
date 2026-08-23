@@ -88,19 +88,15 @@ export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: Publ
           pressReleaseCount={latestPressReleases.length}
           onChange={selection.setTopic}
         />
-        {!isPressReleaseTab ? (
+        {!isPressReleaseTab && (
           <ArchiveSelector
             activeDate={selection.archiveDate}
             dates={archive.dates}
             onChange={handleArchiveDateChange}
           />
-        ) : (
-          <div className="press-live-indicator-bar" aria-label="수집 주기 안내">
-            <span className="press-live-dot" aria-hidden="true" />
-            <span>최근 24시간 실시간 수집 기준 (일일 아카이브와 별도 운영)</span>
-          </div>
         )}
       </section>
+
       <FeedSummary
         topic={topicLabel}
         topicId={selection.topic}
