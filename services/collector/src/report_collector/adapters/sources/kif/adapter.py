@@ -8,6 +8,7 @@ from pydantic import HttpUrl
 from report_collector.adapters.base import SourceAdapter
 from report_collector.domain.errors import SourceParseError
 from report_collector.domain.models import (
+    Attachment,
     DiscoveredItem,
     SourceConfig,
     SourceDocument,
@@ -18,6 +19,9 @@ from report_collector.providers.http.http_client import PublicHttpClient
 from report_collector.services.source_filter_service import title_allowed
 
 DATE_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}")
+DOWNLOAD_PATTERN = re.compile(
+    r"execDownload\(\s*'[^']*'\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*'([^']+)'\s*,\s*'[^']*'\s*,\s*(\d+)\s*\)"
+)
 
 
 class KifRenderedAdapter(SourceAdapter):
@@ -70,14 +74,14 @@ class KifRenderedAdapter(SourceAdapter):
         detail = soup.select_one(f"#detail_{item.source_item_key}.info_detail")
         if detail is None:
             detail = soup.select_one(f"#info_{item.source_item_key} .info_detail")
-        summary = detail.select_one(".tab_content.current") if detail else None
+        summary = detail.select_one(".tab_content.current, .summary, .info_summary") if detail else None
         return SourceDocument(
             source_item_key=item.source_item_key,
             title=item.title,
             institution=self.config.name,
             detail_url=item.detail_url,
             published_at=_date(soup.get_text(" ", strip=True)) or item.published_at,
-            attachments=[],
+            attachments=_attachments(detail, str(item.detail_url)),
             official_summary=_text(summary),
             rights_status=self.config.rights_default,
         )
@@ -105,3 +109,18 @@ def _text(node: Tag | None) -> str | None:
         return None
     text = re.sub(r"\s+", " ", node.get_text(" ", strip=True)).strip()
     return text[:3000] or None
+
+
+def _attachments(detail: Tag | None, base_url: str) -> list[Attachment]:
+    if detail is None:
+        return []
+    link = detail.select_one("button.btn_download[onclick*='execDownload']")
+    if link is None:
+        return []
+    match = DOWNLOAD_PATTERN.search(str(link.get("onclick", "")))
+    if match is None:
+        return []
+    mid, vid, cno, file_code, file_index = match.groups()
+    url = f"{urljoin(base_url, '/kif4/publication/viewer')}?mid={mid}&vid={vid}&cno={cno}&fcd={file_code}&ft={file_index}"
+    name = str(link.get("title", "")).strip() or f"kif-{cno}.pdf"
+    return [Attachment(url=HttpUrl(url), file_name=name, declared_type="application/pdf")]

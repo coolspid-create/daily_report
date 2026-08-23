@@ -108,9 +108,11 @@
 }
 
 .admin-shell .review-list { max-height: 760px; overflow: auto; border-right: 1px solid var(--color-border); }
-.admin-shell .review-list-item { display: grid; width: 100%; gap: 7px; min-height: 116px; border: 0; border-bottom: 1px solid var(--color-border); border-radius: 0; padding: 16px; text-align: left; background: var(--color-surface); }
-.admin-shell .review-list-item strong { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-height: 1.4; }
-.admin-shell .review-list-item[aria-pressed="true"] { border-left: 4px solid var(--color-accent); background: var(--color-accent-soft); }
+.admin-shell .review-list-item { display: grid; width: 100%; gap: 7px; min-height: 116px; border: 0; border-bottom: 1px solid var(--color-border); border-radius: 0; padding: 16px; color: var(--color-text); text-align: left; background: var(--color-surface); }
+.admin-shell .review-list-item strong { overflow: hidden; display: -webkit-box; color: var(--color-text); -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-height: 1.4; }
+.admin-shell .review-list-item small { color: var(--color-text-secondary); }
+.admin-shell .review-list-item[aria-pressed="true"] { border-left: 4px solid var(--color-accent); color: var(--color-text); background: #fff0e8; }
+.admin-shell .review-list-item[aria-pressed="true"] strong { color: var(--color-text); }
 .admin-shell .badge { width: fit-content; padding: 3px 7px; color: var(--color-accent-strong); background: var(--color-accent-soft); font-size: .72rem; font-weight: 800; letter-spacing: .04em; }
 
 .admin-shell .review-editor { display: grid; align-content: start; gap: 14px; max-height: 760px; overflow: auto; padding: 24px; }

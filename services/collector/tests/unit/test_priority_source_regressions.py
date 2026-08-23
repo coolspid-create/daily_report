@@ -147,14 +147,14 @@ async def test_koti_boards(fixture_root: Path, slug: str, key: str, summary: str
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    ("slug", "key", "summary"),
+    ("slug", "key", "summary", "has_file"),
     [
-        ("kif-financial-brief", "3101", "금융시장의 주요 변화"),
-        ("kif-research", "3201", "금융산업 구조 변화"),
+        ("kif-financial-brief", "3101", "금융시장의 주요 변화", True),
+        ("kif-research", "3201", "금융산업 구조 변화", False),
     ],
 )
 async def test_kif_rendered_boards(
-    fixture_root: Path, slug: str, key: str, summary: str
+    fixture_root: Path, slug: str, key: str, summary: str, has_file: bool
 ) -> None:
     config = load_source_config(Path(f"config/sources/{slug}.yaml"))
     list_html = fixture(fixture_root, f"{slug}-list")
@@ -169,4 +169,6 @@ async def test_kif_rendered_boards(
     ).fetch_detail(item)
     assert item.source_item_key == key
     assert summary in (detail.official_summary or "")
-    assert detail.attachments == []
+    assert bool(detail.attachments) is has_file
+    if has_file:
+        assert "viewer?mid=20&vid=0&cno=3101" in str(detail.attachments[0].url)
