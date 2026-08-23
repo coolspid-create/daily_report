@@ -88,7 +88,9 @@ def _matching_row(html: str, key: str) -> Tag | None:
 
 def _attachment(row: Tag | None, base_url: str) -> Attachment | None:
     link = row.select_one("a.bbsBtn.pdf[href]") if row else None
-    href = link.get("href") if link else None
+    href = link.get("href") if isinstance(link, Tag) else None
     if not isinstance(href, str):
         return None
-    return Attachment(url=HttpUrl(urljoin(base_url, href)), file_name=link.get("title", "KDB-report.pdf"))
+    title = link.get("title") if isinstance(link, Tag) else None
+    file_name = title if isinstance(title, str) else "KDB-report.pdf"
+    return Attachment(url=HttpUrl(urljoin(base_url, href)), file_name=file_name)

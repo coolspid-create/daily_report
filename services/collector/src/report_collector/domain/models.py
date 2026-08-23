@@ -56,6 +56,7 @@ class SourceConfig(BaseModel):
     homepage_url: HttpUrl
     list_url: HttpUrl
     rights_default: RightsStatus = RightsStatus.LINK_ONLY
+    content_type: Literal["REPORT", "PRESS_RELEASE"] = "REPORT"
     poll_interval_minutes: int = Field(ge=60)
     request_delay_ms: int = Field(ge=500)
     timeout_seconds: float = Field(default=20, ge=1, le=60)
@@ -139,4 +140,5 @@ class PublicationDocument(BaseModel):
     size_bytes: int | None = None
     page_count: int | None = None
     workflow_status: WorkflowStatus
+    source_content_type: Literal["REPORT", "PRESS_RELEASE"] = "REPORT"
     ranking_score: float = 0

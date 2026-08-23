@@ -1,4 +1,4 @@
-import type { DeliveryMode } from "@/features/public-feed/types/public-report";
+import type { DeliveryMode, SourceContentType } from "@/features/public-feed/types/public-report";
 
 export interface ReviewItem {
   id: string;
@@ -12,6 +12,8 @@ export interface ReviewItem {
   deliveryMode: DeliveryMode;
   workflowStatus: "NEW" | "NEEDS_REVIEW" | "APPROVED" | "REJECTED" | "PUBLISHED";
   primarySourceUrl: string;
+  createdAt: string;
+  sourceContentType: SourceContentType;
   duplicateCandidateIds: string[];
   exceptionReasons: string[];
 }
@@ -27,6 +29,7 @@ export interface SourceHealth {
   reasonCategory?: string;
   lastErrorMessage?: string | null;
   lastErrorCode?: string | null;
+  contentType: SourceContentType;
 }
 
 
@@ -60,4 +63,5 @@ export interface StoredDocument {
   primarySourceUrl: string;
   workflowStatus: "APPROVED" | "REJECTED";
   updatedAt: string;
+  sourceContentType: SourceContentType;
 }

@@ -2,9 +2,6 @@ import { createServiceClient } from "@/lib/database/service-client";
 import type { SourceHealth } from "@/features/admin-review/types/admin-review";
 
 function determineReasonCategory(slug: string, status: string, active: boolean, failures: number): string | undefined {
-  if (slug === "mof-press" || slug === "fsc-policy") {
-    return "정책 보류 (보도자료 제외)";
-  }
   if (
     slug === "nice-credit-research" ||
     slug === "korea-ratings-research" ||
@@ -38,7 +35,7 @@ export async function getSourceHealth(): Promise<SourceHealth[]> {
   const client = createServiceClient();
   const { data, error } = await client
     .from("sources")
-    .select("id,slug,name,status,active,last_success_at,consecutive_failures")
+    .select("id,slug,name,status,active,last_success_at,consecutive_failures,content_type")
     .order("name");
   if (error) throw new Error("출처 상태를 불러오지 못했습니다.");
 
@@ -80,7 +77,7 @@ export async function getSourceHealth(): Promise<SourceHealth[]> {
       ),
       lastErrorMessage: errorInfo?.message ?? null,
       lastErrorCode: errorInfo?.code ?? null,
+      contentType: row.content_type,
     };
   }) as SourceHealth[];
 }
-

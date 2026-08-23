@@ -18,17 +18,14 @@ interface ReviewWorkbenchProps {
   storedDocuments: StoredDocument[];
 }
 
-const isPressItem = (item: ReviewItem) =>
-  item.contentTag === "보도자료" || item.institution.includes("보도자료") || item.canonicalTitle.includes("보도자료");
+const isPressItem = (item: ReviewItem) => item.sourceContentType === "PRESS_RELEASE";
 
-const isPressSource = (source: SourceHealth) =>
-  (source.slug?.includes("press") ?? false) ||
-  source.name.includes("보도자료") ||
-  (source.slug?.includes("fsc") ?? false) ||
-  (source.reasonCategory?.includes("보도자료") ?? false);
+const isPressSource = (source: SourceHealth) => source.contentType === "PRESS_RELEASE";
 
-const isPressStored = (doc: StoredDocument) =>
-  doc.institution.includes("보도자료") || doc.canonicalTitle.includes("보도자료");
+const isPressStored = (doc: StoredDocument) => doc.sourceContentType === "PRESS_RELEASE";
+
+const isWithinLast24Hours = (createdAt: string) =>
+  Date.now() - new Date(createdAt).getTime() <= 24 * 60 * 60 * 1000;
 
 
 export function ReviewWorkbench({
@@ -44,7 +41,8 @@ export function ReviewWorkbench({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  const visibleItems = items.filter((item) => (adminMode === "press" ? isPressItem(item) : !isPressItem(item)));
+  const pressItems = items.filter((item) => isPressItem(item) && isWithinLast24Hours(item.createdAt));
+  const visibleItems = adminMode === "press" ? pressItems : items.filter((item) => !isPressItem(item));
   const visibleSources = sources.filter((source) => (adminMode === "press" ? isPressSource(source) : !isPressSource(source)));
   const visibleStored = storedDocuments.filter((doc) => (adminMode === "press" ? isPressStored(doc) : !isPressStored(doc)));
 
@@ -134,7 +132,7 @@ export function ReviewWorkbench({
           onClick={() => handleModeChange("press")}
           aria-selected={adminMode === "press"}
         >
-          📰 보도자료 관리 (24H) ({items.filter(isPressItem).length})
+          📰 보도자료 관리 (24H) ({pressItems.length})
         </button>
       </div>
 

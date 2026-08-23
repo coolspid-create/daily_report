@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/database/service-client";
 import type { PublicationHistory, StoredDocument } from "../types/admin-review";
+import { resolveSourceContentType } from "./source-content-type";
 
 interface PublicationRow {
   publication_date: string;
@@ -15,6 +16,7 @@ interface StoredDocumentRow {
   primary_source_url: string;
   workflow_status: StoredDocument["workflowStatus"];
   updated_at: string;
+  document_sources: { sources: { content_type: StoredDocument["sourceContentType"] | null }[] | null }[];
 }
 
 interface SnapshotShape {
@@ -48,7 +50,7 @@ export async function getStoredDocuments(): Promise<StoredDocument[]> {
   const client = createServiceClient();
   const { data, error } = await client
     .from("documents")
-    .select("id,canonical_title,institution,published_at,primary_source_url,workflow_status,updated_at")
+    .select("id,canonical_title,institution,published_at,primary_source_url,workflow_status,updated_at,document_sources(sources(content_type))")
     .in("workflow_status", ["APPROVED", "REJECTED"])
     .order("updated_at", { ascending: false })
     .limit(80);
@@ -62,5 +64,6 @@ export async function getStoredDocuments(): Promise<StoredDocument[]> {
     primarySourceUrl: row.primary_source_url,
     workflowStatus: row.workflow_status,
     updatedAt: row.updated_at,
+    sourceContentType: resolveSourceContentType(row.document_sources),
   }));
 }

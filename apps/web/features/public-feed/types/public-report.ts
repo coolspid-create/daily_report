@@ -5,6 +5,8 @@ export type DeliveryMode =
   | "SUMMARY_ONLY"
   | "BLOCKED";
 
+export type SourceContentType = "REPORT" | "PRESS_RELEASE";
+
 export interface ReportFile {
   format: string | null;
   sizeBytes?: number | null;
@@ -20,6 +22,7 @@ export interface PublicReport {
   institution: string;
   publishedAt: string;
   contentTag: string;
+  sourceContentType?: SourceContentType;
   isNew: boolean;
   analysisAvailable?: boolean;
   shortSummary: string | null;

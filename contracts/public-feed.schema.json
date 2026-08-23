@@ -64,6 +64,7 @@
         "institution": {"type": "string", "minLength": 1},
         "publishedAt": {"type": "string", "format": "date"},
         "contentTag": {"type": "string"},
+        "sourceContentType": {"enum": ["REPORT", "PRESS_RELEASE"]},
         "isNew": {"type": "boolean"},
         "analysisAvailable": {"type": "boolean"},
         "shortSummary": {"type": ["string", "null"], "minLength": 1, "maxLength": 240},

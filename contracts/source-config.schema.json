@@ -12,6 +12,7 @@
     "homepage_url": {"type": "string", "format": "uri", "pattern": "^https://"},
     "list_url": {"type": "string", "format": "uri", "pattern": "^https://"},
     "rights_default": {"enum": ["FILE_UPLOAD_ALLOWED", "LINK_ONLY", "MANUAL_REVIEW", "BLOCKED"]},
+    "content_type": {"enum": ["REPORT", "PRESS_RELEASE"]},
     "poll_interval_minutes": {"type": "integer", "minimum": 60},
     "request_delay_ms": {"type": "integer", "minimum": 500},
     "timeout_seconds": {"type": "number", "minimum": 1, "maximum": 60},

@@ -28,6 +28,7 @@ def _report(document: PublicationDocument, publication_date: date) -> dict[str, 
         "institution": document.institution,
         "publishedAt": document.published_at.isoformat(),
         "contentTag": document.content_tag,
+        "sourceContentType": document.source_content_type,
         "isNew": document.published_at == publication_date,
         "analysisAvailable": document.summary_kind != "UNAVAILABLE",
         "shortSummary": (
@@ -53,6 +54,7 @@ def build_snapshot(
         for item in documents
         if item.workflow_status is WorkflowStatus.APPROVED
         and item.delivery_mode is not DeliveryMode.BLOCKED
+        and item.source_content_type == "REPORT"
     ]
     ranked = rank_documents(approved, publication_date)
     reports: dict[str, list[dict[str, Any]]] = {}

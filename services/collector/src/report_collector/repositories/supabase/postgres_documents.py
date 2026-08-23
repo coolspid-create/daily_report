@@ -17,7 +17,15 @@ def load_approved_documents(
     query = """
     select d.id,d.canonical_title,d.institution,d.published_at,d.primary_topic_id,d.content_tag,
       d.why_it_matters,d.delivery_mode,d.primary_source_url,a.summary_kind,a.key_points,a.key_tags,
-      f.file_url,f.extension,f.size_bytes,f.page_count
+      f.file_url,f.extension,f.size_bytes,f.page_count,
+      coalesce((
+        select source.content_type
+        from public.document_sources document_source
+        join public.sources source on source.id=document_source.source_id
+        where document_source.document_id=d.id
+        order by source.created_at asc
+        limit 1
+      ), 'REPORT') as source_content_type
     from public.documents d
     join public.document_analysis a on a.document_id=d.id
     left join lateral (
@@ -78,6 +86,7 @@ def load_approved_documents(
             size_bytes=row["size_bytes"],
             page_count=row["page_count"],
             workflow_status=WorkflowStatus.APPROVED,
+            source_content_type=row["source_content_type"],
             ranking_score=0.8,
         )
         for row in rows

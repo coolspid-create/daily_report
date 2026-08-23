@@ -22,6 +22,12 @@ REQUIRED = {
         "public_archive_snapshot",
         "7d",
     ],
+    "0030_source_content_type.sql": [
+        "content_type",
+        "press_release",
+        "mof-press",
+        "fsc-policy",
+    ],
 }
 
 

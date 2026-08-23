@@ -106,8 +106,6 @@ class SourceDocumentProcessor:
         if not attachment:
             official_analysis = await self._official_summary_analysis(document)
             analysis = official_analysis or await self._title_analysis(document)
-            if _is_press_release(document):
-                analysis = analysis.model_copy(update={"content_tag": "보도자료"})
             save_processing_result(
                 self.database_url, document_id, analysis, None, None, None, self.ttl_hours
             )
@@ -118,16 +116,12 @@ class SourceDocumentProcessor:
         except FileValidationError:
             mark_file_invalid(self.database_url, document_id, file_url)
             analysis = await self._official_summary_analysis(document) or await self._title_analysis(document)
-            if _is_press_release(document):
-                analysis = analysis.model_copy(update={"content_tag": "보도자료"})
             save_processing_result(
                 self.database_url, document_id, analysis, None, None, None, self.ttl_hours
             )
             return
         except (OSError, RuntimeError, ValueError):
             analysis = await self._official_summary_analysis(document) or await self._title_analysis(document)
-            if _is_press_release(document):
-                analysis = analysis.model_copy(update={"content_tag": "보도자료"})
             save_processing_result(
                 self.database_url, document_id, analysis, None, None, None, self.ttl_hours
             )
@@ -145,8 +139,6 @@ class SourceDocumentProcessor:
             )
         except ValueError:
             analysis = official_analysis or await self._title_analysis(document)
-        if _is_press_release(document):
-            analysis = analysis.model_copy(update={"content_tag": "보도자료"})
         save_processing_result(
             self.database_url,
             document_id,
@@ -156,8 +148,3 @@ class SourceDocumentProcessor:
             path,
             self.ttl_hours,
         )
-
-
-def _is_press_release(document: SourceDocument) -> bool:
-    return "보도자료" in document.institution or "보도자료" in document.title or "금융위원회" in document.institution
-

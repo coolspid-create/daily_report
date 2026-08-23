@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/database/service-client";
 import type { ReviewItem } from "../types/admin-review";
+import { resolveSourceContentType } from "./source-content-type";
 
 interface ReviewRow {
   id: string;
@@ -12,9 +13,11 @@ interface ReviewRow {
   delivery_mode: ReviewItem["deliveryMode"];
   workflow_status: ReviewItem["workflowStatus"];
   primary_source_url: string;
+  created_at: string;
   document_analysis: { key_tags: string[] } | null;
   document_files: { sha256: string | null }[];
   review_actions: { action: string; after_data: { reasonCodes?: string[] } | null }[];
+  document_sources: { sources: { content_type: ReviewItem["sourceContentType"] | null }[] | null }[];
 }
 
 export async function getReviewItems(): Promise<ReviewItem[]> {
@@ -24,7 +27,7 @@ export async function getReviewItems(): Promise<ReviewItem[]> {
   cutoff.setDate(cutoff.getDate() - 7);
   const { data, error } = await client
     .from("documents")
-    .select("*,document_analysis(key_tags),document_files(sha256),review_actions(action,after_data)")
+    .select("*,document_analysis(key_tags),document_files(sha256),review_actions(action,after_data),document_sources(sources(content_type))")
     .in("workflow_status", ["NEW", "NEEDS_REVIEW"])
     .gte("published_at", cutoff.toISOString().slice(0, 10))
     .lte("published_at", today.toISOString().slice(0, 10))
@@ -50,6 +53,8 @@ export async function getReviewItems(): Promise<ReviewItem[]> {
     deliveryMode: row.delivery_mode,
     workflowStatus: row.workflow_status,
     primarySourceUrl: row.primary_source_url,
+    createdAt: row.created_at,
+    sourceContentType: resolveSourceContentType(row.document_sources),
     duplicateCandidateIds: [
       ...new Set(
         row.document_files.flatMap((file) =>

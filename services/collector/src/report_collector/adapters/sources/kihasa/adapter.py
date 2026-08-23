@@ -8,7 +8,6 @@ from pydantic import HttpUrl
 from report_collector.adapters.base import SourceAdapter
 from report_collector.domain.errors import SourceParseError
 from report_collector.domain.models import (
-    Attachment,
     DiscoveredItem,
     SourceConfig,
     SourceDocument,

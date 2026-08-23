@@ -56,6 +56,15 @@ def test_all_topic_contains_the_sum_of_topic_documents() -> None:
     assert len(snapshot["reportsByTopic"]["economy"]) == 1
 
 
+def test_press_release_is_excluded_from_public_report_snapshot() -> None:
+    report = document("report")
+    press_release = document("press").model_copy(update={"source_content_type": "PRESS_RELEASE"})
+
+    snapshot = build_snapshot([report, press_release], date(2026, 8, 21), "today")
+
+    assert [item["id"] for item in snapshot["reportsByTopic"]["all"]] == ["report"]
+
+
 def test_failed_snapshot_build_keeps_previous(contract_root: Path) -> None:
     schema = json.loads((contract_root / "public-feed.schema.json").read_text(encoding="utf-8"))
     repository = MemoryPublicationRepository()

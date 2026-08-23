@@ -5,6 +5,7 @@ implementation: report_collector.adapters.sources.fsc.adapter:FinancialServicesC
 homepage_url: https://www.fsc.go.kr
 list_url: https://www.fsc.go.kr/no000000
 rights_default: LINK_ONLY
+content_type: PRESS_RELEASE
 poll_interval_minutes: 720
 request_delay_ms: 1500
 timeout_seconds: 30

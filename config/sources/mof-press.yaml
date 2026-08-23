@@ -5,6 +5,7 @@ implementation: report_collector.adapters.sources.mof.adapter:MinistryOfOceansAd
 homepage_url: https://www.mof.go.kr/index.do?menuSeq=971
 list_url: https://www.mof.go.kr/doc/ko/selectDocList.do?menuSeq=971&bbsSeq=10
 rights_default: LINK_ONLY
+content_type: PRESS_RELEASE
 poll_interval_minutes: 720
 request_delay_ms: 1500
 timeout_seconds: 30

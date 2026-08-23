@@ -1,3 +1,4 @@
+import logging
 import re
 from collections.abc import AsyncIterator
 from datetime import UTC, date, datetime
@@ -20,6 +21,7 @@ from report_collector.services.source_filter_service import title_allowed
 DATE_PATTERN = re.compile(
     r"(?P<year>\d{4})\s*[./-]\s*(?P<month>\d{1,2})\s*[./-]\s*(?P<day>\d{1,2})"
 )
+logger = logging.getLogger(__name__)
 
 
 class CreditRatingAdapter(SourceAdapter):
@@ -66,9 +68,9 @@ class CreditRatingAdapter(SourceAdapter):
                 summary = re.sub(r"\s+", " ", summary_node.get_text(" ", strip=True)).strip()[:3000]
             if not published:
                 published = _extract_date(soup.get_text(" ", strip=True))
-        except Exception:
+        except Exception as error:
             # 상세 페이지가 단독 조회가 안 되는 프레임 구조일 경우 목록에서 추출한 정보 우선 사용
-            pass
+            logger.info("Credit rating detail fetch skipped: %s", error)
 
         return SourceDocument(
             source_item_key=item.source_item_key,

@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { TOPICS } from "../constants/topics";
 import { useFeedSelection } from "../hooks/use-feed-selection";
 import { filterFeed } from "../lib/filter-feed";
+import { reportsOnlySnapshot } from "../lib/content-type";
 import type { FeedSelection } from "../lib/initial-selection";
+import type { PublicReport } from "../types/public-report";
 import type { PublicArchive, PublicFeedSnapshot } from "../types/public-feed";
 import { ArchiveSelector } from "./archive-selector";
 import { FeedHeader } from "./feed-header";
@@ -17,9 +19,10 @@ interface PublicFeedProps {
   archive: PublicArchive;
   fallbackSnapshot: PublicFeedSnapshot;
   initialSelection: FeedSelection;
+  pressReleases?: PublicReport[];
 }
 
-export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: PublicFeedProps) {
+export function PublicFeed({ archive, fallbackSnapshot, initialSelection, pressReleases = [] }: PublicFeedProps) {
   const mainRef = useRef<HTMLElement>(null);
   const selection = useFeedSelection(initialSelection, archive);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
@@ -28,31 +31,19 @@ export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: Publ
   );
   const [loadingDate, setLoadingDate] = useState<string | null>(null);
 
-  // 1. Current latest snapshot (always reflects latest live data for press releases)
-  const snapshotPress = (archive.snapshot?.reportsByTopic["all"] ?? []).filter(
-    (r) => r.contentTag === "보도자료" || r.institution.includes("보도자료")
-  );
-  const fallbackPress = (fallbackSnapshot.reportsByTopic["all"] ?? []).filter(
-    (r) => r.contentTag === "보도자료" || r.institution.includes("보도자료")
-  );
-  const latestPressReleases = snapshotPress.length > 0 ? snapshotPress : fallbackPress;
-
-
-  // 2. Selected historical archive snapshot (used strictly for research topics)
   const isPressReleaseTab = selection.topic === "press-release";
-  const researchSnapshot = selection.archiveDate
+  const selectedSnapshot = selection.archiveDate
     ? snapshots[selection.archiveDate] ??
       (selection.archiveDate === archive.loadedDate ? archive.snapshot : null) ??
       fallbackSnapshot
     : archive.snapshot ?? fallbackSnapshot;
+  const researchSnapshot = reportsOnlySnapshot(selectedSnapshot);
 
   const topicReports = researchSnapshot ? filterFeed(researchSnapshot, selection.topic) : [];
-  const researchReports = topicReports.filter(
-    (r) => r.contentTag !== "보도자료" && !r.institution.includes("보도자료")
-  );
+  const researchReports = topicReports;
 
   const topicLabel = TOPICS.find((topic) => topic.id === selection.topic)?.label ?? "전체";
-  const displayCount = isPressReleaseTab ? latestPressReleases.length : researchReports.length;
+  const displayCount = isPressReleaseTab ? pressReleases.length : researchReports.length;
 
   useEffect(() => {
     mainRef.current?.setAttribute("data-hydrated", "true");
@@ -89,7 +80,7 @@ export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: Publ
         <TopicSelector
           activeTopic={selection.topic}
           topicSummaries={researchSnapshot?.topics}
-          pressReleaseCount={latestPressReleases.length}
+          pressReleaseCount={pressReleases.length}
           onChange={selection.setTopic}
         />
         {!isPressReleaseTab && (
@@ -114,7 +105,7 @@ export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: Publ
           <p>발행본을 불러오는 중입니다.</p>
         </section>
       ) : isPressReleaseTab ? (
-        <PressReleaseSection reports={latestPressReleases} />
+        <PressReleaseSection reports={pressReleases} />
       ) : (
         <ReportList reports={researchReports} topicLabel={topicLabel} viewMode={viewMode} />
       )}
@@ -122,6 +113,3 @@ export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: Publ
     </main>
   );
 }
-
-
-
