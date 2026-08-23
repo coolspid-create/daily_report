@@ -8,7 +8,14 @@ interface PressReleaseSectionProps {
 }
 
 export function PressReleaseSection({ reports }: PressReleaseSectionProps) {
-  if (reports.length === 0) return null;
+  if (reports.length === 0) {
+    return (
+      <section className="empty-feed" aria-live="polite">
+        <p>최근 24시간 발행본에 보도자료가 없습니다.</p>
+      </section>
+    );
+  }
+
 
   return (
     <section className="press-release-section" aria-label="최신 24시간 보도자료">

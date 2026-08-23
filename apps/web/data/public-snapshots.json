@@ -47,8 +47,20 @@
           "shortSummary": "청년고용의 최근 흐름과 정책 대응 과제를 다룬 한국은행 이슈노트입니다.",
           "keyTags": ["청년고용", "노동시장", "정책 대응"],
           "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.bok.or.kr/portal/bbs/P0002353/view.do?nttId=11063845&menuNo=200433"}
+        },
+        {
+          "id": "fsc-20260823-1",
+          "title": "금융위원회 2026년 하반기 정책금융 지원방안 발표",
+          "institution": "금융위원회",
+          "publishedAt": "2026-08-23",
+          "contentTag": "보도자료",
+          "isNew": true,
+          "shortSummary": "금융위원회가 발표한 2026년 하반기 중소·벤처기업 맞춤형 정책금융 지원 방안에 관한 보도자료입니다.",
+          "keyTags": ["정책금융", "중소기업", "금융지원"],
+          "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.fsc.go.kr"}
         }
       ],
+
       "economy": [
         {"id": "kdi-19217", "title": "유통시장의 환경 변화와 경제적 영향에 관한 연구", "institution": "한국개발연구원", "publishedAt": "2026-08-21", "contentTag": "경제 전망", "isNew": true, "shortSummary": "유통시장 변화가 경제와 소비자 후생에 미치는 영향을 분석한 한국개발연구원 연구보고서입니다.", "keyTags": ["유통시장", "시장구조", "소비자 후생"], "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.kdi.re.kr/research/reportView?pub_no=19217"}}
       ],
@@ -88,8 +100,10 @@
       "all": [
         {"id": "nars-49538", "title": "「자살예방법」은 무엇을 놓치고 있는가", "institution": "국회입법조사처", "publishedAt": "2026-08-21", "contentTag": "입법 이슈", "isNew": true, "shortSummary": "자살예방 정책과 지원 체계에서 보완할 입법 과제를 검토한 국회입법조사처 이슈 자료입니다.", "keyTags": ["자살예방", "입법 과제", "지원 체계"], "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "DIRECT_OFFICIAL_FILE", "downloadUrl": "https://www.nars.go.kr/fileDownload2.do?doc_id=1Q0VsVwCQ_5&fileName=%28%EC%9D%B4%EC%8A%88%EC%99%80%EB%85%BC%EC%A0%90%202521%ED%98%B8-20260821%29%EC%9E%90%EC%82%B4%EC%98%88%EB%B0%A9%EB%B2%95.pdf", "sourceUrl": "https://www.nars.go.kr/report/view.do?brdSeq=49538&cmsCode=CM0043"}},
         {"id": "kdi-19217", "title": "유통시장의 환경 변화와 경제적 영향에 관한 연구", "institution": "한국개발연구원", "publishedAt": "2026-08-21", "contentTag": "경제 전망", "isNew": true, "shortSummary": "유통시장 변화가 경제와 소비자 후생에 미치는 영향을 분석한 한국개발연구원 연구보고서입니다.", "keyTags": ["유통시장", "시장구조", "소비자 후생"], "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.kdi.re.kr/research/reportView?pub_no=19217"}},
-        {"id": "bok-2026-19", "title": "[제2026-19호] 청년고용 위축과 대응 과제", "institution": "한국은행", "publishedAt": "2026-08-20", "contentTag": "고용 동향", "isNew": false, "shortSummary": "청년고용의 최근 흐름과 정책 대응 과제를 다룬 한국은행 이슈노트입니다.", "keyTags": ["청년고용", "노동시장", "정책 대응"], "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.bok.or.kr/portal/bbs/P0002353/view.do?nttId=11063845&menuNo=200433"}}
+        {"id": "bok-2026-19", "title": "[제2026-19호] 청년고용 위축과 대응 과제", "institution": "한국은행", "publishedAt": "2026-08-20", "contentTag": "고용 동향", "isNew": false, "shortSummary": "청년고용의 최근 흐름과 정책 대응 과제를 다룬 한국은행 이슈노트입니다.", "keyTags": ["청년고용", "노동시장", "정책 대응"], "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.bok.or.kr/portal/bbs/P0002353/view.do?nttId=11063845&menuNo=200433"}},
+        {"id": "fsc-20260823-1", "title": "금융위원회 2026년 하반기 정책금융 지원방안 발표", "institution": "금융위원회", "publishedAt": "2026-08-23", "contentTag": "보도자료", "isNew": true, "shortSummary": "금융위원회가 발표한 2026년 하반기 중소·벤처기업 맞춤형 정책금융 지원 방안에 관한 보도자료입니다.", "keyTags": ["정책금융", "중소기업", "금융지원"], "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.fsc.go.kr"}}
       ],
+
       "economy": [{"id": "kdi-19217", "title": "유통시장의 환경 변화와 경제적 영향에 관한 연구", "institution": "한국개발연구원", "publishedAt": "2026-08-21", "contentTag": "경제 전망", "isNew": true, "shortSummary": "유통시장 변화가 경제와 소비자 후생에 미치는 영향을 분석한 한국개발연구원 연구보고서입니다.", "keyTags": ["유통시장", "시장구조", "소비자 후생"], "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.kdi.re.kr/research/reportView?pub_no=19217"}}],
       "industry": [], "ai-tech": [],
       "labor-welfare": [{"id": "bok-2026-19", "title": "[제2026-19호] 청년고용 위축과 대응 과제", "institution": "한국은행", "publishedAt": "2026-08-20", "contentTag": "고용 동향", "isNew": false, "shortSummary": "청년고용의 최근 흐름과 정책 대응 과제를 다룬 한국은행 이슈노트입니다.", "keyTags": ["청년고용", "노동시장", "정책 대응"], "file": {"format": "PDF", "sizeBytes": null, "pageCount": null, "deliveryMode": "OFFICIAL_PAGE_ONLY", "downloadUrl": null, "sourceUrl": "https://www.bok.or.kr/portal/bbs/P0002353/view.do?nttId=11063845&menuNo=200433"}}],

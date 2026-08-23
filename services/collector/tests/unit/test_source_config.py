@@ -52,6 +52,12 @@ def test_all_active_uses_enabled_source_configs(contract_root: Path) -> None:
         "keei-research",
         "kinu-research",
         "kipf-research",
+        "posri-research",
+        "hri-research",
+        "wfri-research",
+        "fki-report",
+        "keri-research",
+        "ifans-focus",
     } <= names
     assert "kdi-research" not in names
     assert "kihasa-research" not in names

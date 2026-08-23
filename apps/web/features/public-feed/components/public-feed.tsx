@@ -34,14 +34,19 @@ export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: Publ
       fallbackSnapshot
     : archive.snapshot ?? fallbackSnapshot;
 
-  const reports = snapshot ? filterFeed(snapshot, selection.topic) : [];
-  const researchReports = reports.filter(
-    (r) => r.contentTag !== "보도자료" && !r.institution.includes("보도자료")
-  );
-  const pressReleases = reports.filter(
+  const allReports = snapshot ? (snapshot.reportsByTopic["all"] ?? []) : [];
+  const allPressReleases = allReports.filter(
     (r) => r.contentTag === "보도자료" || r.institution.includes("보도자료")
   );
+
+  const isPressReleaseTab = selection.topic === "press-release";
+  const topicReports = snapshot ? filterFeed(snapshot, selection.topic) : [];
+  const researchReports = topicReports.filter(
+    (r) => r.contentTag !== "보도자료" && !r.institution.includes("보도자료")
+  );
+
   const topicLabel = TOPICS.find((topic) => topic.id === selection.topic)?.label ?? "전체";
+  const displayCount = isPressReleaseTab ? allPressReleases.length : researchReports.length;
 
   useEffect(() => {
     mainRef.current?.setAttribute("data-hydrated", "true");
@@ -71,6 +76,7 @@ export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: Publ
         <TopicSelector
           activeTopic={selection.topic}
           topicSummaries={snapshot?.topics}
+          pressReleaseCount={allPressReleases.length}
           onChange={selection.setTopic}
         />
         <ArchiveSelector
@@ -82,8 +88,8 @@ export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: Publ
       <FeedSummary
         topic={topicLabel}
         topicId={selection.topic}
-        count={researchReports.length}
-        digest={snapshot?.digests[selection.topic]}
+        count={displayCount}
+        digest={isPressReleaseTab ? undefined : snapshot?.digests[selection.topic]}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
       />
@@ -91,14 +97,14 @@ export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: Publ
         <section className="empty-feed" aria-live="polite">
           <p>발행본을 불러오는 중입니다.</p>
         </section>
+      ) : isPressReleaseTab ? (
+        <PressReleaseSection reports={allPressReleases} />
       ) : (
-        <>
-          <ReportList reports={researchReports} topicLabel={topicLabel} viewMode={viewMode} />
-          <PressReleaseSection reports={pressReleases} />
-        </>
+        <ReportList reports={researchReports} topicLabel={topicLabel} viewMode={viewMode} />
       )}
       <footer className="site-footer">원문 및 PDF 저작권은 각 발행기관의 공식 정책을 따릅니다.</footer>
     </main>
   );
 }
+
 

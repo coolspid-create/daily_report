@@ -5,13 +5,19 @@ from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup, Tag
 from pydantic import HttpUrl
-from soupsieve import match
 from report_collector.adapters.base import SourceAdapter
 from report_collector.domain.errors import SourceParseError
-from report_collector.domain.models import Attachment, DiscoveredItem, SourceConfig, SourceDocument, SourceHealthResult
+from report_collector.domain.models import (
+    Attachment,
+    DiscoveredItem,
+    SourceConfig,
+    SourceDocument,
+    SourceHealthResult,
+)
 from report_collector.providers.browser.base import BrowserRenderer
 from report_collector.providers.http.http_client import PublicHttpClient
 from report_collector.services.source_filter_service import title_allowed
+from soupsieve import match
 
 DATE_PATTERN = re.compile(r"\d{4}[./-]\d{1,2}[./-]\d{1,2}")
 
@@ -91,13 +97,24 @@ def _attachments(soup: BeautifulSoup, base: str, selector: str | None) -> list[A
         return []
     attachments: list[Attachment] = []
     for link in soup.select(selector):
-        href = str(link.get("href", ""))
-        if not href or href.lower().startswith("javascript:"):
+        href = _attachment_url(link, base)
+        if not href:
             continue
         attachments.append(
-            Attachment(url=HttpUrl(urljoin(base, href)), file_name="official-report.pdf", declared_type="application/pdf")
+            Attachment(url=HttpUrl(href), file_name="official-report.pdf", declared_type="application/pdf")
         )
     return attachments
+
+
+def _attachment_url(link: Tag, base: str) -> str | None:
+    href = str(link.get("href", ""))
+    if href and not href.lower().startswith("javascript:"):
+        return urljoin(base, href)
+    onclick = str(link.get("onclick", ""))
+    match = re.search(r"fileDown\(['\"]?([^,'\")]+)['\"]?\s*,\s*['\"]?([^,'\")]+)", onclick)
+    if not match:
+        return None
+    return urljoin(base, f"/file/fileDown.do?file_seq={match.group(1)}&file_sn={match.group(2)}")
 
 
 def _summary(soup: BeautifulSoup, selector: str | None) -> str | None:

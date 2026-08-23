@@ -18,7 +18,7 @@ selectors:
   title: .item_name
   detail_link: .item_name
 detail:
-  attachments: a[href*='fileDown']
+  attachments: a[href*='fileDown'], a[onclick*='fileDown'], button[onclick*='fileDown']
   summary: .view-content, .board-view, article
 filters:
   exclude_title_keywords: [보도자료, 채용, 입찰, 행사, 공고]

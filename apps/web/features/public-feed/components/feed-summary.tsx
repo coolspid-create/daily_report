@@ -13,9 +13,11 @@ interface FeedSummaryProps {
 }
 
 function description(topicId: string, count: number): string {
+  if (topicId === "press-release") return `최근 24시간 정부·공공기관 보도자료 ${count}건`;
   if (topicId === "all") return `최근 7일 꼭 볼 자료 ${count}건`;
   return `최근 7일 선정 자료 ${count}건`;
 }
+
 
 export function FeedSummary({
   topic,

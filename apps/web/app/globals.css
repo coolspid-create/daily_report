@@ -139,16 +139,30 @@ h1 {
   border-bottom: 1px solid var(--color-border);
 }
 
+.topic-bar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .topic-scroll {
   display: flex;
   gap: 6px;
   overflow-x: auto;
   padding: 2px 0 6px;
   scrollbar-width: none;
+  flex: 1;
+  min-width: 0;
 }
 
 .topic-scroll::-webkit-scrollbar {
   display: none;
+}
+
+.topic-press-release-tab {
+  flex-shrink: 0;
+  padding: 2px 0 6px;
 }
 
 .pill {
@@ -182,6 +196,47 @@ h1 {
   color: #ffffff;
   font-weight: 700;
 }
+
+.pill-press-release {
+  border-color: #fca5a5;
+  background: #fff8f8;
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.pill-press-release:hover {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+.pill-press-release[aria-pressed="true"] {
+  border-color: #dc2626;
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.pill-press-release[aria-pressed="true"] .press-24h-tag {
+  background: #ffffff;
+  color: #dc2626;
+}
+
+.press-tab-icon {
+  font-size: 0.95rem;
+}
+
+.press-24h-tag {
+  display: inline-block;
+  padding: 1px 5px;
+  font-size: 0.66rem;
+  font-weight: 850;
+  border-radius: 4px;
+  background: #fee2e2;
+  color: #dc2626;
+  letter-spacing: 0.04em;
+  margin-left: 2px;
+}
+
 
 .pill[aria-pressed="true"] .topic-count {
   background: var(--color-accent);
@@ -934,6 +989,10 @@ h1 {
   .index-accordion {
     padding: 0 0 16px 38px;
   }
+  .topic-bar-container {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
   .report-list.view-grid {
     grid-template-columns: 1fr;
   }
@@ -941,4 +1000,5 @@ h1 {
     grid-template-columns: 1fr;
   }
 }
+
 
