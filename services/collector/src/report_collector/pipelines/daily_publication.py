@@ -26,7 +26,8 @@ def run_daily_publication(
         return DailyPublicationOutcome("DRY_RUN", review, None, 0)
     publication = publish()
     if publication.document_count == 0:
-        return DailyPublicationOutcome("NO_CONTENT", review, publication, 0)
+        status = "PARTIAL" if failed_sources else "NO_CONTENT"
+        return DailyPublicationOutcome(status, review, publication, 0)
     try:
         telegram_count = deliver(publication)
     except Exception:

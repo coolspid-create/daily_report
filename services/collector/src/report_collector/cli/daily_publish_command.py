@@ -9,7 +9,10 @@ from report_collector.pipelines.auto_review_documents import (
     AutoReviewSummary,
     auto_review_documents,
 )
-from report_collector.pipelines.daily_publication import run_daily_publication
+from report_collector.pipelines.daily_publication import (
+    DailyPublicationOutcome,
+    run_daily_publication,
+)
 from report_collector.pipelines.deliver_publication import deliver_publication
 from report_collector.providers.notifications.telegram_provider import (
     TelegramNotificationProvider,
@@ -62,9 +65,9 @@ def daily_publish_command(
         )
         telegram_count = outcome.telegram_count
         final_status = outcome.status
-        if outcome.status == "NO_CONTENT" and scheduled_run and _enabled("TELEGRAM_ENABLED"):
+        if _should_send_no_content_notice(outcome, scheduled_run) and _enabled("TELEGRAM_ENABLED"):
             try:
-                telegram_count = _deliver_no_content_notice(now)
+                telegram_count = _deliver_no_content_notice(now, outcome.review.candidate_count)
             except Exception as error:
                 print(f"no-content Telegram notice failed: {type(error).__name__}")
                 final_status = "PARTIAL"
@@ -142,18 +145,26 @@ def _deliver_with_stage(
     return _deliver(database_url, result, date_value)
 
 
-def _deliver_no_content_notice(now: datetime) -> int:
+def _should_send_no_content_notice(
+    outcome: DailyPublicationOutcome, scheduled_run: bool
+) -> bool:
+    return bool(
+        scheduled_run and outcome.publication is not None and outcome.publication.document_count == 0
+    )
+
+
+def _deliver_no_content_notice(now: datetime, candidate_count: int = 0) -> int:
     provider = TelegramNotificationProvider(
         _required("TELEGRAM_BOT_TOKEN"),
         _required("TELEGRAM_CHAT_ID"),
         int(os.getenv("TELEGRAM_MAX_ATTEMPTS", "3")),
     )
     public_url = os.getenv("PUBLIC_WEB_URL", "").strip()
-    message = (
-        f"<b>오늘의 공공리포트 ({now:%Y.%m.%d})</b>\n"
-        "오늘 발행할 신규 리포트가 없습니다.\n"
-        "수집 결과, 발행 요건을 충족한 자료가 없어 안내만 드립니다."
-    )
+    message = f"<b>오늘의 공공리포트 ({now:%Y.%m.%d})</b>\n오늘 발행할 신규 리포트가 없습니다."
+    if candidate_count:
+        message += f"\n수집 후보 {candidate_count}건 중 발행 요건을 충족한 자료가 없어 안내만 드립니다."
+    else:
+        message += "\n수집 결과, 발행 요건을 충족한 신규 자료가 없어 안내만 드립니다."
     if public_url:
         message += f'\n<a href="{public_url}">웹에서 아카이브 보기</a>'
     provider.send_message(message)

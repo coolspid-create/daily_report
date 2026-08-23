@@ -42,10 +42,13 @@ def load_auto_review_candidates(
     ) duplicates on true
     where d.workflow_status in ('NEW','NEEDS_REVIEW')
       and coalesce(seen.first_seen_at,d.created_at) between %s and %s
+      and d.published_at between %s and %s
     order by d.created_at
     """
     with psycopg.connect(database_url, row_factory=dict_row) as connection:
-        rows = connection.execute(query, (window_start, window_end)).fetchall()
+        rows = connection.execute(
+            query, (window_start, window_end, window_start.date(), window_end.date())
+        ).fetchall()
     return [_candidate(row) for row in rows]
 
 

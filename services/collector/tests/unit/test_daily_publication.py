@@ -44,3 +44,15 @@ def test_dry_run_does_not_publish() -> None:
         True,
     )
     assert outcome.status == "DRY_RUN"
+
+
+def test_no_content_with_source_failures_is_partial() -> None:
+    outcome = run_daily_publication(
+        lambda: 2,
+        lambda: AutoReviewSummary(0, 0, 0),
+        lambda: _publication(0),
+        lambda _: 0,
+        False,
+    )
+
+    assert outcome.status == "PARTIAL"

@@ -1,4 +1,5 @@
 import { hasValidCronSecret } from "@/features/automation/server/cron-auth";
+import { isKoreanCollectionWeekday } from "@/features/automation/server/korean-schedule";
 import {
   dispatchCollectorWorkflow,
   readGitHubDispatchSettings,
@@ -10,6 +11,9 @@ export const runtime = "nodejs";
 export async function GET(request: Request) {
   if (!hasValidCronSecret(request, process.env.CRON_SECRET)) {
     return Response.json({ error: "unauthorized" }, { status: 401 });
+  }
+  if (!isKoreanCollectionWeekday(new Date())) {
+    return Response.json({ accepted: false, skipped: "WEEKEND" });
   }
   try {
     await dispatchCollectorWorkflow(readGitHubDispatchSettings());

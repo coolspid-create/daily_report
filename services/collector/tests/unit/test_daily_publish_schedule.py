@@ -52,6 +52,7 @@ def test_no_content_notice_includes_the_public_archive_link(monkeypatch: object)
         "report_collector.cli.daily_publish_command.TelegramNotificationProvider", Provider
     )  # type: ignore[attr-defined]
 
-    assert _deliver_no_content_notice(datetime(2026, 8, 22, 8, 35, tzinfo=SEOUL)) == 1
+    assert _deliver_no_content_notice(datetime(2026, 8, 22, 8, 35, tzinfo=SEOUL), 3) == 1
     assert "오늘 발행할 신규 리포트가 없습니다" in sent[0]
+    assert "수집 후보 3건" in sent[0]
     assert "https://example.com" in sent[0]

@@ -67,7 +67,7 @@ jobs:
         if: ${{ success() }}
         run: |
           if [ -z "$PUBLIC_WEB_URL" ] || [ -z "$PUBLIC_FEED_REVALIDATION_SECRET" ]; then
-            echo "public feed revalidation skipped: required configuration is missing"
+            echo "::warning::public feed revalidation skipped: PUBLIC_WEB_URL or PUBLIC_FEED_REVALIDATION_SECRET is missing"
             exit 0
           fi
           curl --fail --retry 2 --retry-delay 2 --request POST \
