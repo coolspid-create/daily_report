@@ -26,6 +26,41 @@
   gap: 8px;
 }
 
+.admin-shell .admin-mode-tabs {
+  display: flex;
+  gap: 10px;
+  margin: 24px 0 16px;
+  padding: 6px;
+  background: var(--color-surface-subtle, #f4f4f6);
+  border-radius: var(--radius-sm, 6px);
+  width: fit-content;
+}
+
+.admin-shell .admin-mode-tab {
+  padding: 8px 18px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-weight: 700;
+  font-size: 0.94rem;
+  border-radius: var(--radius-sm, 4px);
+  color: var(--color-text-secondary, #666);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.admin-shell .admin-mode-tab:hover:not(.is-active) {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--color-text);
+}
+
+.admin-shell .admin-mode-tab.is-active {
+  background: var(--color-text, #111);
+  color: #ffffff;
+  border-color: var(--color-text, #111);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+
 .admin-shell button,
 .admin-shell .review-editor input,
 .admin-shell .review-editor select,

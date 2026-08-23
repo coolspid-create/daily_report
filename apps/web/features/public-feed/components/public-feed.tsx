@@ -29,11 +29,14 @@ export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: Publ
   const [loadingDate, setLoadingDate] = useState<string | null>(null);
 
   // 1. Current latest snapshot (always reflects latest live data for press releases)
-  const latestSnapshot = archive.snapshot ?? fallbackSnapshot;
-  const latestAllReports = latestSnapshot ? (latestSnapshot.reportsByTopic["all"] ?? []) : [];
-  const latestPressReleases = latestAllReports.filter(
+  const snapshotPress = (archive.snapshot?.reportsByTopic["all"] ?? []).filter(
     (r) => r.contentTag === "보도자료" || r.institution.includes("보도자료")
   );
+  const fallbackPress = (fallbackSnapshot.reportsByTopic["all"] ?? []).filter(
+    (r) => r.contentTag === "보도자료" || r.institution.includes("보도자료")
+  );
+  const latestPressReleases = snapshotPress.length > 0 ? snapshotPress : fallbackPress;
+
 
   // 2. Selected historical archive snapshot (used strictly for research topics)
   const isPressReleaseTab = selection.topic === "press-release";
@@ -77,10 +80,11 @@ export function PublicFeed({ archive, fallbackSnapshot, initialSelection }: Publ
       <FeedHeader
         generatedAt={
           isPressReleaseTab
-            ? latestSnapshot?.generatedAt ?? fallbackSnapshot.generatedAt
+            ? (archive.snapshot ?? fallbackSnapshot).generatedAt
             : researchSnapshot?.generatedAt ?? fallbackSnapshot.generatedAt
         }
       />
+
       <section className="feed-controls" aria-label="피드 선택">
         <TopicSelector
           activeTopic={selection.topic}
