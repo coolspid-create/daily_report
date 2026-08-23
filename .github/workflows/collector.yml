@@ -66,13 +66,13 @@ jobs:
       - name: Revalidate published public feed
         if: ${{ success() }}
         run: |
-          if [ -z "$PUBLIC_WEB_URL" ] || [ -z "$PUBLIC_FEED_REVALIDATION_SECRET" ]; then
-            echo "::warning::public feed revalidation skipped: PUBLIC_WEB_URL or PUBLIC_FEED_REVALIDATION_SECRET is missing"
+          if [ -z "$PUBLIC_WEB_URL" ] || [ -z "$FEED_REVALIDATION_SECRET" ]; then
+            echo "::warning::public feed revalidation skipped: PUBLIC_WEB_URL or FEED_REVALIDATION_SECRET is missing"
             exit 0
           fi
           curl --fail --retry 2 --retry-delay 2 --request POST \
             "${PUBLIC_WEB_URL%/}/api/cron/revalidate-public-feed" \
-            --header "Authorization: Bearer $PUBLIC_FEED_REVALIDATION_SECRET"
+            --header "Authorization: Bearer $FEED_REVALIDATION_SECRET"
         env:
           PUBLIC_WEB_URL: ${{ vars.PUBLIC_WEB_URL }}
-          PUBLIC_FEED_REVALIDATION_SECRET: ${{ secrets.PUBLIC_FEED_REVALIDATION_SECRET }}
+          FEED_REVALIDATION_SECRET: ${{ secrets.FEED_REVALIDATION_SECRET }}

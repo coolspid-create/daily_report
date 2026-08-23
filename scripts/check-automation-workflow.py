@@ -19,6 +19,7 @@ def main() -> None:
         "run_mode",
         "publish-approved",
         "concurrency:",
+        "FEED_REVALIDATION_SECRET",
     ]
     missing = [item for item in required if item not in text]
     expected_crons = [{"path": "/api/cron/daily-publish", "schedule": "35 23 * * 0-4"}]
