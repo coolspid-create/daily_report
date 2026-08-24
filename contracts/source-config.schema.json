@@ -11,6 +11,13 @@
     "adapter": {"enum": ["static_board", "rendered_board", "rss"]},
     "homepage_url": {"type": "string", "format": "uri", "pattern": "^https://"},
     "list_url": {"type": "string", "format": "uri", "pattern": "^https://"},
+    "collection_urls": {
+      "type": "array",
+      "items": {"type": "string", "format": "uri", "pattern": "^https://"},
+      "minItems": 1,
+      "maxItems": 8,
+      "uniqueItems": true
+    },
     "rights_default": {"enum": ["FILE_UPLOAD_ALLOWED", "LINK_ONLY", "MANUAL_REVIEW", "BLOCKED"]},
     "content_type": {"enum": ["REPORT", "PRESS_RELEASE"]},
     "poll_interval_minutes": {"type": "integer", "minimum": 60},

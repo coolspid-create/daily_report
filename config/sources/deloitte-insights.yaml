@@ -4,6 +4,12 @@ adapter: static_board
 implementation: report_collector.adapters.sources.deloitte.adapter:DeloitteInsightsAdapter
 homepage_url: https://www.deloitte.com/kr/ko/our-thinking/deloitte-insights.html
 list_url: https://www.deloitte.com/kr/ko/our-thinking/deloitte-insights-publications.html
+collection_urls:
+  - https://www.deloitte.com/kr/ko/our-thinking/deloitte-insights-publications.html?icid=quicklinks_publication
+  - https://www.deloitte.com/kr/ko/our-thinking/deloitte-global-economic-review.html?icid=quicklinks_---------
+  - https://www.deloitte.com/kr/ko/Industries/consumer/research/consumer-signal-index.html?icid=quicklinks_deloitte-index
+  - https://www.deloitte.com/kr/ko/issues/generative-ai.html?icid=quicklinks_deloitte-ai-institute
+  - https://www.deloitte.com/kr/ko/our-thinking/deloitte-insights.html
 rights_default: LINK_ONLY
 poll_interval_minutes: 720
 request_delay_ms: 1500
@@ -19,4 +25,4 @@ filters:
   allowed_extensions: [pdf]
   exclude_title_keywords: [채용, 입찰, 행사, 공고, 이벤트, 세미나]
   max_age_days: 30
-  max_items_per_run: 6
+  max_items_per_run: 20

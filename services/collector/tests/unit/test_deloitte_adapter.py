@@ -10,8 +10,10 @@ from report_collector.domain.models import DiscoveredItem
 class FixtureHttp:
     def __init__(self, pages: dict[str, str]) -> None:
         self.pages = pages
+        self.requests: list[str] = []
 
     async def fetch_text(self, url: str) -> str:
+        self.requests.append(url)
         return self.pages.get(url, "<html><body><div>본문 없음</div></body></html>")
 
 
@@ -37,6 +39,17 @@ SAMPLE_LIST_HTML = """
 </main>
 </body>
 </html>
+"""
+
+SAMPLE_AI_LIST_HTML = """
+<main>
+  <article>
+    <a href="/kr/ko/issues/generative-ai/ai-use-cases/customer-service.html">
+      <h3>생성형 AI 고객 서비스 활용 사례</h3><time>2026.08.21</time>
+    </a>
+  </article>
+  <a href="/kr/ko/issues/generative-ai.html">생성형 AI 허브</a>
+</main>
 """
 
 SAMPLE_DETAIL_HTML = """
@@ -68,15 +81,22 @@ SAMPLE_DETAIL_HTML = """
 @pytest.mark.asyncio
 async def test_deloitte_adapter_discover() -> None:
     config = load_source_config(Path("config/sources/deloitte-insights.yaml"))
-    http = FixtureHttp({str(config.list_url): SAMPLE_LIST_HTML})
+    collection_urls = [str(url) for url in config.collection_urls]
+    pages = {url: "<main></main>" for url in collection_urls}
+    pages[collection_urls[0]] = SAMPLE_LIST_HTML
+    pages[collection_urls[3]] = SAMPLE_AI_LIST_HTML
+    http = FixtureHttp(pages)
     adapter = DeloitteInsightsAdapter(config, http)  # type: ignore[arg-type]
 
     items = [it async for it in adapter.discover(None)]
-    assert len(items) == 2
+    assert len(items) == 3
     assert items[0].title == "이동하는 금융의 패러다임: 에이전틱 AI와 디지털 자산이 바꾸는 미래"
     assert "global-fsi-trends" in items[0].source_item_key
     assert items[0].published_at.isoformat() == "2026-08-15"
     assert items[1].published_at.isoformat() == "2026-08-01"
+    assert items[2].title == "생성형 AI 고객 서비스 활용 사례"
+    assert set(http.requests) == set(collection_urls)
+    assert all("deloitte-insights.html" not in str(item.detail_url) for item in items)
 
 
 @pytest.mark.asyncio

@@ -55,6 +55,7 @@ class SourceConfig(BaseModel):
     adapter: AdapterKind
     homepage_url: HttpUrl
     list_url: HttpUrl
+    collection_urls: list[HttpUrl] = Field(default_factory=list, max_length=8)
     rights_default: RightsStatus = RightsStatus.LINK_ONLY
     content_type: Literal["REPORT", "PRESS_RELEASE"] = "REPORT"
     poll_interval_minutes: int = Field(ge=60)
