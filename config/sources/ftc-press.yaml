@@ -14,8 +14,8 @@ max_retries: 2
 active: true
 selectors:
   list_item: tbody tr
-  title: td.subject a
-  detail_link: td.subject a
+  title: td.p-subject a
+  detail_link: td.p-subject a
 filters:
   allowed_extensions: [pdf, hwpx, hwp]
   exclude_title_keywords: [채용, 입찰, 행사, 공고, 동정, 포토, 인사]

@@ -16,6 +16,7 @@ from report_collector.domain.models import (
 )
 from report_collector.providers.browser.base import BrowserRenderer
 from report_collector.providers.http.http_client import PublicHttpClient
+from report_collector.services.official_html_content_extractor import extract_official_html_content
 from report_collector.services.source_filter_service import title_allowed
 
 DATE_PATTERN = re.compile(r"\d{4}[.-]\d{2}[.-]\d{2}")
@@ -77,6 +78,4 @@ def _attachments(soup: BeautifulSoup, base_url: str) -> list[Attachment]:
 
 
 def _summary(soup: BeautifulSoup) -> str | None:
-    node = soup.select_one(".board-view-content, .view-content, .contents")
-    text = re.sub(r"\s+", " ", node.get_text(" ", strip=True)).strip() if node else ""
-    return text or None
+    return extract_official_html_content(soup)

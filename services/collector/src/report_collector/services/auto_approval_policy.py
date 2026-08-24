@@ -49,7 +49,9 @@ def evaluate_candidate(
         reasons.append("PUBLISHED_DATE_MISSING")
     elif not effective_start.date() <= candidate.published_at <= window_end.date():
         reasons.append("PUBLISHED_DATE_OUTSIDE_WINDOW")
-    if not candidate.source_active or not candidate.source_healthy:
+    if not candidate.source_active:
+        reasons.append("SOURCE_INACTIVE")
+    elif candidate.source_content_type != "PRESS_RELEASE" and not candidate.source_healthy:
         reasons.append("SOURCE_UNHEALTHY")
     if candidate.rights_status not in {
         RightsStatus.LINK_ONLY,

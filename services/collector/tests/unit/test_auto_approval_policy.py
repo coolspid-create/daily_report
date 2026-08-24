@@ -51,6 +51,11 @@ def test_press_release_uses_a_24_hour_window() -> None:
     assert "OUTSIDE_COLLECTION_WINDOW" in decision.reason_codes
 
 
+def test_analyzed_press_release_can_approve_when_source_is_degraded() -> None:
+    press = candidate(source_content_type="PRESS_RELEASE", source_healthy=False)
+    assert evaluate_candidate(press, START, END).approved
+
+
 def test_report_keeps_the_full_seven_day_window() -> None:
     seven_day_start = END - timedelta(days=7)
     report = candidate(

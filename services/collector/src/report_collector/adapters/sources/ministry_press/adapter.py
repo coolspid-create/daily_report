@@ -1,7 +1,7 @@
 import re
 from collections.abc import AsyncIterator
 from datetime import UTC, date, datetime
-from urllib.parse import parse_qs, urljoin, urlparse
+from urllib.parse import parse_qs, urlencode, urljoin, urlparse
 from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup, Tag
@@ -17,10 +17,13 @@ from report_collector.domain.models import (
 )
 from report_collector.providers.browser.base import BrowserRenderer
 from report_collector.providers.http.http_client import PublicHttpClient
+from report_collector.services.official_html_content_extractor import extract_official_html_content
 from report_collector.services.source_filter_service import title_allowed
 
 DATE_PATTERN = re.compile(r"(\d{4})[.-](\d{1,2})[.-](\d{1,2})")
 DOC_ID_PATTERN = re.compile(r"(?:fn_selectDoc|goView|fn_view|selectDoc|viewDoc)\(['\"]?(\d+)['\"]?\)")
+MOEF_NTT_PATTERN = re.compile(r"fn_egov_select\(['\"]([A-Z0-9_]+)['\"]\)")
+MOTIE_ARTICLE_PATTERN = re.compile(r"article\.view\(['\"]?(\d+)['\"]?\)")
 NOISE_KEYWORDS = ("동정", "포토", "행사", "채용", "입찰", "공고", "인사", "일정")
 
 
@@ -46,7 +49,9 @@ class MinistryPressAdapter(SourceAdapter):
         nodes = soup.select(row_selector)
         if not nodes:
             # Fallback to general list items
-            nodes = soup.select("ul.board-list li, .board-list-wrap li, .list-body > div")
+            nodes = soup.select(
+                "ul.board-list li, .board-list-wrap li, .list-body > div, ul.boardType3 > li"
+            )
 
 
         items: list[DiscoveredItem] = []
@@ -102,8 +107,14 @@ class MinistryPressAdapter(SourceAdapter):
 
 
 def _parse_row(node: Tag, config: SourceConfig) -> DiscoveredItem | None:
-    link = node.select_one(
-        "td.tit a, td.title a, td.subject a, .subject a, .tit a, a[href*='selectDoc'], a[href*='view']"
+    configured_selector = None
+    if config.selectors:
+        configured_selector = config.selectors.detail_link or config.selectors.title
+    link = (
+        node.select_one(configured_selector) if configured_selector else None
+    ) or node.select_one(
+        "td.tit a, td.title a, td.subject a, td.p-subject a, "
+        ".subject a, .tit a, h3 a, a[href*='selectDoc']"
     ) or node.find("a")
     if not isinstance(link, Tag):
         return None
@@ -136,6 +147,25 @@ def _build_url(href: str, onclick: str, config: SourceConfig) -> str | None:
     if href and href != "#" and not href.startswith("javascript:"):
         return urljoin(str(config.list_url), href)
 
+    moef_match = MOEF_NTT_PATTERN.search(onclick) or MOEF_NTT_PATTERN.search(href)
+    if moef_match:
+        base = str(config.list_url)
+        query = parse_qs(urlparse(base).query)
+        detail_query = urlencode(
+            {
+                "menuNo": query.get("menuNo", ["4010100"])[0],
+                "searchBbsId1": query.get(
+                    "bbsId", ["MOSFBBS_000000000028"]
+                )[0],
+                "searchNttId1": moef_match.group(1),
+            }
+        )
+        return urljoin(base, "/nw/nes/detailNesDtaView.do") + f"?{detail_query}"
+
+    motie_match = MOTIE_ARTICLE_PATTERN.search(onclick) or MOTIE_ARTICLE_PATTERN.search(href)
+    if motie_match:
+        return f"{str(config.list_url).rstrip('/')}/{motie_match.group(1)}/view"
+
     match = DOC_ID_PATTERN.search(onclick) or DOC_ID_PATTERN.search(href)
     if match:
         doc_id = match.group(1)
@@ -154,13 +184,28 @@ def _build_url(href: str, onclick: str, config: SourceConfig) -> str | None:
 def _make_item_key(url: str, onclick: str, title: str) -> str:
     parsed = urlparse(url)
     qs = parse_qs(parsed.query)
-    for key in ("id", "docSeq", "nttId", "seq", "bbsId", "articleId", "artclRowId", "ntt_id"):
+    for key in (
+        "id",
+        "docSeq",
+        "nttId",
+        "nttSn",
+        "seq",
+        "bbsId",
+        "searchNttId1",
+        "articleId",
+        "artclRowId",
+        "ntt_id",
+    ):
         if key in qs and qs[key]:
             return f"{key}-{qs[key][0]}"
 
     match = DOC_ID_PATTERN.search(onclick)
     if match:
         return f"doc-{match.group(1)}"
+
+    article_path = re.search(r"/(\d+)/view/?$", parsed.path)
+    if article_path:
+        return f"article-{article_path.group(1)}"
 
     # Path-based key or hash of title
     path_clean = parsed.path.strip("/").replace("/", "-")
@@ -182,7 +227,7 @@ def _extract_attachments(soup: Tag, base_url: str) -> list[Attachment]:
     attachments: list[Attachment] = []
     for a in soup.select("a[href*='download'], a[href*='fileDown'], a[href*='FileDown'], .file a, .attach a"):
         href = str(a.get("href", "")).strip()
-        if not href or href.startswith("javascript:void"):
+        if not href or href.startswith("javascript:"):
             continue
         name = a.get_text(strip=True) or "첨부파일"
         ext = "PDF" if ".pdf" in name.lower() or "pdf" in href.lower() else "HWP"
@@ -192,9 +237,4 @@ def _extract_attachments(soup: Tag, base_url: str) -> list[Attachment]:
 
 
 def _extract_summary(soup: Tag) -> str | None:
-    content_node = soup.select_one(".view-content, .board-view-content, .bbs_view, .board_view, .content-area, .cont_area, .bd_view, .view_cont, article")
-    if not content_node:
-        return None
-    text = content_node.get_text(" ", strip=True)
-    clean = re.sub(r"\s+", " ", text).strip()
-    return clean[:300] if clean else None
+    return extract_official_html_content(soup)

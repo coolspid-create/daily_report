@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from html import escape
 from typing import Any
 
-
 # Telegram permits up to 4,096 characters, but leave a small margin for
 # formatting changes made by the delivery provider.
 TELEGRAM_MESSAGE_CHARACTER_LIMIT = 4000
