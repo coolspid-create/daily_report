@@ -12,5 +12,5 @@ export default async function AdminPage() {
   const [items, sources, automation, publications, storedDocuments] = await Promise.all([
     getReviewItems(), getSourceHealth(), getAutomationStatus(), getPublicationHistory(), getStoredDocuments(),
   ]);
-  return <ReviewWorkbench items={items} sources={sources} automation={automation} publications={publications} storedDocuments={storedDocuments} />;
+  return <ReviewWorkbench items={items} sources={sources} automation={automation} publications={publications} storedDocuments={storedDocuments} eligibilityNow={new Date().toISOString()} />;
 }

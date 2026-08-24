@@ -13,6 +13,8 @@ class CollectionResult:
     discovered: int
     failed: int
     cursor_after: str | None
+    new_count: int = 0
+    updated_count: int = 0
 
 
 async def collect_source(
@@ -27,6 +29,8 @@ async def collect_source(
 ) -> CollectionResult:
     cursor = repository.get_cursor(source_id) if resume_from_cursor else None
     discovered = 0
+    saved_new = 0
+    saved_updated = 0
     failed = 0
     newest_key: str | None = None
     try:
@@ -35,7 +39,8 @@ async def collect_source(
                 item.published_at, oldest_published_at, latest_published_at
             ):
                 continue
-            if max_items is not None and discovered >= max_items:
+            discovered += 1
+            if max_items is not None and discovered > max_items:
                 break
             try:
                 document = await adapter.fetch_detail(item)
@@ -44,8 +49,17 @@ async def collect_source(
                 ):
                     continue
                 newest_key = newest_key or item.source_item_key
-                discovered += 1
-                document_id = repository.save_document(source_id, document)
+                save_result = repository.save_document(source_id, document)
+                document_id: str | None = None
+                is_new: bool = False
+                if isinstance(save_result, tuple):
+                    document_id, is_new = save_result[0], bool(save_result[1])
+                elif save_result:
+                    document_id, is_new = str(save_result), True
+                if is_new:
+                    saved_new += 1
+                else:
+                    saved_updated += 1
                 if document_id and after_save:
                     await after_save(document_id, document)
             except Exception:
@@ -54,8 +68,22 @@ async def collect_source(
         closer = getattr(adapter, "close", None)
         if callable(closer):
             await closer()
-    repository.finish_run(source_id, newest_key or cursor, discovered, failed)
-    return CollectionResult(source_id, discovered, failed, newest_key or cursor)
+    repository.finish_run(
+        source_id,
+        newest_key or cursor,
+        discovered=discovered,
+        failed=failed,
+        new_count=saved_new,
+        updated_count=saved_updated,
+    )
+    return CollectionResult(
+        source_id,
+        discovered,
+        failed,
+        newest_key or cursor,
+        new_count=saved_new,
+        updated_count=saved_updated,
+    )
 
 
 def _within_publication_window(

@@ -5,6 +5,7 @@ interface StoredDocumentListProps {
 }
 
 function statusLabel(status: StoredDocument["workflowStatus"]): string {
+  if (status === "PUBLISHED") return "발행·보관";
   return status === "APPROVED" ? "승인·보관" : "제외·보관";
 }
 

@@ -39,7 +39,7 @@ def load_approved_documents(
         join public.sources excluded_source
           on excluded_source.id=excluded_document_source.source_id
         where excluded_document_source.document_id=d.id
-          and excluded_source.slug = any(%s)
+          and (excluded_source.content_type = 'PRESS_RELEASE' or excluded_source.slug = any(%s))
       )
       and not exists (
         select 1

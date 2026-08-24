@@ -3,15 +3,17 @@ import json
 import os
 from collections import defaultdict
 from collections.abc import Awaitable, Callable
-from datetime import date, timedelta
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlparse
+from zoneinfo import ZoneInfo
 
 from report_collector.adapters.factory import build_adapter
 from report_collector.config.settings import Settings
 from report_collector.config.source_config import load_source_config
 from report_collector.domain.models import SourceDocument
-from report_collector.pipelines.collect_source import collect_source
+from report_collector.pipelines.collect_source import CollectionResult, collect_source
 from report_collector.pipelines.process_source_document import SourceDocumentProcessor
 from report_collector.pipelines.source_run_guard import run_with_source_timeout
 from report_collector.providers.browser.playwright_browser import PlaywrightBrowserRenderer
@@ -23,17 +25,26 @@ from report_collector.repositories.supabase.postgres_source_repository import (
 )
 
 
+@dataclass(frozen=True)
+class CollectBatchSummary:
+    failed_sources: int
+    new_documents_count: int
+    discovered_count: int
+
+
 async def run_source(
     config_path: Path,
     schema_path: Path,
     refresh_recent: bool = False,
     browser: PlaywrightBrowserRenderer | None = None,
-) -> int:
+) -> CollectionResult:
     config = load_source_config(config_path, schema_path)
     settings = Settings.from_environment()
     http = PublicHttpClient(config.timeout_seconds, config.max_retries, config.request_delay_ms)
     adapter = build_adapter(config, http, browser if config.adapter.value == "rendered_board" else None)
     repository, after_save = _build_processing_pipeline(settings, schema_path, http)
+    kst_now = datetime.now(ZoneInfo("Asia/Seoul"))
+    today_kst = kst_now.date()
     result = await run_with_source_timeout(
         config.id,
         repository,
@@ -43,14 +54,14 @@ async def run_source(
             adapter,
             repository,
             after_save,
-            oldest_published_at=date.today() - timedelta(days=config.filters.max_age_days),
-            latest_published_at=date.today(),
+            oldest_published_at=today_kst - timedelta(days=config.filters.max_age_days),
+            latest_published_at=today_kst,
             max_items=config.filters.max_items_per_run,
             resume_from_cursor=not refresh_recent,
         ),
     )
-    print(f"{result.source_id}: discovered={result.discovered} failed={result.failed} cursor={result.cursor_after}")
-    return result.failed
+    print(f"{result.source_id}: discovered={result.discovered} new={result.new_count} failed={result.failed} cursor={result.cursor_after}")
+    return result
 
 
 def _build_processing_pipeline(
@@ -69,7 +80,9 @@ def _build_processing_pipeline(
     return repository, processor.process
 
 
-async def _collect_paths(paths: list[Path], schema_path: Path, refresh_recent: bool) -> int:
+async def _collect_paths(
+    paths: list[Path], schema_path: Path, refresh_recent: bool
+) -> CollectBatchSummary:
     settings = Settings.from_environment()
     browser = await _start_shared_browser(paths, schema_path, settings)
     source_slots = asyncio.Semaphore(settings.max_source_concurrency)
@@ -79,14 +92,24 @@ async def _collect_paths(paths: list[Path], schema_path: Path, refresh_recent: b
     try:
         results = await asyncio.gather(
             *[
-                _run_limited(path, schema_path, refresh_recent, browser, source_slots, host_slots[_source_host(path, schema_path)])
+                _run_limited(
+                    path,
+                    schema_path,
+                    refresh_recent,
+                    browser,
+                    source_slots,
+                    host_slots[_source_host(path, schema_path)],
+                )
                 for path in paths
             ]
         )
     finally:
         if browser:
             await browser.close()
-    return sum(results)
+    failed = sum(r[0] for r in results)
+    new_docs = sum(r[1] for r in results)
+    discovered = sum(r[2] for r in results)
+    return CollectBatchSummary(failed_sources=failed, new_documents_count=new_docs, discovered_count=discovered)
 
 
 async def _start_shared_browser(
@@ -115,13 +138,33 @@ async def _run_limited(
     browser: PlaywrightBrowserRenderer | None,
     source_slots: asyncio.Semaphore,
     host_slot: asyncio.Semaphore,
-) -> int:
+) -> tuple[int, int, int]:
     async with source_slots, host_slot:
         try:
-            return int(await run_source(path, schema_path, refresh_recent, browser) > 0)
+            res = await run_source(path, schema_path, refresh_recent, browser)
+            if isinstance(res, CollectionResult):
+                return int(res.failed > 0), res.new_count, res.discovered
+            if isinstance(res, (int, float)):
+                return int(res > 0), 0, 0
+            return 0, 0, 0
         except Exception as error:
             print(f"{path.stem}: initialization failed: {error}")
-            return 1
+            return 1, 0, 0
+
+
+def collect_and_summarize(
+    source: str | None,
+    all_active: bool,
+    config_root: Path,
+    schema_path: Path,
+    refresh_recent: bool = False,
+) -> CollectBatchSummary:
+    paths = _source_paths(source, all_active, config_root, schema_path)
+    if all_active and (database_url := os.getenv("DATABASE_URL")):
+        paths = _filter_database_active_paths(paths, load_active_source_slugs(database_url))
+    if not paths or any(not path.exists() for path in paths):
+        raise SystemExit("source config not found")
+    return asyncio.run(_collect_paths(paths, schema_path, refresh_recent))
 
 
 def collect_command(
@@ -131,12 +174,8 @@ def collect_command(
     schema_path: Path,
     refresh_recent: bool = False,
 ) -> int:
-    paths = _source_paths(source, all_active, config_root, schema_path)
-    if all_active and (database_url := os.getenv("DATABASE_URL")):
-        paths = _filter_database_active_paths(paths, load_active_source_slugs(database_url))
-    if not paths or any(not path.exists() for path in paths):
-        raise SystemExit("source config not found")
-    return asyncio.run(_collect_paths(paths, schema_path, refresh_recent))
+    summary = collect_and_summarize(source, all_active, config_root, schema_path, refresh_recent)
+    return summary.failed_sources
 
 
 def _source_paths(source: str | None, all_active: bool, config_root: Path, schema_path: Path) -> list[Path]:

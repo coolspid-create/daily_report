@@ -1,6 +1,6 @@
 import { createServiceClient } from "@/lib/database/service-client";
 import type { PublicReport, SourceContentType } from "../types/public-report";
-import type { PublicPressArchive } from "../types/public-feed";
+import type { PublicPressArchive, PublicPressArchiveDate } from "../types/public-feed";
 
 const PRESS_ARCHIVE_LIMIT = 31;
 
@@ -18,6 +18,7 @@ interface PressDocumentRow {
   primary_source_url: string;
   delivery_mode: PublicReport["file"]["deliveryMode"];
   created_at: string;
+  updated_at: string;
   document_analysis: { summary_kind: string; key_tags: string[] | null }[];
   document_files: {
     file_url: string;
@@ -30,10 +31,21 @@ interface PressDocumentRow {
   document_sources: SourceRow[];
 }
 
-function contentTypeFor(sources: SourceRow[]): SourceContentType {
-  return sources
-    .flatMap((source) => source.sources ?? [])
-    .find((source) => source.content_type)?.content_type ?? "REPORT";
+function isPressReleaseRow(row: PressDocumentRow): boolean {
+  const explicitTypes: SourceContentType[] = [];
+  for (const src of row.document_sources ?? []) {
+    const items = src.sources;
+    if (Array.isArray(items)) {
+      explicitTypes.push(...items.flatMap((s) => s?.content_type ? [s.content_type] : []));
+    } else if (items && (items as { content_type?: string }).content_type === "PRESS_RELEASE") {
+      explicitTypes.push("PRESS_RELEASE");
+    } else if (items && (items as { content_type?: string }).content_type === "REPORT") {
+      explicitTypes.push("REPORT");
+    }
+  }
+  if (explicitTypes.includes("PRESS_RELEASE")) return true;
+  if (explicitTypes.includes("REPORT")) return false;
+  return row.content_tag === "보도자료" || row.institution.includes("보도자료");
 }
 
 function latestValidFile(row: PressDocumentRow) {
@@ -71,27 +83,33 @@ function publicationDate(row: PressDocumentRow): string {
   return (row.published_at ?? row.created_at).slice(0, 10);
 }
 
-async function loadPressReportsByDate(): Promise<Record<string, PublicReport[]>> {
+type PressArchiveByDate = Record<string, PublicPressArchiveDate>;
+
+async function loadPressReportsByDate(): Promise<PressArchiveByDate> {
   const client = createServiceClient();
   const { data, error } = await client
     .from("documents")
-    .select("id,canonical_title,institution,published_at,content_tag,why_it_matters,primary_source_url,delivery_mode,created_at,document_analysis(summary_kind,key_tags),document_files(file_url,extension,size_bytes,page_count,validation_status,created_at),document_sources(sources(content_type))")
+    .select("id,canonical_title,institution,published_at,content_tag,why_it_matters,primary_source_url,delivery_mode,created_at,updated_at,document_analysis(summary_kind,key_tags),document_files(file_url,extension,size_bytes,page_count,validation_status,created_at),document_sources(sources(content_type))")
     .in("workflow_status", ["APPROVED", "PUBLISHED"])
     .order("published_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false })
     .limit(250);
 
   if (error) throw new Error("보도자료를 불러오지 못했습니다.");
-  const reportsByDate: Record<string, PublicReport[]> = {};
+  const reportsByDate: PressArchiveByDate = {};
   for (const row of data as PressDocumentRow[]) {
-    if (contentTypeFor(row.document_sources) !== "PRESS_RELEASE") continue;
+    if (!isPressReleaseRow(row)) continue;
     const date = publicationDate(row);
-    (reportsByDate[date] ??= []).push(toPublicReport(row));
+    const entry = (reportsByDate[date] ??= { reports: [], generatedAt: null });
+    entry.reports.push(toPublicReport(row));
+    if (!entry.generatedAt || row.updated_at > entry.generatedAt) {
+      entry.generatedAt = row.updated_at;
+    }
   }
   return reportsByDate;
 }
 
-function latestDates(reportsByDate: Record<string, PublicReport[]>): string[] {
+function latestDates(reportsByDate: PressArchiveByDate): string[] {
   return Object.keys(reportsByDate).sort((left, right) => right.localeCompare(left)).slice(0, PRESS_ARCHIVE_LIMIT);
 }
 
@@ -100,10 +118,17 @@ export async function getPublicPressArchive(preferredDate?: string | null): Prom
   const dates = latestDates(reportsByDate);
   const currentDate = dates[0] ?? null;
   const loadedDate = preferredDate && dates.includes(preferredDate) ? preferredDate : currentDate;
-  return { currentDate, dates, loadedDate, reports: loadedDate ? reportsByDate[loadedDate] ?? [] : [] };
+  const loaded = loadedDate ? reportsByDate[loadedDate] : null;
+  return {
+    currentDate,
+    dates,
+    loadedDate,
+    reports: loaded?.reports ?? [],
+    generatedAt: loaded?.generatedAt ?? null,
+  };
 }
 
-export async function getPublicPressArchiveDate(date: string): Promise<PublicReport[] | null> {
+export async function getPublicPressArchiveDate(date: string): Promise<PublicPressArchiveDate | null> {
   const reportsByDate = await loadPressReportsByDate();
   return reportsByDate[date] ?? null;
 }

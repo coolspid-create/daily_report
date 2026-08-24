@@ -57,20 +57,23 @@ class CreditRatingAdapter(SourceAdapter):
             yield item
 
     async def fetch_detail(self, item: DiscoveredItem) -> SourceDocument:
-        # 신용평가사는 공개 상세/목록 웹페이지로의 직접 링크(LINK_ONLY)를 제공하며 보호된 파일 다운로드는 직접 호출하지 않습니다.
         summary: str | None = None
         published = item.published_at
         try:
             html = await self.http.fetch_text(str(item.detail_url))
             soup = BeautifulSoup(html, "html.parser")
-            summary_node = soup.select_one(".view-content, .detail_cont, .article_body, .content")
+            summary_node = soup.select_one(
+                ".view-content, .detail_cont, .article_body, .content, .noticeContents, .pop-conts, .research_preview_header"
+            )
             if summary_node:
                 summary = re.sub(r"\s+", " ", summary_node.get_text(" ", strip=True)).strip()[:3000]
             if not published:
                 published = _extract_date(soup.get_text(" ", strip=True))
         except Exception as error:
-            # 상세 페이지가 단독 조회가 안 되는 프레임 구조일 경우 목록에서 추출한 정보 우선 사용
             logger.info("Credit rating detail fetch skipped: %s", error)
+
+        if not summary:
+            summary = item.title
 
         return SourceDocument(
             source_item_key=item.source_item_key,
@@ -107,11 +110,16 @@ def _parse_item(node: Tag, config: SourceConfig) -> DiscoveredItem | None:
     key = _extract_key(href, node)
     published = _extract_date(node.get_text(" ", strip=True))
 
-    detail_url = (
-        urljoin(str(config.list_url), href)
-        if href and not href.startswith("javascript:")
-        else str(config.list_url)
-    )
+    if "fn_preview" in href:
+        match = re.search(r"fn_preview\(['\"]([^'\"]+)['\"]\)", href)
+        if match:
+            detail_url = f"https://www.nicerating.com/research/preview.do?fileId={match.group(1)}"
+        else:
+            detail_url = str(config.list_url)
+    elif href and not href.startswith("javascript:"):
+        detail_url = urljoin(str(config.list_url), href)
+    else:
+        detail_url = str(config.list_url)
 
     return DiscoveredItem(
         source_item_key=key,
@@ -122,14 +130,12 @@ def _parse_item(node: Tag, config: SourceConfig) -> DiscoveredItem | None:
 
 
 def _extract_key(href: str, node: Tag) -> str:
-    # URL 파라미터나 숫자 ID 추출
-    match = re.search(r"(?:seq|id|no|articleId|reportId)=(\d+)", href, re.IGNORECASE)
+    match = re.search(r"(?:seq|id|no|articleId|reportId|fileId)=([A-Za-z0-9_]+)", href, re.IGNORECASE)
     if match:
         return match.group(1)
-    js_match = re.search(r"['\"](\d+)['\"]", href)
+    js_match = re.search(r"['\"]([A-Za-z0-9_]+)['\"]", href)
     if js_match:
         return js_match.group(1)
-    # 텍스트 기반 해시 또는 fallback key
     title = node.select_one("a")
     return str(hash(title.get_text(strip=True) if title else href))
 

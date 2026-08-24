@@ -28,6 +28,7 @@ export interface SourceHealth {
   status: "HEALTHY" | "DEGRADED" | "DISABLED";
   active: boolean;
   lastSuccessAt: string | null;
+  lastFailureAt?: string | null;
   consecutiveFailures: number;
   reasonCategory?: string;
   lastErrorMessage?: string | null;
@@ -43,6 +44,7 @@ export interface AutomationStatus {
   scheduledFor: string;
   scheduledForLabel: string;
   collectedCount: number;
+  reviewCandidateCount: number;
   autoApprovedCount: number;
   exceptionCount: number;
   publishedCount: number;
@@ -64,7 +66,8 @@ export interface StoredDocument {
   institution: string;
   publishedAt: string;
   primarySourceUrl: string;
-  workflowStatus: "APPROVED" | "REJECTED";
+  workflowStatus: "APPROVED" | "PUBLISHED" | "REJECTED";
+  createdAt: string;
   updatedAt: string;
   sourceContentType: SourceContentType;
 }

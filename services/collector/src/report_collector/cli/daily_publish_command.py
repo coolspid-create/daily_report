@@ -3,7 +3,10 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from report_collector.cli.collect_command import collect_command
+from report_collector.cli.collect_command import (
+    CollectBatchSummary,
+    collect_and_summarize,
+)
 from report_collector.cli.snapshot_command import SnapshotBuildResult, snapshot_command
 from report_collector.pipelines.auto_review_documents import (
     AutoReviewSummary,
@@ -19,7 +22,9 @@ from report_collector.providers.notifications.telegram_provider import (
 )
 from report_collector.repositories.supabase.postgres_automation_runs import (
     AutomationAlreadyCompleted,
+    AutomationAlreadyRunning,
     finish_automation_run,
+    record_collection_finished,
     start_automation_run,
     update_automation_stage,
 )
@@ -49,14 +54,37 @@ def daily_publish_command(
     except AutomationAlreadyCompleted:
         print("daily publication already completed for this schedule")
         return
+    except AutomationAlreadyRunning:
+        print("daily publication is already running for this schedule")
+        return
     enabled = _enabled("AUTO_APPROVAL_ENABLED") and not dry_run
-    counts = {"collected": 0, "approved": 0, "exceptions": 0, "published": 0, "telegram": 0}
+    collection_ended = now
+    counts = {
+        "collected": 0,
+        "review_candidates": 0,
+        "approved": 0,
+        "exceptions": 0,
+        "published": 0,
+        "telegram": 0,
+    }
+
+    def do_collect() -> CollectBatchSummary:
+        nonlocal collection_ended
+        summary = _collect(root, database_url, run.run_id)
+        collection_ended = datetime.now(ZoneInfo(timezone))
+        record_collection_finished(
+            database_url, run.run_id, collection_ended, summary.new_documents_count
+        )
+        return summary
+
     try:
         if _enabled("TELEGRAM_ENABLED") and not dry_run:
             _retry_pending_deliveries(database_url)
         outcome = run_daily_publication(
-            collect=lambda: _collect(root, database_url, run.run_id),
-            auto_review=lambda: _auto_review(database_url, run.run_id, window_start, now, enabled),
+            collect=do_collect,
+            auto_review=lambda: _auto_review(
+                database_url, run.run_id, window_start, collection_ended, enabled
+            ),
             publish=lambda: _publish(root, run.run_id, now, output_dir),
             deliver=lambda result: _deliver_with_stage(
                 database_url, run.run_id, result, now.date().isoformat()
@@ -72,22 +100,32 @@ def daily_publish_command(
                 print(f"no-content Telegram notice failed: {type(error).__name__}")
                 final_status = "PARTIAL"
         counts.update(
-            collected=outcome.review.candidate_count,
+            collected=outcome.collected_count,
+            review_candidates=outcome.review.candidate_count,
             approved=outcome.review.approved_count,
             exceptions=outcome.review.exception_count,
             published=outcome.publication.document_count if outcome.publication else 0,
             telegram=telegram_count,
         )
-        finish_automation_run(database_url, run.run_id, final_status, counts)
+        finish_automation_run(
+            database_url, run.run_id, final_status, counts, window_ended_at=collection_ended
+        )
         print(f"daily publication finished: {final_status} {counts}")
     except Exception as error:
-        finish_automation_run(database_url, run.run_id, "FAILED", counts, str(error)[:1000])
+        finish_automation_run(
+            database_url,
+            run.run_id,
+            "FAILED",
+            counts,
+            str(error)[:1000],
+            window_ended_at=collection_ended,
+        )
         raise
 
 
-def _collect(root: Path, database_url: str, run_id: str) -> int:
+def _collect(root: Path, database_url: str, run_id: str) -> CollectBatchSummary:
     update_automation_stage(database_url, run_id, "COLLECTING")
-    return collect_command(
+    return collect_and_summarize(
         None,
         True,
         root / "config/sources",
@@ -148,9 +186,12 @@ def _deliver_with_stage(
 def _should_send_no_content_notice(
     outcome: DailyPublicationOutcome, scheduled_run: bool
 ) -> bool:
-    return bool(
-        scheduled_run and outcome.publication is not None and outcome.publication.document_count == 0
-    )
+    if not scheduled_run:
+        return False
+    has_new_docs = outcome.collected_count > 0
+    has_published_docs = bool(outcome.publication and outcome.publication.document_count > 0)
+    has_pending_reviews = outcome.review.exception_count > 0
+    return not has_new_docs and not has_published_docs and not has_pending_reviews
 
 
 def _deliver_no_content_notice(now: datetime, candidate_count: int = 0) -> int:

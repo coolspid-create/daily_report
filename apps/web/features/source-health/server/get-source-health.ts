@@ -54,11 +54,11 @@ export async function getSourceHealth(): Promise<SourceHealth[]> {
   const client = createServiceClient();
   const { data, error } = await client
     .from("sources")
-    .select("id,slug,name,status,active,last_success_at,consecutive_failures,content_type")
+    .select("id,slug,name,status,active,last_success_at,last_failure_at,last_error_code,last_error_message,consecutive_failures,content_type")
     .order("name");
   if (error) throw new Error("출처 상태를 불러오지 못했습니다.");
 
-  // 최근 실패 실행 기록 조회 (에러 메시지 매핑용)
+  // 최근 실패 실행 기록 조회 (에러 메시지 보완용)
   const { data: latestRuns } = await client
     .from("source_runs")
     .select("source_id,status,error_code,error_message")
@@ -87,6 +87,7 @@ export async function getSourceHealth(): Promise<SourceHealth[]> {
       status: row.status,
       active: row.active,
       lastSuccessAt: row.last_success_at,
+      lastFailureAt: row.last_failure_at,
       consecutiveFailures: row.consecutive_failures,
       reasonCategory: determineReasonCategory(
         row.slug,
@@ -94,8 +95,8 @@ export async function getSourceHealth(): Promise<SourceHealth[]> {
         row.active,
         row.consecutive_failures
       ),
-      lastErrorMessage: errorInfo?.message ?? null,
-      lastErrorCode: errorInfo?.code ?? null,
+      lastErrorMessage: row.last_error_message ?? errorInfo?.message ?? null,
+      lastErrorCode: row.last_error_code ?? errorInfo?.code ?? null,
       contentType: row.content_type,
     };
   });

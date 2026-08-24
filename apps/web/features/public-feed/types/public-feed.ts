@@ -34,4 +34,10 @@ export interface PublicPressArchive {
   dates: string[];
   loadedDate: string | null;
   reports: PublicReport[];
+  generatedAt: string | null;
+}
+
+export interface PublicPressArchiveDate {
+  reports: PublicReport[];
+  generatedAt: string | null;
 }

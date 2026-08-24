@@ -2,6 +2,7 @@ import re
 from collections.abc import AsyncIterator
 from datetime import UTC, date, datetime
 from urllib.parse import parse_qs, urljoin, urlparse
+from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup, Tag
 from pydantic import HttpUrl
@@ -120,7 +121,7 @@ def _parse_row(node: Tag, config: SourceConfig) -> DiscoveredItem | None:
         return None
 
     row_text = node.get_text(" ", strip=True)
-    published_date = _extract_date(row_text) or date.today()
+    published_date = _extract_date(row_text) or datetime.now(ZoneInfo("Asia/Seoul")).date()
     item_key = _make_item_key(detail_url, onclick, title)
 
     return DiscoveredItem(
@@ -153,7 +154,7 @@ def _build_url(href: str, onclick: str, config: SourceConfig) -> str | None:
 def _make_item_key(url: str, onclick: str, title: str) -> str:
     parsed = urlparse(url)
     qs = parse_qs(parsed.query)
-    for key in ("docSeq", "nttId", "seq", "bbsId", "articleId", "artclRowId"):
+    for key in ("id", "docSeq", "nttId", "seq", "bbsId", "articleId", "artclRowId", "ntt_id"):
         if key in qs and qs[key]:
             return f"{key}-{qs[key][0]}"
 
@@ -190,9 +191,8 @@ def _extract_attachments(soup: Tag, base_url: str) -> list[Attachment]:
     return attachments
 
 
-
 def _extract_summary(soup: Tag) -> str | None:
-    content_node = soup.select_one(".view-content, .board-view-content, .bbs_view, .board_view, .content-area, article")
+    content_node = soup.select_one(".view-content, .board-view-content, .bbs_view, .board_view, .content-area, .cont_area, .bd_view, .view_cont, article")
     if not content_node:
         return None
     text = content_node.get_text(" ", strip=True)

@@ -35,6 +35,27 @@ REQUIRED = {
         "fsc-policy",
         "healthy",
     ],
+    "0033_improve_automation_stats_and_source_health.sql": [
+        "review_candidate_count",
+        "collection_finished_at",
+        "last_failure_at",
+        "source_runs_non_negative_counts",
+    ],
+    "0034_seed_ministry_press_sources.sql": [
+        "ftc-press",
+        "moef-press",
+        "moel-press",
+        "mohw-press",
+        "molit-press",
+        "motie-press",
+        "msit-press",
+        "mss-press",
+    ],
+    "0035_seed_deloitte_insights_source.sql": [
+        "deloitte-insights",
+        "딜로이트 인사이트",
+        "report",
+    ],
 }
 
 

@@ -36,6 +36,34 @@ async def test_nice_credit_rating_adapter(fixture_root: Path) -> None:
 
 
 @pytest.mark.asyncio
+async def test_nice_credit_rating_preview_links() -> None:
+    config = load_source_config(Path("config/sources/nice-credit-research.yaml"))
+    html = """
+    <table><tbody>
+      <tr>
+        <td><a href="javascript:research_common.fn_preview('H26536')">SK하이닉스 자기주식 취득·소각계획과 확대된 주주환원계획 발표</a></td>
+        <td>이예리</td>
+        <td>2026.08.20</td>
+      </tr>
+    </tbody></table>
+    """
+    detail_html = """
+    <div class="pop-conts"><div class="noticeContents">[코멘트] SK하이닉스 자기주식 취득 및 주주환원계획 분석</div></div>
+    """
+    preview_url = "https://www.nicerating.com/research/preview.do?fileId=H26536"
+    adapter = CreditRatingAdapter(config, FixtureHttp({str(config.list_url): html, preview_url: detail_html}))  # type: ignore[arg-type]
+
+    item = await first(adapter)
+    assert item.source_item_key == "H26536"
+    assert str(item.detail_url) == preview_url
+    assert item.published_at.isoformat() == "2026-08-20"
+
+    document = await adapter.fetch_detail(item)
+    assert document.rights_status.value == "LINK_ONLY"
+    assert "SK하이닉스" in (document.official_summary or "")
+
+
+@pytest.mark.asyncio
 async def test_korea_ratings_adapter(fixture_root: Path) -> None:
     config = load_source_config(Path("config/sources/korea-ratings-research.yaml"))
     list_html = (fixture_root / "html/korea-ratings-list.html").read_text(encoding="utf-8")

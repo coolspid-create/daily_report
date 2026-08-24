@@ -1,6 +1,18 @@
 import type { User } from "@supabase/supabase-js";
 import { createServiceClient } from "@/lib/database/service-client";
 import { batchApproveSchema, mergeSchema, rejectSchema, reviewFormSchema } from "../schemas/review-form.schema";
+import type { SourceContentType } from "../types/admin-review";
+import { isBulkApprovalEligible } from "../lib/review-eligibility";
+import { resolveSourceContentType } from "./source-content-type";
+
+interface BatchReviewRow {
+  id: string;
+  created_at: string;
+  published_at: string | null;
+  content_tag: string | null;
+  institution: string;
+  document_sources: { sources: { content_type: SourceContentType | null }[] | null }[];
+}
 
 async function recordAction(documentId: string, user: User, action: string, after: object, reason?: string) {
   const client = createServiceClient();
@@ -43,16 +55,25 @@ export async function approveReview(documentId: string, user: User) {
 export async function approveReviewBatch(payload: unknown, user: User) {
   const { documentIds } = batchApproveSchema.parse(payload);
   const client = createServiceClient();
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - 7);
-  const today = new Date();
+  const now = new Date();
+  const cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: candidates, error: candidateError } = await client
+    .from("documents")
+    .select("id,created_at,published_at,content_tag,institution,document_sources(sources(content_type))")
+    .in("id", documentIds)
+    .in("workflow_status", ["NEW", "NEEDS_REVIEW"])
+    .gte("created_at", cutoff);
+  if (candidateError) throw new Error("일괄 승인 대상을 확인하지 못했습니다.");
+  const eligibleIds = (candidates as BatchReviewRow[]).filter((row) => {
+    const contentType = resolveSourceContentType(row.document_sources, row.content_tag, row.institution);
+    return isBulkApprovalEligible(contentType, row.created_at, row.published_at, now);
+  }).map((row) => row.id);
+  if (eligibleIds.length === 0) throw new Error("승인 가능한 최신 검수 문서가 없습니다.");
   const { data, error } = await client
     .from("documents")
     .update({ workflow_status: "APPROVED" })
-    .in("id", documentIds)
-    .eq("workflow_status", "NEEDS_REVIEW")
-    .gte("published_at", cutoff.toISOString().slice(0, 10))
-    .lte("published_at", today.toISOString().slice(0, 10))
+    .in("id", eligibleIds)
+    .in("workflow_status", ["NEW", "NEEDS_REVIEW"])
     .select("id");
   if (error) throw new Error("일괄 승인에 실패했습니다.");
   const approvedIds = (data ?? []).map((document) => document.id);

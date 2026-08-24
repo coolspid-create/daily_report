@@ -27,7 +27,7 @@ class PostgresSourceRepository:
             row = cursor.fetchone()
             return str(row[0]) if row and row[0] else None
 
-    def _document_id(self, cursor: psycopg.Cursor, document: SourceDocument) -> str:
+    def _document_id(self, cursor: psycopg.Cursor, document: SourceDocument) -> tuple[str, bool]:
         normalized = normalize_title(document.title)
         cursor.execute(
             "select id from public.documents where primary_source_url=%s or (normalized_title=%s and institution=%s and published_at is not distinct from %s) order by created_at limit 1",
@@ -35,7 +35,7 @@ class PostgresSourceRepository:
         )
         existing = cursor.fetchone()
         if existing:
-            return str(existing[0])
+            return str(existing[0]), False
         attachment = document.attachments[0] if document.attachments else None
         delivery = choose_delivery(
             document.rights_status,
@@ -61,7 +61,7 @@ class PostgresSourceRepository:
         row = cursor.fetchone()
         if not row:
             raise RuntimeError("document insert returned no id")
-        return str(row[0])
+        return str(row[0]), True
 
     def _source_item_id(
         self, cursor: psycopg.Cursor, source_id: str, document: SourceDocument, document_id: str
@@ -146,34 +146,57 @@ class PostgresSourceRepository:
             (delivery.value, document_id),
         )
 
-    def save_document(self, source_id: str, document: SourceDocument) -> str | None:
+    def save_document(self, source_id: str, document: SourceDocument) -> tuple[str, bool]:
         with psycopg.connect(self.database_url) as connection, connection.cursor() as cursor:
-            document_id = self._document_id(cursor, document)
+            document_id, is_new = self._document_id(cursor, document)
             item_id = self._source_item_id(cursor, source_id, document, document_id)
             self._link_source(cursor, source_id, item_id, document_id)
             self._link_files(cursor, document, item_id, document_id)
             self._refresh_delivery(cursor, document, document_id)
-        return document_id
+        return document_id, is_new
 
-    def finish_run(self, source_id: str, cursor: str | None, discovered: int, failed: int) -> None:
+    def finish_run(
+        self,
+        source_id: str,
+        cursor: str | None,
+        discovered: int,
+        failed: int,
+        new_count: int | None = None,
+        updated_count: int = 0,
+    ) -> None:
+        actual_new = max(0, new_count if new_count is not None else (discovered - failed))
+        actual_discovered = max(0, discovered)
+        actual_failed = max(0, failed)
+        actual_updated = max(0, updated_count)
+
         run_query = """
-        insert into public.source_runs(source_id,finished_at,status,discovered_count,new_count,failed_count,cursor_after)
-        select id,now(),%s,%s,%s,%s,%s from public.sources where slug=%s
+        insert into public.source_runs(source_id,finished_at,status,discovered_count,new_count,updated_count,failed_count,cursor_after)
+        select id,now(),%s,%s,%s,%s,%s,%s from public.sources where slug=%s
         """
-        status = "SUCCEEDED" if failed == 0 else "PARTIAL"
+        status = "SUCCEEDED" if actual_failed == 0 else "PARTIAL"
         source_query = """
         update public.sources
-        set status = case when %s = 0 then 'HEALTHY' else 'DEGRADED' end,
+        set status = case
+              when %s = 0 then 'HEALTHY'
+              when consecutive_failures + 1 >= 5 then 'DISABLED'
+              else 'DEGRADED'
+            end,
             last_success_at = case when %s = 0 then now() else last_success_at end,
+            last_failure_at = case when %s > 0 then now() else last_failure_at end,
+            last_error_message = case when %s = 0 then null else last_error_message end,
             consecutive_failures = case when %s = 0 then 0 else consecutive_failures + 1 end,
             updated_at = now()
         where slug = %s
         """
         with psycopg.connect(self.database_url) as connection, connection.cursor() as db_cursor:
             db_cursor.execute(
-                run_query, (status, discovered, discovered - failed, failed, cursor, source_id)
+                run_query,
+                (status, actual_discovered, actual_new, actual_updated, actual_failed, cursor, source_id),
             )
-            db_cursor.execute(source_query, (failed, failed, failed, source_id))
+            db_cursor.execute(
+                source_query,
+                (actual_failed, actual_failed, actual_failed, actual_failed, actual_failed, source_id),
+            )
 
     def fail_run(self, source_id: str, error_code: str, error_message: str) -> None:
         run_query = """
@@ -182,9 +205,17 @@ class PostgresSourceRepository:
         """
         source_query = """
         update public.sources
-        set status='DEGRADED', consecutive_failures=consecutive_failures+1, updated_at=now()
-        where slug=%s
+        set status = case
+              when consecutive_failures + 1 >= 5 then 'DISABLED'
+              else 'DEGRADED'
+            end,
+            last_failure_at = now(),
+            last_error_code = %s,
+            last_error_message = %s,
+            consecutive_failures = consecutive_failures + 1,
+            updated_at = now()
+        where slug = %s
         """
         with psycopg.connect(self.database_url) as connection, connection.cursor() as cursor:
             cursor.execute(run_query, (error_code, error_message[:1_000], source_id))
-            cursor.execute(source_query, (source_id,))
+            cursor.execute(source_query, (error_code, error_message[:1_000], source_id))

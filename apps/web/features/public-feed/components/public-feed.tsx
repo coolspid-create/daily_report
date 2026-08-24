@@ -6,8 +6,12 @@ import { useFeedSelection } from "../hooks/use-feed-selection";
 import { filterFeed } from "../lib/filter-feed";
 import { reportsOnlySnapshot } from "../lib/content-type";
 import type { FeedSelection } from "../lib/initial-selection";
-import type { PublicReport } from "../types/public-report";
-import type { PublicArchive, PublicFeedSnapshot, PublicPressArchive } from "../types/public-feed";
+import type {
+  PublicArchive,
+  PublicFeedSnapshot,
+  PublicPressArchive,
+  PublicPressArchiveDate,
+} from "../types/public-feed";
 import { ArchiveSelector } from "./archive-selector";
 import { FeedHeader } from "./feed-header";
 import { FeedSummary, type ViewMode } from "./feed-summary";
@@ -30,8 +34,15 @@ export function PublicFeed({ archive, pressArchive, fallbackSnapshot, initialSel
     archive.loadedDate && archive.snapshot ? { [archive.loadedDate]: archive.snapshot } : {},
   );
   const [loadingDate, setLoadingDate] = useState<string | null>(null);
-  const [pressReportsByDate, setPressReportsByDate] = useState<Record<string, PublicReport[]>>(
-    pressArchive.loadedDate ? { [pressArchive.loadedDate]: pressArchive.reports } : {},
+  const [pressArchiveByDate, setPressArchiveByDate] = useState<Record<string, PublicPressArchiveDate>>(
+    pressArchive.loadedDate
+      ? {
+          [pressArchive.loadedDate]: {
+            reports: pressArchive.reports,
+            generatedAt: pressArchive.generatedAt,
+          },
+        }
+      : {},
   );
   const [loadingPressDate, setLoadingPressDate] = useState<string | null>(null);
 
@@ -42,10 +53,10 @@ export function PublicFeed({ archive, pressArchive, fallbackSnapshot, initialSel
       fallbackSnapshot
     : archive.snapshot ?? fallbackSnapshot;
   const researchSnapshot = reportsOnlySnapshot(selectedSnapshot);
-  const selectedPressReports = selection.pressArchiveDate
-    ? pressReportsByDate[selection.pressArchiveDate] ??
-      (selection.pressArchiveDate === pressArchive.loadedDate ? pressArchive.reports : [])
-    : [];
+  const selectedPressArchive = selection.pressArchiveDate
+    ? pressArchiveByDate[selection.pressArchiveDate] ?? null
+    : null;
+  const selectedPressReports = selectedPressArchive?.reports ?? [];
 
   const topicReports = researchSnapshot ? filterFeed(researchSnapshot, selection.topic) : [];
   const researchReports = topicReports;
@@ -76,12 +87,16 @@ export function PublicFeed({ archive, pressArchive, fallbackSnapshot, initialSel
 
   const handlePressArchiveDateChange = (date: string) => {
     selection.setPressArchiveDate(date);
-    if (pressReportsByDate[date] || date === pressArchive.loadedDate) return;
+    if (pressArchiveByDate[date] || date === pressArchive.loadedDate) return;
     setLoadingPressDate(date);
     void fetch(`/api/public/press-archive/${date}`)
-      .then(async (response) => (response.ok ? (response.json() as Promise<PublicReport[] | null>) : null))
-      .then((reports) => {
-        if (reports) setPressReportsByDate((current) => ({ ...current, [date]: reports }));
+      .then(async (response) =>
+        response.ok ? (response.json() as Promise<PublicPressArchiveDate | null>) : null,
+      )
+      .then((nextArchive) => {
+        if (nextArchive) {
+          setPressArchiveByDate((current) => ({ ...current, [date]: nextArchive }));
+        }
       })
       .finally(() => setLoadingPressDate(null));
   };
@@ -91,7 +106,7 @@ export function PublicFeed({ archive, pressArchive, fallbackSnapshot, initialSel
       <FeedHeader
         generatedAt={
           isPressReleaseTab
-            ? (archive.snapshot ?? fallbackSnapshot).generatedAt
+            ? selectedPressArchive?.generatedAt ?? pressArchive.generatedAt ?? fallbackSnapshot.generatedAt
             : researchSnapshot?.generatedAt ?? fallbackSnapshot.generatedAt
         }
       />

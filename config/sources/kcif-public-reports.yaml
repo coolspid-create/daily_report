@@ -3,12 +3,12 @@ name: 국제금융센터
 adapter: static_board
 implementation: report_collector.adapters.sources.kcif.adapter:KcifPublicReportAdapter
 homepage_url: https://www.kcif.or.kr
-list_url: https://www.kcif.or.kr/annual/monthlyList
+list_url: https://www.kcif.or.kr/annual/reportList
 rights_default: LINK_ONLY
 poll_interval_minutes: 720
 request_delay_ms: 1500
 timeout_seconds: 30
-run_timeout_seconds: 180
+run_timeout_seconds: 300
 max_retries: 2
 active: true
 selectors:
@@ -19,4 +19,4 @@ filters:
   allowed_extensions: [pdf]
   exclude_title_keywords: [보도자료, 채용, 입찰, 행사, 공고]
   max_age_days: 7
-  max_items_per_run: 20
+  max_items_per_run: 6

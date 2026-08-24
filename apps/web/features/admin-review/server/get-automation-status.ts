@@ -34,6 +34,7 @@ export async function getAutomationStatus(): Promise<AutomationStatus | null> {
     scheduledFor: String(run.scheduled_for),
     scheduledForLabel: formatScheduledFor(String(run.scheduled_for)),
     collectedCount: Number(run.collected_count),
+    reviewCandidateCount: Number(run.review_candidate_count ?? run.collected_count),
     autoApprovedCount: Number(run.approved_count),
     exceptionCount: Number(run.exception_count),
     publishedCount: Number(run.published_count),

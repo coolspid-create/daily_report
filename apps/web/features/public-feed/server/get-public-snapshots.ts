@@ -40,7 +40,7 @@ export async function getPublicArchiveSnapshot(date: string): Promise<PublicFeed
 }
 
 const loadCachedArchive = unstable_cache(loadLatestArchive, ["public-feed-archive"], {
-  revalidate: 3600,
+  revalidate: 60,
   tags: ["public-feed"],
 });
 
@@ -66,7 +66,7 @@ function loadCachedSnapshot(date: string): Promise<PublicFeedSnapshot | null> {
   return unstable_cache(
     async () => loadSnapshotByDate(date),
     ["public-feed-snapshot", date],
-    { revalidate: 3600, tags: ["public-feed"] },
+    { revalidate: 60, tags: ["public-feed"] },
   )();
 }
 

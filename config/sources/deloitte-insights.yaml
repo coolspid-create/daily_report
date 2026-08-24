@@ -1,0 +1,22 @@
+id: deloitte-insights
+name: 딜로이트 인사이트
+adapter: static_board
+implementation: report_collector.adapters.sources.deloitte.adapter:DeloitteInsightsAdapter
+homepage_url: https://www.deloitte.com/kr/ko/our-thinking/deloitte-insights.html
+list_url: https://www.deloitte.com/kr/ko/our-thinking/deloitte-insights-publications.html
+rights_default: LINK_ONLY
+poll_interval_minutes: 720
+request_delay_ms: 1500
+timeout_seconds: 30
+run_timeout_seconds: 300
+max_retries: 2
+active: true
+selectors:
+  list_item: a[href]
+  title: a
+  detail_link: a
+filters:
+  allowed_extensions: [pdf]
+  exclude_title_keywords: [채용, 입찰, 행사, 공고, 이벤트, 세미나]
+  max_age_days: 30
+  max_items_per_run: 6

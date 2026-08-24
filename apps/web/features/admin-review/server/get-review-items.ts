@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/database/service-client";
 import type { ReviewItem } from "../types/admin-review";
+import { isWithinReviewWindow } from "../lib/review-eligibility";
 import { resolveSourceContentType } from "./source-content-type";
 
 interface ReviewRow {
@@ -22,26 +23,27 @@ interface ReviewRow {
 
 export async function getReviewItems(): Promise<ReviewItem[]> {
   const client = createServiceClient();
-  const today = new Date();
-  const cutoff = new Date(today);
-  cutoff.setDate(cutoff.getDate() - 7);
+  const now = new Date();
+  const cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await client
     .from("documents")
     .select("*,document_analysis(key_tags),document_files(sha256),review_actions(action,after_data),document_sources(sources(content_type))")
     .in("workflow_status", ["NEW", "NEEDS_REVIEW"])
-    .gte("published_at", cutoff.toISOString().slice(0, 10))
-    .lte("published_at", today.toISOString().slice(0, 10))
+    .gte("created_at", cutoff)
     .order("created_at", { ascending: false });
   if (error) throw new Error("검수 목록을 불러오지 못했습니다.");
-  const rows = data as ReviewRow[];
+  const rows = (data as ReviewRow[]).map((row) => ({
+    row,
+    sourceContentType: resolveSourceContentType(row.document_sources, row.content_tag, row.institution),
+  })).filter(({ row, sourceContentType }) => isWithinReviewWindow(sourceContentType, row.created_at, now));
   const idsByHash = new Map<string, string[]>();
-  for (const row of rows) {
+  for (const { row } of rows) {
     for (const file of row.document_files) {
       if (!file.sha256) continue;
       idsByHash.set(file.sha256, [...(idsByHash.get(file.sha256) ?? []), row.id]);
     }
   }
-  return rows.map((row) => ({
+  return rows.map(({ row, sourceContentType }) => ({
     id: row.id,
     canonicalTitle: row.canonical_title,
     institution: row.institution,
@@ -54,7 +56,7 @@ export async function getReviewItems(): Promise<ReviewItem[]> {
     workflowStatus: row.workflow_status,
     primarySourceUrl: row.primary_source_url,
     createdAt: row.created_at,
-    sourceContentType: resolveSourceContentType(row.document_sources),
+    sourceContentType,
     duplicateCandidateIds: [
       ...new Set(
         row.document_files.flatMap((file) =>

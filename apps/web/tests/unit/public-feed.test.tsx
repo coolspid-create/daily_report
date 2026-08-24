@@ -17,7 +17,7 @@ function archive(): PublicArchive {
 }
 
 function pressArchive(): PublicPressArchive {
-  return { currentDate: null, dates: [], loadedDate: null, reports: [] };
+  return { currentDate: null, dates: [], loadedDate: null, reports: [], generatedAt: null };
 }
 
 describe("public feed", () => {

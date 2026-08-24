@@ -18,6 +18,7 @@ def load_auto_review_candidates(
 ) -> list[AutoApprovalCandidate]:
     query = """
     select d.id,d.published_at,coalesce(seen.first_seen_at,d.created_at) first_seen_at,
+      coalesce(source_meta.content_type,'REPORT') source_content_type,
       exists(select 1 from public.document_sources ds join public.sources s on s.id=ds.source_id
         where ds.document_id=d.id and s.active) source_active,
       exists(select 1 from public.document_sources ds join public.sources s on s.id=ds.source_id
@@ -33,6 +34,11 @@ def load_auto_review_candidates(
       join public.source_items si on si.id=ds.source_item_id where ds.document_id=d.id
     ) seen on true
     left join lateral (
+      select s.content_type from public.document_sources ds
+      join public.sources s on s.id=ds.source_id where ds.document_id=d.id
+      order by case when s.content_type='PRESS_RELEASE' then 0 else 1 end limit 1
+    ) source_meta on true
+    left join lateral (
       select count(distinct other.id) count from public.documents other
       where other.id<>d.id and (
         other.primary_source_url=d.primary_source_url
@@ -45,7 +51,6 @@ def load_auto_review_candidates(
     ) duplicates on true
     where d.workflow_status in ('NEW','NEEDS_REVIEW')
       and coalesce(seen.first_seen_at,d.created_at) between %s and %s
-      and d.published_at between %s and %s
       and (%s::text is null or exists(
         select 1 from public.document_sources filtered_ds
         join public.sources filtered_source on filtered_source.id=filtered_ds.source_id
@@ -56,7 +61,7 @@ def load_auto_review_candidates(
     with psycopg.connect(database_url, row_factory=dict_row) as connection:
         rows = connection.execute(
             query,
-            (window_start, window_end, window_start.date(), window_end.date(), source_slug, source_slug),
+            (window_start, window_end, source_slug, source_slug),
         ).fetchall()
     return [_candidate(row) for row in rows]
 
@@ -80,6 +85,7 @@ def _candidate(row: dict[str, object]) -> AutoApprovalCandidate:
         source_url=str(row["primary_source_url"]),
         duplicate_count=int(duplicate_count) if isinstance(duplicate_count, (int, float)) else 0,
         has_session_file_url=bool(row["has_session_file_url"]),
+        source_content_type=str(row["source_content_type"]),
     )
 
 

@@ -8,6 +8,7 @@ import { ReviewEditor } from "./review-editor";
 import { ReviewList } from "./review-list";
 import { StoredDocumentList } from "./stored-document-list";
 import { SourceHealthTable } from "@/features/source-health/components/source-health-table";
+import { isBulkApprovalEligible } from "../lib/review-eligibility";
 
 interface ReviewWorkbenchProps {
   items: ReviewItem[];
@@ -15,26 +16,14 @@ interface ReviewWorkbenchProps {
   automation: AutomationStatus | null;
   publications: PublicationHistory[];
   storedDocuments: StoredDocument[];
+  eligibilityNow: string;
 }
 
-const isPressItem = (item: ReviewItem) =>
-  item.sourceContentType === "PRESS_RELEASE" ||
-  item.contentTag === "보도자료" ||
-  item.institution.includes("보도자료");
+const isPressItem = (item: ReviewItem) => item.sourceContentType === "PRESS_RELEASE";
 
-const isPressSource = (source: SourceHealth) =>
-  source.contentType === "PRESS_RELEASE" ||
-  (source.slug?.includes("press") ?? false) ||
-  source.name.includes("보도자료") ||
-  (source.slug?.includes("fsc") ?? false);
+const isPressSource = (source: SourceHealth) => source.contentType === "PRESS_RELEASE";
 
-const isPressStored = (doc: StoredDocument) =>
-  doc.sourceContentType === "PRESS_RELEASE" ||
-  doc.institution.includes("보도자료") ||
-  doc.canonicalTitle.includes("보도자료");
-
-const isWithinLast24Hours = (createdAt: string) =>
-  Date.now() - new Date(createdAt).getTime() <= 24 * 60 * 60 * 1000;
+const isPressStored = (doc: StoredDocument) => doc.sourceContentType === "PRESS_RELEASE";
 
 export function ReviewWorkbench({
   items,
@@ -42,23 +31,29 @@ export function ReviewWorkbench({
   automation,
   publications,
   storedDocuments,
+  eligibilityNow,
 }: ReviewWorkbenchProps) {
   const router = useRouter();
   const [adminMode, setAdminMode] = useState<"reports" | "press">("reports");
   const [view, setView] = useState<"review" | "published" | "stored" | "sources">("review");
   const [activeId, setActiveId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const eligibilityReference = new Date(eligibilityNow);
 
-  const pressItems = items.filter((item) => isPressItem(item) && isWithinLast24Hours(item.createdAt));
+  const pressItems = items.filter(isPressItem);
   const visibleItems = adminMode === "press" ? pressItems : items.filter((item) => !isPressItem(item));
-  const visibleSources = sources.filter((source) => (adminMode === "press" ? isPressSource(source) : !isPressSource(source)));
-  const visibleStored = storedDocuments.filter((doc) => (adminMode === "press" ? isPressStored(doc) : !isPressStored(doc)));
+  const visibleSources = sources.filter((s) => (adminMode === "press" ? isPressSource(s) : !isPressSource(s)));
+  const visibleStored = storedDocuments.filter((d) => (adminMode === "press" ? isPressStored(d) : !isPressStored(d)));
 
   const selectedId = visibleItems.some((item) => item.id === activeId) ? activeId : (visibleItems[0]?.id ?? null);
   const active = visibleItems.find((item) => item.id === selectedId) ?? null;
 
   const recentIds = visibleItems
-    .filter((item) => item.workflowStatus === "NEEDS_REVIEW")
+    .filter(
+      (item) =>
+        item.workflowStatus === "NEEDS_REVIEW" &&
+        isBulkApprovalEligible(item.sourceContentType, item.createdAt, item.publishedAt, eligibilityReference),
+    )
     .slice(0, 20)
     .map((item) => item.id);
 
@@ -71,8 +66,8 @@ export function ReviewWorkbench({
   };
 
   const approveLatest = async () => {
-    const label = adminMode === "press" ? "최근 24시간 보도자료" : "최근 7일 공공리포트";
-    if (recentIds.length === 0 || !window.confirm(`${label} ${recentIds.length}건을 한 번에 승인하시겠습니까?`)) return;
+    const label = adminMode === "press" ? "최근 24시간 발행본" : "최근 7일 발행본";
+    if (recentIds.length === 0 || !window.confirm(`${label} 중 발행일이 확인된 ${recentIds.length}건을 한 번에 승인하시겠습니까?`)) return;
     setMessage(null);
     const response = await fetch("/api/admin/documents/batch-approve", {
       method: "POST",
@@ -164,7 +159,7 @@ export function ReviewWorkbench({
               </p>
             </div>
             <button type="button" disabled={recentIds.length === 0} onClick={approveLatest}>
-              {adminMode === "press" ? "보도자료" : "최근 7일"} {recentIds.length}건 일괄 승인
+              발행 가능 {recentIds.length}건 일괄 승인
             </button>
           </div>
           <div className="workbench">

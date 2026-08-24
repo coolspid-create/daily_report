@@ -56,8 +56,14 @@ class PublicHttpClient:
                 result = await self._request_once(url, max_bytes)
                 await asyncio.sleep(self.delay_seconds)
                 return result
+            except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout, httpx.PoolTimeout, httpx.RemoteProtocolError) as error:
+                last_error = error
+                if attempt == self.retries:
+                    raise
             except (httpx.HTTPError, OSError) as error:
                 last_error = error
+                if attempt == self.retries or (isinstance(error, httpx.HTTPStatusError) and error.response.status_code < 500):
+                    raise
         assert last_error is not None
         raise last_error
 

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from urllib.parse import urlparse
 
 from report_collector.domain.enums import DeliveryMode, RightsStatus
@@ -24,6 +24,7 @@ class AutoApprovalCandidate:
     source_url: str
     duplicate_count: int
     has_session_file_url: bool
+    source_content_type: str = "REPORT"
 
 
 @dataclass(frozen=True)
@@ -39,11 +40,14 @@ def evaluate_candidate(
     window_end: datetime,
 ) -> AutoApprovalDecision:
     reasons: list[str] = []
-    if not window_start <= candidate.first_seen_at <= window_end:
+    effective_start = window_start
+    if candidate.source_content_type == "PRESS_RELEASE":
+        effective_start = max(window_start, window_end - timedelta(hours=24))
+    if not effective_start <= candidate.first_seen_at <= window_end:
         reasons.append("OUTSIDE_COLLECTION_WINDOW")
     if candidate.published_at is None:
         reasons.append("PUBLISHED_DATE_MISSING")
-    elif not window_start.date() <= candidate.published_at <= window_end.date():
+    elif not effective_start.date() <= candidate.published_at <= window_end.date():
         reasons.append("PUBLISHED_DATE_OUTSIDE_WINDOW")
     if not candidate.source_active or not candidate.source_healthy:
         reasons.append("SOURCE_UNHEALTHY")

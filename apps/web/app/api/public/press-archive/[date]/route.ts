@@ -13,9 +13,9 @@ export async function GET(_: Request, { params }: RouteContext) {
   }
 
   try {
-    const reports = await getPublicPressArchiveDate(date);
-    return reports
-      ? Response.json(reports)
+    const archive = await getPublicPressArchiveDate(date);
+    return archive
+      ? Response.json(archive)
       : Response.json({ error: "해당 발행일의 보도자료가 없습니다." }, { status: 404 });
   } catch {
     return Response.json({ error: "보도자료 발행본을 불러오지 못했습니다." }, { status: 500 });
