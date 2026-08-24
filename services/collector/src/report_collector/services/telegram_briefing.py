@@ -21,7 +21,11 @@ def build_telegram_briefing(
     header = f"<b>오늘의 공공리포트 · {escape(publication_date)}</b>\n오늘 읽을 자료 {len(reports)}건"
 
     blocks = [_report_block(index, report) for index, report in enumerate(reports, 1)]
-    footer = f'\n<a href="{escape(web_url)}">웹에서 전체 보기</a>' if web_url else ""
+    footer = (
+        f'\n\n<a href="{escape(web_url)}">오늘의 공공리포트 전체보기</a>'
+        if web_url
+        else ""
+    )
     messages = _pack_messages(header, blocks, footer)
     digest = snapshot.get("digests", {}).get("all", {})
     digest_url = str(digest.get("url")) if digest.get("available") and digest.get("url") else None
