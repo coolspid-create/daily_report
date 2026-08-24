@@ -68,7 +68,7 @@ function PressReleaseItem({ report, viewMode }: PressReleaseItemProps) {
   const summaryId = `press-summary-${report.id}`;
   const toggle = () => setIsExpanded((current) => !current);
 
-  const summary = isExpanded && report.shortSummary ? (
+  const summary = report.shortSummary ? (
     <div id={summaryId} className="press-summary-expanded">
       <span className="why-matters-label">WHY IT MATTERS</span>
       <p className="why-matters-text">{report.shortSummary}</p>
@@ -114,11 +114,10 @@ function PressReleaseItem({ report, viewMode }: PressReleaseItemProps) {
           <span className="press-inst-badge">{report.institution}</span>
           <time dateTime={report.publishedAt} className="press-date">{report.publishedAt}</time>
         </div>
-        <h4 id={titleId} className="press-card-title">{title}</h4>
+        <h4 id={titleId} className="press-card-title">{report.title}</h4>
         {summary}
         <div className="press-card-footer">
           <ReportActions file={report.file} />
-          {toggleButton}
         </div>
       </article>
     );
@@ -132,7 +131,7 @@ function PressReleaseItem({ report, viewMode }: PressReleaseItemProps) {
           <time dateTime={report.publishedAt} className="press-date">{report.publishedAt}</time>
         </div>
         <h4 id={titleId} className="press-list-title">{title}</h4>
-        {summary}
+        {isExpanded ? summary : null}
       </div>
       <div className="press-list-actions">
         <ReportActions file={report.file} />

@@ -21,8 +21,8 @@ const report: PublicReport = {
 };
 
 describe("PressReleaseSection", () => {
-  it.each(["list", "grid"] as const)("expands a press summary in %s view", (viewMode) => {
-    render(<PressReleaseSection reports={[report]} archiveDate="2026-08-24" viewMode={viewMode} />);
+  it("expands a press summary in list view", () => {
+    render(<PressReleaseSection reports={[report]} archiveDate="2026-08-24" viewMode="list" />);
 
     const title = screen.getByRole("button", { name: "보도자료 제목" });
     fireEvent.click(title);
@@ -30,5 +30,14 @@ describe("PressReleaseSection", () => {
     expect(title).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByText("보도자료의 전체 요약 내용입니다.")).toBeVisible();
     expect(screen.getByRole("button", { name: "요약 접기" })).toBeVisible();
+  });
+
+  it("shows the full press summary without a toggle in grid view", () => {
+    render(<PressReleaseSection reports={[report]} archiveDate="2026-08-24" viewMode="grid" />);
+
+    expect(screen.getByRole("heading", { name: "보도자료 제목" })).toBeVisible();
+    expect(screen.getByText("보도자료의 전체 요약 내용입니다.")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "더보기" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "요약 접기" })).not.toBeInTheDocument();
   });
 });
