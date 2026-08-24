@@ -4,6 +4,11 @@ from html import escape
 from typing import Any
 
 
+# Telegram permits up to 4,096 characters, but leave a small margin for
+# formatting changes made by the delivery provider.
+TELEGRAM_MESSAGE_CHARACTER_LIMIT = 4000
+
+
 @dataclass(frozen=True)
 class TelegramBriefing:
     messages: tuple[str, ...]
@@ -59,9 +64,10 @@ def _report_date(value: object) -> str:
 def _pack_messages(header: str, blocks: list[str], footer: str) -> tuple[str, ...]:
     messages: list[str] = []
     current = header
+    final_message_limit = TELEGRAM_MESSAGE_CHARACTER_LIMIT - len(footer)
     for block in blocks:
         candidate = f"{current}\n\n{block}"
-        if len(candidate) > 3500 and current != header:
+        if len(candidate) > final_message_limit and current != header:
             messages.append(current)
             current = block
         else:

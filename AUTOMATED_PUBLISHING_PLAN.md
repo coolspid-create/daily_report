@@ -45,7 +45,7 @@
 ### Telegram 전달 형식
 
 - 개별 원본 PDF 파일을 일괄 업로드하지 않는다.
-- Telegram에는 오늘의 스냅샷을 3,500자 이하 HTML 메시지 1~2개로 나누어 보낸다.
+- Telegram에는 오늘의 스냅샷을 최종 링크를 포함해 4,000자 이하 HTML 메시지 1~2개로 나누어 보낸다.
 - 각 항목은 제목, 기관, 분야, 한 문장 요약, 키워드, 공식 원문/PDF 링크를 포함한다.
 - 마지막에 메타데이터·요약·링크로 만든 자체 정리본 PDF 1개만 첨부한다.
 - 웹 발행과 Telegram 전달은 반드시 같은 `publication_id`와 snapshot을 사용한다.
@@ -234,7 +234,7 @@ PDF | 공식 원문
 구현 내용:
 
 - Telegram HTML을 안전하게 escape한다.
-- 메시지는 3,500자 이하에서 보고서 단위로 분할한다.
+- 메시지는 최종 링크를 포함해 4,000자 이하에서 보고서 단위로 분할한다.
 - 링크 미리보기는 기본 비활성화한다.
 - 메시지 전송 후 자체 정리본 PDF를 한 번만 전송한다.
 - 개별 원본 PDF 업로드 코드는 만들지 않는다.
@@ -315,7 +315,7 @@ TELEGRAM_MAX_ATTEMPTS=3
 - 일부 출처 timeout 후 다음 출처 진행
 - today/1d snapshot schema와 원자적 교체
 - snapshot 실패 시 직전 정상 버전 유지
-- Telegram HTML escape와 3,500자 분할
+- Telegram HTML escape와 최종 링크를 포함한 4,000자 분할
 - Telegram 429/5xx/timeout 재시도
 - 정리본 PDF 1회 전송과 개별 원본 PDF 미전송
 - 동일 publication 중복 전달 방지

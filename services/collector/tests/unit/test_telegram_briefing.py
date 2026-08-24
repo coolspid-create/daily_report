@@ -1,4 +1,7 @@
-from report_collector.services.telegram_briefing import build_telegram_briefing
+from report_collector.services.telegram_briefing import (
+    TELEGRAM_MESSAGE_CHARACTER_LIMIT,
+    build_telegram_briefing,
+)
 
 
 def test_briefing_uses_snapshot_links_and_digest() -> None:
@@ -44,3 +47,16 @@ def test_briefing_splits_long_messages() -> None:
     }
     snapshot = {"reportsByTopic": {"all": [report, report]}, "digests": {}}
     assert len(build_telegram_briefing(snapshot, "2026-08-21").messages) == 2
+
+
+def test_briefing_keeps_a_near_limit_message_together() -> None:
+    report = {
+        "title": "긴 제목" * 430,
+        "institution": "연구원",
+        "keyTags": ["정책", "산업", "동향"],
+        "file": {"sourceUrl": "https://example.org"},
+    }
+    snapshot = {"reportsByTopic": {"all": [report, report]}, "digests": {}}
+    result = build_telegram_briefing(snapshot, "2026-08-21", "https://reports.example")
+    assert len(result.messages) == 1
+    assert len(result.messages[0]) <= TELEGRAM_MESSAGE_CHARACTER_LIMIT
