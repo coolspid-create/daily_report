@@ -930,32 +930,54 @@ h1 {
   letter-spacing: -0.02em;
 }
 
-.press-card-title a {
+.press-summary-trigger {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
   color: var(--color-text);
-  text-decoration: none;
+  font: inherit;
+  text-align: left;
+  background: transparent;
+  cursor: pointer;
 }
 
-.press-card-title a:hover {
+.press-summary-trigger:not(:disabled):hover {
   color: var(--color-accent-strong, #1d4ed8);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
-.press-card-summary {
+.press-summary-trigger:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.press-summary-trigger:disabled {
+  cursor: default;
+}
+
+.press-summary-expanded {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border-left: 3px solid var(--color-accent);
+  background: var(--color-surface-subtle, #f9fafb);
+}
+
+.press-summary-expanded .why-matters-text {
   margin: 0;
-  font-size: 0.84rem;
-  line-height: 1.5;
-  color: var(--color-text-secondary, #4b5563);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
+}
+
+.press-card-title .press-summary-trigger {
+  color: var(--color-text);
 }
 
 .press-card-footer {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  gap: 8px;
   padding-top: 8px;
   border-top: 1px solid var(--color-border);
 }
@@ -1002,31 +1024,10 @@ h1 {
   letter-spacing: -0.02em;
 }
 
-.press-list-title a {
-  color: var(--color-text);
-  text-decoration: none;
-}
-
-.press-list-title a:hover {
-  color: var(--color-accent-strong, #1d4ed8);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.press-list-summary {
-  margin: 0;
-  font-size: 0.86rem;
-  line-height: 1.45;
-  color: var(--color-text-secondary, #4b5563);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-  overflow: hidden;
-}
-
 .press-list-actions {
   display: flex;
   align-items: center;
+  gap: 8px;
   flex-shrink: 0;
 }
 
@@ -1075,5 +1076,4 @@ h1 {
     grid-template-columns: 1fr;
   }
 }
-
 
