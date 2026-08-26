@@ -27,8 +27,30 @@ class PostgresSourceRepository:
             row = cursor.fetchone()
             return str(row[0]) if row and row[0] else None
 
-    def _document_id(self, cursor: psycopg.Cursor, document: SourceDocument) -> tuple[str, bool]:
+    def _document_id(
+        self, cursor: psycopg.Cursor, source_id: str, document: SourceDocument
+    ) -> tuple[str, bool]:
         normalized = normalize_title(document.title)
+        cursor.execute(
+            "select si.document_id from public.source_items si join public.sources s on s.id=si.source_id where s.slug=%s and si.source_item_key=%s",
+            (source_id, document.source_item_key),
+        )
+        source_existing = cursor.fetchone()
+        if source_existing:
+            document_id = str(source_existing[0])
+            cursor.execute(
+                "update public.documents set canonical_title=%s,normalized_title=%s,institution=%s,published_at=%s,rights_status=%s,primary_source_url=%s,updated_at=now() where id=%s",
+                (
+                    document.title,
+                    normalized,
+                    document.institution,
+                    document.published_at,
+                    document.rights_status.value,
+                    str(document.detail_url),
+                    document_id,
+                ),
+            )
+            return document_id, False
         cursor.execute(
             "select id from public.documents where primary_source_url=%s or (normalized_title=%s and institution=%s and published_at is not distinct from %s) order by created_at limit 1",
             (str(document.detail_url), normalized, document.institution, document.published_at),
@@ -69,7 +91,8 @@ class PostgresSourceRepository:
           source_id,source_item_key,list_title,list_published_at,detail_url,document_id,raw_metadata
         ) select id,%s,%s,%s,%s,%s,%s::jsonb from public.sources where slug=%s
         on conflict(source_id,source_item_key) do update set
-          list_title=excluded.list_title,last_seen_at=now(),document_id=excluded.document_id,
+          list_title=excluded.list_title,list_published_at=excluded.list_published_at,
+          detail_url=excluded.detail_url,last_seen_at=now(),document_id=excluded.document_id,
           raw_metadata=excluded.raw_metadata returning id
         """
         cursor.execute(
@@ -153,7 +176,7 @@ class PostgresSourceRepository:
 
     def save_document(self, source_id: str, document: SourceDocument) -> tuple[str, bool]:
         with psycopg.connect(self.database_url) as connection, connection.cursor() as cursor:
-            document_id, is_new = self._document_id(cursor, document)
+            document_id, is_new = self._document_id(cursor, source_id, document)
             item_id = self._source_item_id(cursor, source_id, document, document_id)
             self._link_source(cursor, source_id, item_id, document_id)
             self._link_files(cursor, document, item_id, document_id)

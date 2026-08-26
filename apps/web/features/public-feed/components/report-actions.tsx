@@ -23,9 +23,8 @@ export function ReportActions({ file }: ReportActionsProps) {
           href={primary.url}
           download={primary.download || undefined}
           aria-label={`${primary.label} 파일 다운로드`}
-          {...externalProps}
         >
-          {primary.label} <span className="sr-only">(새 창)</span>
+          {primary.label}
         </a>
       ) : null}
     </div>

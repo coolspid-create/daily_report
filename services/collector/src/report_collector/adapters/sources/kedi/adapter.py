@@ -83,7 +83,7 @@ def _item(row: Tag, config: SourceConfig) -> DiscoveredItem | None:
     link = row.select_one("a[onclick*='selectPubFormFn']")
     onclick = link.get("onclick") if link else None
     match = DETAIL_KEY_PATTERN.search(onclick) if isinstance(onclick, str) else None
-    title = _text(link)
+    title = _clean_title(_text(link))
     if not match or not title or not title_allowed(title, config.filters):
         return None
     return DiscoveredItem(
@@ -102,3 +102,10 @@ def _date(value: str) -> date | None:
 def _text(node: Tag | None) -> str:
     value = node.get_text(" ", strip=True) if node else ""
     return re.sub(r"\s+", " ", value)[:3000]
+
+
+def _clean_title(title: str) -> str:
+    marker = "KEDI와 함께해 온 한국교육의 길"
+    if marker in title:
+        return title[title.index(marker) :]
+    return title

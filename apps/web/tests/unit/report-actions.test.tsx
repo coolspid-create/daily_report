@@ -13,7 +13,13 @@ describe("report actions", () => {
   ] as const)("renders %s correctly", (deliveryMode, label) => {
     const downloadUrl = deliveryMode === "OFFICIAL_PAGE_ONLY" ? null : "https://official.example/report.pdf";
     render(<ReportActions file={{ ...base, deliveryMode, downloadUrl }} />);
-    expect(screen.getByRole("link", { name: new RegExp(label) })).toHaveAttribute("rel", "noopener noreferrer");
+    const action = screen.getByRole("link", { name: new RegExp(label) });
+    if (deliveryMode === "OFFICIAL_PAGE_ONLY") {
+      expect(action).toHaveAttribute("target", "_blank");
+    } else {
+      expect(action).toHaveAttribute("download");
+      expect(action).not.toHaveAttribute("target");
+    }
   });
 
   it.each(["SUMMARY_ONLY", "BLOCKED"] as const)("does not render a download for %s", (deliveryMode) => {

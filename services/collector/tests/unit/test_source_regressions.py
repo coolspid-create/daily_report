@@ -14,7 +14,7 @@ from report_collector.adapters.sources.hana.adapter import _date as hana_date
 from report_collector.adapters.sources.inss.adapter import InssAdapter
 from report_collector.adapters.sources.kb.adapter import KbResearchAdapter
 from report_collector.adapters.sources.kdi.adapter import KdiRenderedAdapter
-from report_collector.adapters.sources.kedi.adapter import KediAdapter
+from report_collector.adapters.sources.kedi.adapter import KediAdapter, _clean_title
 from report_collector.adapters.sources.keis.adapter import KeisResearchAdapter
 from report_collector.adapters.sources.kipf.adapter import KipfAdapter
 from report_collector.adapters.sources.kli.adapter import KliAdapter
@@ -153,6 +153,14 @@ async def test_kedi_fixture_submits_official_public_form(fixture_root: Path) -> 
     assert browser.submissions[0][2] == {"plNum0": "16539"}
     assert detail.published_at.isoformat() == "2026-08-21"
     assert "개선 과제" in (detail.official_summary or "")
+
+
+def test_kedi_anniversary_heading_is_removed_from_report_title() -> None:
+    title = (
+        "한국교육개발원 창립 54주년 기념식 및 기념포럼 이영덕 초대원장 탄생 100주년 기념 "
+        "KEDI와 함께해 온 한국교육의 길(RM2026-06)"
+    )
+    assert _clean_title(title) == "KEDI와 함께해 온 한국교육의 길(RM2026-06)"
 
 
 @pytest.mark.asyncio

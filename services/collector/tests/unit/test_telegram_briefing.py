@@ -27,6 +27,8 @@ def test_briefing_uses_snapshot_links_and_digest() -> None:
     assert "AI &amp; 공공정책" in result.messages[0]
     assert "(2026.08.22)" in result.messages[0]
     assert "핵심 &lt;요약&gt;" not in result.messages[0]
+    assert "AI · 정책" not in result.messages[0]
+    assert "\n연구원\n" in result.messages[0]
     assert "report.pdf" in result.messages[0]
     assert '\n\n<a href="https://reports.example">오늘의 공공리포트 전체보기</a>' in result.messages[0]
     assert result.digest_url == "https://example.org/digest.pdf"

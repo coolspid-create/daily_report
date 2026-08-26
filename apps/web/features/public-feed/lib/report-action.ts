@@ -12,7 +12,7 @@ export function primaryAction(file: ReportFile): PrimaryAction | null {
   if (DOWNLOAD_MODES.has(file.deliveryMode) && file.downloadUrl) {
     const format = file.format?.toUpperCase();
     const label = format === "HWP" ? "HWP ↓" : "PDF ↓";
-    return { label, url: file.downloadUrl, download: file.deliveryMode === "MIRRORED_ALLOWED" };
+    return { label, url: file.downloadUrl, download: true };
   }
   return null;
 }

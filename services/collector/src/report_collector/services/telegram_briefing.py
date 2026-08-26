@@ -40,7 +40,6 @@ def _report_block(index: int, report: dict[str, Any]) -> str:
     title = escape(str(report.get("title", "제목 없음")))
     date_label = _report_date(report.get("publishedAt"))
     institution = escape(str(report.get("institution", "")))
-    tags = " · ".join(escape(str(tag)) for tag in report.get("keyTags", [])[:3])
     file_data = report.get("file", {})
     source_url = escape(str(file_data.get("sourceUrl") or ""))
     download_url = escape(str(file_data.get("downloadUrl") or ""))
@@ -49,7 +48,7 @@ def _report_block(index: int, report: dict[str, Any]) -> str:
         links.append(f'<a href="{download_url}">PDF</a>')
     if source_url:
         links.append(f'<a href="{source_url}">원문</a>')
-    meta = " · ".join(part for part in (institution, tags) if part)
+    meta = institution
     return f"<b>{index}. {title}{date_label}</b>\n{meta}\n{' | '.join(links)}"
 
 
