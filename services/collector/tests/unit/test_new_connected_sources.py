@@ -55,6 +55,22 @@ def test_official_channel_only_selects_kiwoom_report_links() -> None:
     assert adapter.report_urls[item.source_item_key].startswith("https://bbn.kiwoom.com/")
 
 
+def test_official_channel_orders_newest_post_first() -> None:
+    config = load_source_config(Path("config/sources/kiwoom-research.yaml"))
+    adapter = OfficialTelegramResearchAdapter(config, FixtureHttp())  # type: ignore[arg-type]
+    html = """
+    <div class="tgme_widget_message" data-post="KiwoomResearch/10">
+      <div class="tgme_widget_message_text">예전 자료 <a href="https://bbn.kiwoom.com/rfCR10">PDF</a></div>
+      <time datetime="2026-08-25T01:00:00+00:00"></time>
+    </div>
+    <div class="tgme_widget_message" data-post="KiwoomResearch/11">
+      <div class="tgme_widget_message_text">최신 자료 <a href="https://bbn.kiwoom.com/rfCR11">PDF</a></div>
+      <time datetime="2026-08-25T02:00:00+00:00"></time>
+    </div>
+    """
+    assert adapter._parse_messages(html)[0][0].source_item_key == "KiwoomResearch-11"
+
+
 def test_official_channel_extracts_titles_without_body_copy() -> None:
     assert _extract_title(
         """[SK증권 최관순, 한동희, 황지우]
@@ -101,6 +117,7 @@ async def test_official_channel_keeps_source_page_separate_from_pdf() -> None:
     """
     item, _ = adapter._parse_messages(html)[0]
     detail = await adapter.fetch_detail(item)
+    assert item.title == "[키움 ETF 김진영] New ETF Line-Up"
     assert str(detail.detail_url) == "https://t.me/KiwoomResearch/11"
     assert str(detail.attachments[0].url) == "https://bbn.kiwoom.com/rfCR456"
 

@@ -20,4 +20,4 @@ selectors:
 filters:
   allowed_extensions: [pdf]
   max_age_days: 30
-  max_items_per_run: 5
+  max_items_per_run: 50

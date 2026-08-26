@@ -5,7 +5,7 @@ from pathlib import PurePosixPath
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 from pydantic import HttpUrl
 from report_collector.adapters.base import SourceAdapter
 from report_collector.domain.errors import SourceParseError
@@ -42,7 +42,7 @@ class OfficialTelegramResearchAdapter(SourceAdapter):
             report_url = self._select_report_link(links)
             if not report_url:
                 continue
-            raw_text = text_node.get_text("\n", strip=True)
+            raw_text = _message_text(text_node)
             post_path = str(message.get("data-post", "")).strip("/")
             post_key = post_path.replace("/", "-")
             title = _extract_title(raw_text)
@@ -66,7 +66,11 @@ class OfficialTelegramResearchAdapter(SourceAdapter):
                     raw_text[:3000],
                 )
             )
-        return parsed
+        return sorted(
+            parsed,
+            key=lambda value: int(value[0].source_item_key.rsplit("-", 1)[-1]),
+            reverse=True,
+        )
 
     def _select_report_link(self, links: list[str]) -> str | None:
         if self.config.id == "kiwoom-research":
@@ -183,7 +187,7 @@ def _first_title_candidate(lines: list[str]) -> str | None:
     for line in lines:
         if _DETAIL_PATTERN.match(line) or any(marker in line for marker in _BOILERPLATE):
             continue
-        return line.removesuffix("(요약)").strip()
+        return re.sub(r"^[▶♣🔗🎯📌]️?\s*", "", line).removesuffix("(요약)").strip()
     return None
 
 
@@ -201,4 +205,16 @@ def _ignored_title_line(line: str) -> bool:
 
 def _limit_title(title: str) -> str:
     title = re.sub(r"\s+", " ", title).strip()
-    return title if len(title) <= 200 else title[:197].rstrip() + "..."
+    if len(title) > 120 and " - " in title:
+        title = title.split(" - ", 1)[0].rstrip()
+    return title if len(title) <= 120 else title[:117].rstrip() + "..."
+
+
+def _message_text(text_node: Tag) -> str:
+    node = BeautifulSoup(str(text_node), "html.parser")
+    for line_break in node.find_all("br"):
+        line_break.replace_with("\n")
+    value = node.get_text("", strip=False)
+    return "\n".join(
+        line for raw_line in value.splitlines() if (line := re.sub(r"\s+", " ", raw_line).strip())
+    )
