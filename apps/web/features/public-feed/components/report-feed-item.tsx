@@ -70,7 +70,6 @@ export function ReportFeedItem({ report, index = 1, viewMode = "list" }: ReportF
                 href={primary.url}
                 download={primary.download || undefined}
                 aria-label="PDF 다운로드"
-                {...externalProps}
               >
                 PDF ↓
               </a>
@@ -126,7 +125,6 @@ export function ReportFeedItem({ report, index = 1, viewMode = "list" }: ReportF
               href={primary.url}
               download={primary.download || undefined}
               aria-label="PDF 파일 다운로드"
-              {...externalProps}
             >
               PDF ↓
             </a>

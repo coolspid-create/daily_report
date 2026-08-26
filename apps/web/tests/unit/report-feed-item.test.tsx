@@ -26,4 +26,23 @@ describe("ReportFeedItem", () => {
     fireEvent.click(screen.getByRole("button", { name: "요약 접기" }));
     expect(screen.getByRole("button", { name: "더보기" })).toHaveAttribute("aria-expanded", "false");
   });
+
+  it("downloads a direct official PDF without opening a new tab", () => {
+    render(
+      <ReportFeedItem
+        report={{
+          ...report,
+          file: {
+            format: "PDF",
+            deliveryMode: "DIRECT_OFFICIAL_FILE",
+            sourceUrl: "https://example.com/report",
+            downloadUrl: "https://example.com/report.pdf",
+          },
+        }}
+      />,
+    );
+    const pdf = screen.getByRole("link", { name: "PDF 파일 다운로드" });
+    expect(pdf).toHaveAttribute("download");
+    expect(pdf).not.toHaveAttribute("target");
+  });
 });
