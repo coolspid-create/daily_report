@@ -101,6 +101,17 @@ kh.hyung@sks.co.kr/3773-9997
 Weekly Amazon Beauty Check
 - K뷰티 유니버스 주간 요약"""
     ) == "[SK증권 화장품/의류 형권훈] Weekly Amazon Beauty Check"
+    assert _extract_title(
+        """[SK 증권 원유승][8월 금통위 프리뷰] 동결 전망. 안정적인 기대 인플레와 환율
+- 8월 금통위, 기준금리 동결 전망
+- 10월 추가 인상 전망"""
+    ) == "[SK 증권 원유승][8월 금통위 프리뷰] 동결 전망. 안정적인 기대 인플레와 환율"
+    assert _extract_title(
+        """[SK증권 미래산업/미드스몰캡] Analyst 나승두
+(nsdoo@sks.co.kr/3773-8891)
+중소형주, 돈 잘 벌고 있는 코스닥
+- Signal: 1H26 영업이익 증가"""
+    ) == "[SK증권 미래산업/미드스몰캡] 중소형주, 돈 잘 벌고 있는 코스닥"
 
 
 @pytest.mark.asyncio
@@ -139,4 +150,7 @@ async def test_ibks_rendered_list_reads_span_date_and_official_download() -> Non
     item = (await adapter._items())[0]
     assert item.source_item_key == "ibks-16917"
     assert item.published_at.isoformat() == "2026-08-26"
-    assert "m.ibks.com/iko/IKO01/download.do" in str(item.detail_url)
+    assert str(item.detail_url).endswith("IKO010101.do?seq=16917")
+    detail = await adapter.fetch_detail(item)
+    assert "m.ibks.com/iko/IKO01/download.do" in str(detail.attachments[0].url)
+    assert detail.detail_url != detail.attachments[0].url

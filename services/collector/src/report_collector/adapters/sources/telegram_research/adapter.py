@@ -167,6 +167,12 @@ def _extract_title(raw_text: str) -> str:
     ]
     first = lines[0]
 
+    if first.startswith("[") and "]" in first and "Analyst" in first:
+        header = first.split("]", 1)[0] + "]"
+        candidate = _first_title_candidate(lines[1:])
+        if candidate:
+            return _limit_title(f"{header} {candidate}")
+
     if any(marker in first for marker in _BOILERPLATE) and analyst_indexes:
         analyst_index = analyst_indexes[-1]
         candidate = _first_title_candidate(lines[analyst_index + 1 :])
@@ -178,7 +184,7 @@ def _extract_title(raw_text: str) -> str:
         if candidate:
             return _limit_title(f"{first} {candidate}")
 
-    if len(lines) > 1 and lines[1].startswith("- "):
+    if len(lines) > 1 and lines[1].startswith("- ") and not first.startswith("["):
         return _limit_title(f"{first} {lines[1]}")
     return _limit_title(first)
 

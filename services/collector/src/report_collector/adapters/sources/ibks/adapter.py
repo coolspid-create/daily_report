@@ -27,6 +27,7 @@ class IbksResearchAdapter(SourceAdapter):
             raise ValueError("IBKS research requires the public rendered page")
         self.config = config
         self.browser = browser
+        self.download_urls: dict[str, HttpUrl] = {}
 
     async def _items(self) -> list[DiscoveredItem]:
         html = await self.browser.render(
@@ -44,11 +45,15 @@ class IbksResearchAdapter(SourceAdapter):
             match = re.search(r"[?&]seq=(\d+)", href)
             if not match:
                 continue
+            source_item_key = f"ibks-{match.group(1)}"
+            self.download_urls[source_item_key] = HttpUrl(
+                urljoin(str(self.config.list_url), href)
+            )
             items.append(
                 DiscoveredItem(
-                    source_item_key=f"ibks-{match.group(1)}",
+                    source_item_key=source_item_key,
                     title=title_node.get_text(" ", strip=True),
-                    detail_url=HttpUrl(urljoin(str(self.config.list_url), href)),
+                    detail_url=HttpUrl(f"{self.config.list_url}?seq={match.group(1)}"),
                     published_at=_date(date_node.get_text(" ", strip=True) if date_node else ""),
                 )
             )
@@ -63,7 +68,8 @@ class IbksResearchAdapter(SourceAdapter):
             yield item
 
     async def fetch_detail(self, item: DiscoveredItem) -> SourceDocument:
-        url = str(item.detail_url)
+        attachment_url = self.download_urls[item.source_item_key]
+        url = str(attachment_url)
         return SourceDocument(
             source_item_key=item.source_item_key,
             title=item.title,
@@ -72,7 +78,7 @@ class IbksResearchAdapter(SourceAdapter):
             published_at=item.published_at,
             attachments=[
                 Attachment(
-                    url=item.detail_url,
+                    url=attachment_url,
                     file_name=f"{PurePosixPath(urlparse(url).path).stem}-{item.source_item_key}.pdf",
                     declared_type="application/pdf",
                 )
