@@ -40,4 +40,23 @@ describe("PressReleaseSection", () => {
     expect(screen.queryByRole("button", { name: "더보기" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "요약 접기" })).not.toBeInTheDocument();
   });
+
+  it("renders PDF and source as separate report-style actions", () => {
+    const reportWithPdf: PublicReport = {
+      ...report,
+      file: {
+        ...report.file,
+        deliveryMode: "DIRECT_OFFICIAL_FILE",
+        downloadUrl: "https://example.com/press/1.pdf",
+      },
+    };
+
+    render(<PressReleaseSection reports={[reportWithPdf]} archiveDate="2026-08-24" viewMode="list" />);
+
+    const source = screen.getByRole("link", { name: /공식 원문 열기/ });
+    const pdf = screen.getByRole("link", { name: /PDF ↓ 파일 다운로드/ });
+    expect(source).toHaveClass("btn-action");
+    expect(pdf).toHaveClass("btn-action", "btn-action-primary");
+    expect(source).not.toHaveAttribute("href", pdf.getAttribute("href"));
+  });
 });

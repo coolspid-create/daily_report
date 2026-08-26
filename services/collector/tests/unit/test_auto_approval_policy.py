@@ -39,7 +39,7 @@ def test_complete_candidate_is_auto_approved() -> None:
     assert decision.reason_codes == ("ELIGIBLE",)
 
 
-def test_press_release_uses_a_24_hour_window() -> None:
+def test_old_press_release_is_auto_approved_with_an_audit_warning() -> None:
     seven_day_start = END - timedelta(days=7)
     old_press = candidate(
         source_content_type="PRESS_RELEASE",
@@ -47,7 +47,7 @@ def test_press_release_uses_a_24_hour_window() -> None:
         published_at=(END - timedelta(hours=25)).date(),
     )
     decision = evaluate_candidate(old_press, seven_day_start, END)
-    assert not decision.approved
+    assert decision.approved
     assert "OUTSIDE_COLLECTION_WINDOW" in decision.reason_codes
 
 
@@ -68,16 +68,37 @@ def test_report_keeps_the_full_seven_day_window() -> None:
 @pytest.mark.parametrize(
     ("changes", "reason"),
     [
-        ({"published_at": None}, "PUBLISHED_DATE_MISSING"),
-        ({"source_healthy": False}, "SOURCE_UNHEALTHY"),
         ({"rights_status": RightsStatus.MANUAL_REVIEW}, "RIGHTS_REVIEW_REQUIRED"),
-        ({"summary_kind": "UNAVAILABLE"}, "SUMMARY_UNAVAILABLE"),
-        ({"confidence": 0.4}, "CONFIDENCE_LOW"),
-        ({"duplicate_count": 1}, "DUPLICATE_CANDIDATE"),
         ({"has_session_file_url": True}, "SESSION_FILE_URL"),
+        ({"source_active": False}, "SOURCE_INACTIVE"),
+        ({"source_url": "http://example.com/report/1"}, "SOURCE_URL_INVALID"),
     ],
 )
 def test_risky_candidate_is_held(changes: dict[str, object], reason: str) -> None:
     decision = evaluate_candidate(candidate(**changes), START, END)
     assert not decision.approved
     assert reason in decision.reason_codes
+
+
+@pytest.mark.parametrize(
+    ("changes", "warning"),
+    [
+        ({"published_at": None}, "PUBLISHED_DATE_MISSING"),
+        ({"source_healthy": False}, "SOURCE_UNHEALTHY"),
+        ({"summary_kind": "UNAVAILABLE"}, "SUMMARY_UNAVAILABLE"),
+        ({"confidence": 0.4}, "CONFIDENCE_LOW"),
+    ],
+)
+def test_noncritical_quality_findings_are_auto_approved(
+    changes: dict[str, object], warning: str
+) -> None:
+    decision = evaluate_candidate(candidate(**changes), START, END)
+    assert decision.approved
+    assert warning in decision.reason_codes
+
+
+def test_duplicate_candidate_is_automatically_rejected() -> None:
+    decision = evaluate_candidate(candidate(duplicate_count=1), START, END)
+    assert decision.rejected
+    assert not decision.approved
+    assert "DUPLICATE_CANDIDATE" in decision.reason_codes

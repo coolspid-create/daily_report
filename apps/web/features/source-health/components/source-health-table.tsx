@@ -32,6 +32,7 @@ export function SourceHealthTable({ sources, onChanged }: SourceHealthTableProps
           </div>
           <span className="badge">{source.status}</span>
           <span>연속 실패 {source.consecutiveFailures}회</span>
+          {source.consecutiveEmptyRuns ? <span>연속 빈 수집 {source.consecutiveEmptyRuns}회</span> : null}
           <span>{source.lastSuccessAt ?? "성공 기록 없음"}</span>
           <button type="button" onClick={() => toggle(source)}>{source.active ? "비활성화" : "활성화"}</button>
         </div>
@@ -54,6 +55,7 @@ export function SourceHealthTable({ sources, onChanged }: SourceHealthTableProps
                 </div>
                 <span className="badge">{source.status}</span>
                 <span>연속 실패 {source.consecutiveFailures}회</span>
+                {source.consecutiveEmptyRuns ? <span>연속 빈 수집 {source.consecutiveEmptyRuns}회</span> : null}
                 <span>{source.lastSuccessAt ?? "성공 기록 없음"}</span>
                 <button type="button" onClick={() => toggle(source)}>활성화</button>
               </div>

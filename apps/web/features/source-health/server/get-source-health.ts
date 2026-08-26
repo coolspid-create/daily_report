@@ -54,7 +54,7 @@ export async function getSourceHealth(): Promise<SourceHealth[]> {
   const client = createServiceClient();
   const { data, error } = await client
     .from("sources")
-    .select("id,slug,name,status,active,last_success_at,last_failure_at,last_error_code,last_error_message,consecutive_failures,content_type")
+    .select("id,slug,name,status,active,last_success_at,last_failure_at,last_error_code,last_error_message,consecutive_failures,consecutive_empty_runs,content_type")
     .order("name");
   if (error) throw new Error("출처 상태를 불러오지 못했습니다.");
 
@@ -89,6 +89,7 @@ export async function getSourceHealth(): Promise<SourceHealth[]> {
       lastSuccessAt: row.last_success_at,
       lastFailureAt: row.last_failure_at,
       consecutiveFailures: row.consecutive_failures,
+      consecutiveEmptyRuns: row.consecutive_empty_runs,
       reasonCategory: determineReasonCategory(
         row.slug,
         row.status,
@@ -122,4 +123,3 @@ export async function getSourceHealth(): Promise<SourceHealth[]> {
 
   return result.sort((a, b) => a.name.localeCompare(b.name, "ko"));
 }
-

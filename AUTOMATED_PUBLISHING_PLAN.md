@@ -78,6 +78,18 @@
 
 자동 승인 후 전체 피드에서는 최대 8건을 선택한다. 동일 기관은 기본 최대 2건으로 제한하고, 중요도 점수와 분야 다양성을 함께 적용한다.
 
+### 시범 운영 정책 v2 (`2026-08-pilot-v2`)
+
+관리자가 발행 전에 매번 검수하기 어려운 시범 운영 기간에는 아래 항목만 수동 검수로 보낸다.
+
+- 비활성 출처
+- `MANUAL_REVIEW` 또는 `BLOCKED` 권리 상태
+- `BLOCKED` 전달 방식
+- HTTPS가 아닌 원문 URL
+- token, session, expires, signature가 포함된 세션성 파일 URL
+
+출처 일시 저하, 날짜·요약·태그·confidence 품질 경고는 자동 승인하되 reason code를 감사 로그에 남긴다. 중복 후보는 수동 검수 없이 자동 `REJECTED` 처리한다. 이 완화는 검수 대기열을 줄이기 위한 것이며, 권리·전송·원문 추적 안전장치는 완화하지 않는다.
+
 ## 4. 데이터 마이그레이션
 
 ### 자동화 실행 기록
@@ -290,7 +302,7 @@ PDF | 공식 원문
 AUTOMATION_TIMEZONE=Asia/Seoul
 AUTOMATION_WINDOW_HOURS=24
 AUTO_APPROVAL_ENABLED=false
-AUTO_APPROVAL_POLICY_VERSION=2026-08-v1
+AUTO_APPROVAL_POLICY_VERSION=2026-08-pilot-v2
 TELEGRAM_ENABLED=false
 TELEGRAM_BOT_TOKEN=
 TELEGRAM_CHAT_ID=

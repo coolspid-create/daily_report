@@ -142,7 +142,7 @@ def _auto_review(
         database_url,
         start,
         end,
-        os.getenv("AUTO_APPROVAL_POLICY_VERSION", "2026-08-v1"),
+        os.getenv("AUTO_APPROVAL_POLICY_VERSION", "2026-08-pilot-v2"),
         enabled,
     )
 

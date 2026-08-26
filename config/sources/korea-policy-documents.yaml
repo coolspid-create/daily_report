@@ -1,0 +1,25 @@
+id: korea-policy-documents
+name: 대한민국 정부 정책브리핑 전문자료
+adapter: static_board
+homepage_url: https://www.korea.kr
+list_url: https://www.korea.kr/archive/expDocMainList.do
+rights_default: LINK_ONLY
+content_type: REPORT
+poll_interval_minutes: 720
+request_delay_ms: 1200
+timeout_seconds: 30
+run_timeout_seconds: 180
+max_retries: 2
+active: true
+selectors:
+  list_item: table tbody tr
+  title: td.subject a
+  detail_link: td.subject a
+  published_at: td:nth-of-type(3)
+detail:
+  attachments: a[href*='/common/download.do']
+filters:
+  allowed_extensions: [pdf]
+  exclude_title_keywords: [채용, 입찰, 공고, 인사]
+  max_age_days: 30
+  max_items_per_run: 20

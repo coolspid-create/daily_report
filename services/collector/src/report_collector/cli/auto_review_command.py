@@ -17,14 +17,15 @@ def auto_review_command(
         database_url,
         now - timedelta(hours=window_hours),
         now,
-        os.getenv("AUTO_APPROVAL_POLICY_VERSION", "2026-08-v1"),
+        os.getenv("AUTO_APPROVAL_POLICY_VERSION", "2026-08-pilot-v2"),
         apply_changes,
         source_slug,
     )
     print(
         "auto review finished: "
         f"candidates={summary.candidate_count} approved={summary.approved_count} "
-        f"exceptions={summary.exception_count}"
+        f"exceptions={summary.exception_count} "
+        f"dismissed={getattr(summary, 'dismissed_count', 0)}"
     )
 
 

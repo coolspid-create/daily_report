@@ -19,7 +19,14 @@ from report_collector.providers.browser.base import BrowserRenderer
 from report_collector.providers.http.http_client import PublicHttpClient
 from report_collector.services.source_filter_service import title_allowed
 
-DATE_PATTERN = re.compile(r"(?P<year>20\d{2})\s*[./년-]\s*(?P<month>\d{1,2})(?:\s*[./월-]\s*(?P<day>\d{1,2}))?")
+DATE_PATTERNS = (
+    re.compile(
+        r"(?<!\d)(?P<year>20\d{2})\s*[./-]\s*(?P<month>\d{1,2})\s*[./-]\s*(?P<day>\d{1,2})(?!\d)"
+    ),
+    re.compile(
+        r"(?<!\d)(?P<year>20\d{2})\s*년\s*(?P<month>\d{1,2})\s*월\s*(?P<day>\d{1,2})\s*일"
+    ),
+)
 EXCLUDED_PATHS = {
     "/kr/ko/our-thinking/deloitte-insights.html",
     "/kr/ko/our-thinking/deloitte-insights-publications.html",
@@ -96,7 +103,8 @@ class DeloitteInsightsAdapter(SourceAdapter):
 
             parent = a.find_parent(["div", "li", "article", "section"]) or a
             parent_text = parent.get_text(" ", strip=True)
-            pub_date = _extract_date(parent_text) or _extract_date_from_url(clean_url)
+            # Forecast years in titles (for example 2035) are not publication dates.
+            pub_date = _extract_date(parent_text)
 
             if key not in found:
                 found[key] = DiscoveredItem(
@@ -187,31 +195,18 @@ def _extract_key(url: str, title: str) -> str:
 
 
 def _extract_date(text: str) -> date | None:
-    match = DATE_PATTERN.search(text)
-    if not match:
-        return None
-    year = int(match.group("year"))
-    month = int(match.group("month"))
-    day = int(match.group("day")) if match.group("day") else 1
-    try:
-        return date(year, month, day)
-    except ValueError:
-        return None
-
-
-def _extract_date_from_url(url: str) -> date | None:
-    match = re.search(r"(?P<year>20\d{2})[-_/](?P<month>\d{1,2})", url)
-    if match:
+    for pattern in DATE_PATTERNS:
+        match = pattern.search(text)
+        if not match:
+            continue
         try:
-            return date(int(match.group("year")), int(match.group("month")), 1)
+            return date(
+                int(match.group("year")),
+                int(match.group("month")),
+                int(match.group("day")),
+            )
         except ValueError:
-            return None
-    year_match = re.search(r"(?P<year>20\d{2})", url)
-    if year_match:
-        try:
-            return date(int(year_match.group("year")), 1, 1)
-        except ValueError:
-            return None
+            continue
     return None
 
 
@@ -219,12 +214,18 @@ def _extract_attachments(soup: BeautifulSoup, base_url: str) -> list[Attachment]
     attachments: list[Attachment] = []
     seen: set[str] = set()
 
-    for a in soup.find_all("a", href=True):
+    download_components = soup.select(".cmp-download")
+    roots = download_components or [soup]
+    anchors = [a for root in roots for a in root.find_all("a", href=True)]
+    for a in anchors:
         href = str(a["href"]).strip()
         if not href or href.startswith("javascript:"):
             continue
         if ".pdf" in href.lower() or "/content/dam/" in href:
             full_url = urljoin(base_url, href).split("#")[0]
+            # The sticky share bar can expose a different recommended article.
+            if "/content/dam/assets-zone1/kr/" not in urlparse(full_url).path.lower():
+                continue
             if full_url not in seen:
                 seen.add(full_url)
                 name = a.get_text(" ", strip=True) or a.get("title") or "Deloitte-Report.pdf"

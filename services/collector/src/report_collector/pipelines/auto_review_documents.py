@@ -13,6 +13,7 @@ class AutoReviewSummary:
     candidate_count: int
     approved_count: int
     exception_count: int
+    dismissed_count: int = 0
 
 
 def auto_review_documents(
@@ -27,6 +28,8 @@ def auto_review_documents(
     decisions = [evaluate_candidate(item, window_start, window_end) for item in candidates]
     if not apply_changes:
         approved = sum(decision.approved for decision in decisions)
-        return AutoReviewSummary(len(candidates), approved, len(candidates) - approved)
-    approved, held = apply_auto_review_decisions(database_url, decisions, policy_version)
-    return AutoReviewSummary(len(candidates), approved, held)
+        held = sum(decision.held for decision in decisions)
+        rejected = sum(decision.rejected for decision in decisions)
+        return AutoReviewSummary(len(candidates), approved, held, rejected)
+    approved, held, rejected = apply_auto_review_decisions(database_url, decisions, policy_version)
+    return AutoReviewSummary(len(candidates), approved, held, rejected)

@@ -40,9 +40,7 @@ class PostgresSourceRepository:
         delivery = choose_delivery(
             document.rights_status,
             official_file_stable=bool(attachment),
-            session_dependent=bool(
-                attachment and is_session_dependent_url(str(attachment.url))
-            ),
+            session_dependent=bool(attachment and is_session_dependent_url(str(attachment.url))),
             mirrored_file_exists=False,
             source_available=True,
         )
@@ -100,8 +98,17 @@ class PostgresSourceRepository:
         )
 
     def _link_files(
-        self, cursor: psycopg.Cursor, document: SourceDocument, source_item_id: str, document_id: str
+        self,
+        cursor: psycopg.Cursor,
+        document: SourceDocument,
+        source_item_id: str,
+        document_id: str,
     ) -> None:
+        current_urls = [str(attachment.url) for attachment in document.attachments]
+        cursor.execute(
+            "delete from public.document_files where source_item_id=%s and not (file_url = any(%s::text[]))",
+            (source_item_id, current_urls),
+        )
         for attachment in document.attachments:
             extension = PurePosixPath(attachment.file_name).suffix.lstrip(".")
             cursor.execute(
@@ -132,12 +139,10 @@ class PostgresSourceRepository:
         self, cursor: psycopg.Cursor, document: SourceDocument, document_id: str
     ) -> None:
         attachment = document.attachments[0] if document.attachments else None
-        if attachment is None:
-            return
         delivery = choose_delivery(
             document.rights_status,
-            official_file_stable=True,
-            session_dependent=is_session_dependent_url(str(attachment.url)),
+            official_file_stable=attachment is not None,
+            session_dependent=bool(attachment and is_session_dependent_url(str(attachment.url))),
             mirrored_file_exists=False,
             source_available=True,
         )
@@ -168,6 +173,7 @@ class PostgresSourceRepository:
         actual_discovered = max(0, discovered)
         actual_failed = max(0, failed)
         actual_updated = max(0, updated_count)
+        actual_saved = actual_new + actual_updated
 
         run_query = """
         insert into public.source_runs(source_id,finished_at,status,discovered_count,new_count,updated_count,failed_count,cursor_after)
@@ -177,25 +183,62 @@ class PostgresSourceRepository:
         source_query = """
         update public.sources
         set status = case
-              when %s = 0 then 'HEALTHY'
-              when consecutive_failures + 1 >= 5 then 'DISABLED'
-              else 'DEGRADED'
+              when %s > 0 and consecutive_failures + 1 >= 5 then 'DISABLED'
+              when %s > 0 or %s = 0 then 'DEGRADED'
+              else 'HEALTHY'
             end,
             last_success_at = case when %s = 0 then now() else last_success_at end,
             last_failure_at = case when %s > 0 then now() else last_failure_at end,
-            last_error_message = case when %s = 0 then null else last_error_message end,
+            last_error_code = case
+              when %s > 0 then 'ITEM_PROCESSING_FAILED'
+              when %s = 0 then 'NO_CONTENT_SAVED'
+              else null
+            end,
+            last_error_message = case
+              when %s > 0 then %s || ' of ' || %s || ' discovered items failed'
+              when %s = 0 then 'Collector completed without saving any content'
+              else null
+            end,
             consecutive_failures = case when %s = 0 then 0 else consecutive_failures + 1 end,
+            consecutive_empty_runs = case
+              when %s = 0 and %s = 0 then consecutive_empty_runs + 1
+              else 0
+            end,
             updated_at = now()
         where slug = %s
         """
         with psycopg.connect(self.database_url) as connection, connection.cursor() as db_cursor:
             db_cursor.execute(
                 run_query,
-                (status, actual_discovered, actual_new, actual_updated, actual_failed, cursor, source_id),
+                (
+                    status,
+                    actual_discovered,
+                    actual_new,
+                    actual_updated,
+                    actual_failed,
+                    cursor,
+                    source_id,
+                ),
             )
             db_cursor.execute(
                 source_query,
-                (actual_failed, actual_failed, actual_failed, actual_failed, actual_failed, source_id),
+                (
+                    actual_failed,
+                    actual_failed,
+                    actual_saved,
+                    actual_failed,
+                    actual_failed,
+                    actual_failed,
+                    actual_saved,
+                    actual_failed,
+                    actual_failed,
+                    actual_discovered,
+                    actual_saved,
+                    actual_failed,
+                    actual_failed,
+                    actual_saved,
+                    source_id,
+                ),
             )
 
     def fail_run(self, source_id: str, error_code: str, error_message: str) -> None:
@@ -213,6 +256,7 @@ class PostgresSourceRepository:
             last_error_code = %s,
             last_error_message = %s,
             consecutive_failures = consecutive_failures + 1,
+            consecutive_empty_runs = 0,
             updated_at = now()
         where slug = %s
         """

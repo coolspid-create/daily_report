@@ -30,8 +30,20 @@ class AutoApprovalCandidate:
 @dataclass(frozen=True)
 class AutoApprovalDecision:
     document_id: str
-    approved: bool
+    disposition: str
     reason_codes: tuple[str, ...]
+
+    @property
+    def approved(self) -> bool:
+        return self.disposition == "APPROVE"
+
+    @property
+    def held(self) -> bool:
+        return self.disposition == "HOLD"
+
+    @property
+    def rejected(self) -> bool:
+        return self.disposition == "REJECT"
 
 
 def evaluate_candidate(
@@ -76,7 +88,28 @@ def evaluate_candidate(
         reasons.append("SESSION_FILE_URL")
     if candidate.duplicate_count > 0:
         reasons.append("DUPLICATE_CANDIDATE")
-    return AutoApprovalDecision(candidate.document_id, not reasons, tuple(reasons or ["ELIGIBLE"]))
+
+    # Pilot policy: only conditions that can publish an unauthorized, blocked, or
+    # untraceable document require a person. Quality/freshness findings are kept
+    # as audit warnings but do not create an admin queue item.
+    critical_reasons = {
+        "SOURCE_INACTIVE",
+        "RIGHTS_REVIEW_REQUIRED",
+        "DELIVERY_BLOCKED",
+        "SOURCE_URL_INVALID",
+        "SESSION_FILE_URL",
+    }
+    if critical_reasons.intersection(reasons):
+        disposition = "HOLD"
+    elif "DUPLICATE_CANDIDATE" in reasons:
+        disposition = "REJECT"
+    else:
+        disposition = "APPROVE"
+    return AutoApprovalDecision(
+        candidate.document_id,
+        disposition,
+        tuple(reasons or ["ELIGIBLE"]),
+    )
 
 
 def _valid_official_url(value: str) -> bool:

@@ -60,6 +60,11 @@ SAMPLE_DETAIL_HTML = """
 </head>
 <body>
 <header><nav><a href="/">Home</a></nav></header>
+<div class="cmp-share-bar__download">
+  <a href="/content/dam/assets-shared/docs/industries/financial-services/2026/future-of-insurance.pdf">
+    보험 2035의 미래
+  </a>
+</div>
 <main>
   <article>
     <h2>에이전틱 AI와 디지털 금융의 융합</h2>
@@ -93,7 +98,7 @@ async def test_deloitte_adapter_discover() -> None:
     assert items[0].title == "이동하는 금융의 패러다임: 에이전틱 AI와 디지털 자산이 바꾸는 미래"
     assert "global-fsi-trends" in items[0].source_item_key
     assert items[0].published_at.isoformat() == "2026-08-15"
-    assert items[1].published_at.isoformat() == "2026-08-01"
+    assert items[1].published_at is None
     assert items[2].title == "생성형 AI 고객 서비스 활용 사례"
     assert set(http.requests) == set(collection_urls)
     assert all("deloitte-insights.html" not in str(item.detail_url) for item in items)
@@ -118,5 +123,6 @@ async def test_deloitte_adapter_fetch_detail() -> None:
     assert doc.published_at.isoformat() == "2026-08-15"
     assert len(doc.attachments) == 1
     assert "2026-fsi-predictions.pdf" in str(doc.attachments[0].url)
+    assert "future-of-insurance.pdf" not in str(doc.attachments[0].url)
     assert doc.attachments[0].declared_type == "application/pdf"
     assert doc.rights_status.value == "LINK_ONLY"

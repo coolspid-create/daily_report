@@ -2,6 +2,7 @@ import asyncio
 from pathlib import Path
 from uuid import uuid4
 
+import httpx
 from report_collector.domain.errors import FileValidationError
 from report_collector.domain.models import (
     AnalysisRequest,
@@ -100,7 +101,7 @@ class SourceDocumentProcessor:
                 return validation, path, extracted
             except FileValidationError:
                 raise
-            except (OSError, RuntimeError, ValueError) as error:
+            except (httpx.HTTPError, OSError, RuntimeError, ValueError) as error:
                 last_error = error
                 if attempt + 1 < self.pdf_processing_attempts:
                     await asyncio.sleep(attempt + 1)
@@ -128,7 +129,7 @@ class SourceDocumentProcessor:
                 self.database_url, document_id, analysis, None, None, None, self.ttl_hours
             )
             return
-        except (OSError, RuntimeError, ValueError):
+        except (httpx.HTTPError, OSError, RuntimeError, ValueError):
             analysis = await self._official_summary_analysis(document) or await self._title_analysis(document)
             analysis = _tag_if_press(analysis, document)
             save_processing_result(
@@ -158,4 +159,3 @@ class SourceDocumentProcessor:
             path,
             self.ttl_hours,
         )
-

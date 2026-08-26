@@ -30,6 +30,7 @@ export interface SourceHealth {
   lastSuccessAt: string | null;
   lastFailureAt?: string | null;
   consecutiveFailures: number;
+  consecutiveEmptyRuns?: number;
   reasonCategory?: string;
   lastErrorMessage?: string | null;
   lastErrorCode?: string | null;

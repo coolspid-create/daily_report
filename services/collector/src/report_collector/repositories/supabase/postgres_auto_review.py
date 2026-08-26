@@ -93,24 +93,35 @@ def apply_auto_review_decisions(
     database_url: str,
     decisions: list[AutoApprovalDecision],
     policy_version: str,
-) -> tuple[int, int]:
+) -> tuple[int, int, int]:
     approved = 0
     held = 0
+    rejected = 0
     with psycopg.connect(database_url) as connection, connection.cursor() as cursor:
         for decision in decisions:
-            action = "AUTO_APPROVE" if decision.approved else "AUTO_HOLD"
+            action = {
+                "APPROVE": "AUTO_APPROVE",
+                "HOLD": "AUTO_HOLD",
+                "REJECT": "REJECT",
+            }[decision.disposition]
             if decision.approved:
                 cursor.execute(
                     "update public.documents set workflow_status='APPROVED',updated_at=now() where id=%s and workflow_status in ('NEW','NEEDS_REVIEW')",
                     (decision.document_id,),
                 )
                 approved += cursor.rowcount
-            else:
+            elif decision.held:
                 cursor.execute(
                     "update public.documents set workflow_status='NEEDS_REVIEW',updated_at=now() where id=%s and workflow_status='NEW'",
                     (decision.document_id,),
                 )
                 held += 1
+            else:
+                cursor.execute(
+                    "update public.documents set workflow_status='REJECTED',updated_at=now() where id=%s and workflow_status in ('NEW','NEEDS_REVIEW')",
+                    (decision.document_id,),
+                )
+                rejected += cursor.rowcount
             cursor.execute(
                 "insert into public.review_actions(document_id,actor_id,actor_kind,action,after_data,policy_version) select %s,null,'SYSTEM',%s,jsonb_build_object('reasonCodes',%s::jsonb),%s where not exists(select 1 from public.review_actions where document_id=%s and action=%s and policy_version=%s)",
                 (
@@ -123,7 +134,7 @@ def apply_auto_review_decisions(
                     policy_version,
                 ),
             )
-    return approved, held
+    return approved, held, rejected
 
 
 def _reason_json(reason_codes: tuple[str, ...]) -> str:
