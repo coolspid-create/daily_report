@@ -19,7 +19,7 @@ interface PressDocumentRow {
   delivery_mode: PublicReport["file"]["deliveryMode"];
   created_at: string;
   updated_at: string;
-  document_analysis: { summary_kind: string; key_tags: string[] | null }[];
+  document_analysis: { summary_kind: string; key_tags: string[] | null }[] | null;
   document_files: {
     file_url: string;
     extension: string | null;
@@ -27,7 +27,7 @@ interface PressDocumentRow {
     page_count: number | null;
     validation_status: string;
     created_at: string;
-  }[];
+  }[] | null;
   document_sources: SourceRow[];
 }
 
@@ -49,13 +49,13 @@ function isPressReleaseRow(row: PressDocumentRow): boolean {
 }
 
 function latestValidFile(row: PressDocumentRow) {
-  return row.document_files
+  return (row.document_files ?? [])
     .filter((file) => file.validation_status === "VALID")
     .sort((left, right) => right.created_at.localeCompare(left.created_at))[0] ?? null;
 }
 
-function toPublicReport(row: PressDocumentRow): PublicReport {
-  const analysis = row.document_analysis[0] ?? null;
+export function toPublicReport(row: PressDocumentRow): PublicReport {
+  const analysis = row.document_analysis?.[0] ?? null;
   const file = latestValidFile(row);
   return {
     id: row.id,
@@ -64,7 +64,7 @@ function toPublicReport(row: PressDocumentRow): PublicReport {
     publishedAt: row.published_at ?? row.created_at.slice(0, 10),
     contentTag: row.content_tag ?? "보도자료",
     isNew: true,
-    analysisAvailable: analysis?.summary_kind !== "UNAVAILABLE",
+    analysisAvailable: Boolean(analysis && analysis.summary_kind !== "UNAVAILABLE"),
     shortSummary: analysis?.summary_kind === "UNAVAILABLE" ? null : row.why_it_matters,
     keyTags: analysis?.key_tags?.slice(0, 3) ?? ["보도자료"],
     file: {
