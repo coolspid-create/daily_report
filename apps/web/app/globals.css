@@ -912,8 +912,9 @@ h1 {
   font-weight: 750;
   padding: 2px 7px;
   border-radius: 4px;
-  background: var(--color-accent-soft, #eff6ff);
-  color: var(--color-accent-strong, #1d4ed8);
+  background: #fff1eb;
+  border: 1px solid #fed7aa;
+  color: #c2410c;
 }
 
 .press-date {
@@ -989,10 +990,10 @@ h1 {
 }
 
 .press-list-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: 36px 120px minmax(0, 1fr) 90px auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
+  gap: 16px;
   padding: 16px 8px;
   border-bottom: 1px solid var(--color-border);
   transition: background-color 0.12s ease;
@@ -1002,26 +1003,41 @@ h1 {
   background-color: var(--color-surface-subtle, #f9fafb);
 }
 
-.press-list-main {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
-  min-width: 0;
+.press-list-num {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--color-muted);
+  letter-spacing: -0.04em;
+}
+
+.press-list-item:hover .press-list-num {
+  color: var(--color-accent);
 }
 
 .press-list-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
+  min-width: 0;
 }
 
 .press-list-title {
   margin: 0;
+  min-width: 0;
   font-size: 1rem;
   font-weight: 700;
   line-height: 1.4;
   letter-spacing: -0.02em;
+}
+
+.press-list-title .press-summary-trigger {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.press-list-summary {
+  grid-column: 2 / -1;
 }
 
 .press-list-actions {
@@ -1087,12 +1103,27 @@ h1 {
     grid-template-columns: 1fr;
   }
   .press-list-item {
-    align-items: flex-start;
-    flex-direction: column;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    align-items: start;
     gap: 12px;
   }
+  .press-list-meta {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .press-list-title {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .press-list-item > .press-date {
+    display: none;
+  }
   .press-list-actions {
-    justify-content: flex-end;
-    width: 100%;
+    grid-column: 2 / 4;
+    justify-content: flex-start;
+    width: auto;
+  }
+  .press-list-summary {
+    grid-column: 2 / -1;
   }
 }

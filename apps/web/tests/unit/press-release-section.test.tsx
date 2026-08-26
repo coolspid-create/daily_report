@@ -24,6 +24,9 @@ describe("PressReleaseSection", () => {
   it("expands a press summary in list view", () => {
     render(<PressReleaseSection reports={[report]} archiveDate="2026-08-24" viewMode="list" />);
 
+    expect(screen.getByText("01")).toHaveClass("press-list-num");
+    expect(screen.getByText("중앙부처 보도자료")).toHaveClass("press-inst-badge");
+
     const title = screen.getByRole("button", { name: "보도자료 제목" });
     fireEvent.click(title);
 

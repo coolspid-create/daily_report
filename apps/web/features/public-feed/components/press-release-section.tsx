@@ -40,8 +40,8 @@ export function PressReleaseSection({
 
       {viewMode === "list" ? (
         <div className="press-list">
-          {reports.map((report) => (
-            <PressReleaseItem key={report.id} report={report} viewMode="list" />
+          {reports.map((report, index) => (
+            <PressReleaseItem key={report.id} report={report} index={index + 1} viewMode="list" />
           ))}
         </div>
       ) : (
@@ -57,10 +57,11 @@ export function PressReleaseSection({
 
 interface PressReleaseItemProps {
   report: PublicReport;
+  index?: number;
   viewMode: ViewMode;
 }
 
-function PressReleaseItem({ report, viewMode }: PressReleaseItemProps) {
+function PressReleaseItem({ report, index = 1, viewMode }: PressReleaseItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const canExpand = Boolean(report.shortSummary);
   const toggleLabel = isExpanded ? "요약 접기" : "더보기";
@@ -125,18 +126,17 @@ function PressReleaseItem({ report, viewMode }: PressReleaseItemProps) {
 
   return (
     <article className="press-list-item" aria-labelledby={titleId}>
-      <div className="press-list-main">
-        <div className="press-list-meta">
-          <span className="press-inst-badge">{report.institution}</span>
-          <time dateTime={report.publishedAt} className="press-date">{report.publishedAt}</time>
-        </div>
-        <h4 id={titleId} className="press-list-title">{title}</h4>
-        {isExpanded ? summary : null}
+      <span className="press-list-num" aria-hidden="true">{String(index).padStart(2, "0")}</span>
+      <div className="press-list-meta">
+        <span className="press-inst-badge">{report.institution}</span>
       </div>
+      <h4 id={titleId} className="press-list-title">{title}</h4>
+      <time dateTime={report.publishedAt} className="press-date">{report.publishedAt}</time>
       <div className="press-list-actions">
         <ReportActions file={report.file} />
         {toggleButton}
       </div>
+      {isExpanded ? <div className="press-list-summary">{summary}</div> : null}
     </article>
   );
 }
