@@ -150,7 +150,7 @@ async def test_ibks_rendered_list_reads_span_date_and_official_download() -> Non
     item = (await adapter._items())[0]
     assert item.source_item_key == "ibks-16917"
     assert item.published_at.isoformat() == "2026-08-26"
-    assert str(item.detail_url).endswith("IKO010101.do?seq=16917")
+    assert "m.ibks.com/iko/IKO01/download.do" in str(item.detail_url)
     detail = await adapter.fetch_detail(item)
     assert "m.ibks.com/iko/IKO01/download.do" in str(detail.attachments[0].url)
-    assert detail.detail_url != detail.attachments[0].url
+    assert detail.detail_url == detail.attachments[0].url

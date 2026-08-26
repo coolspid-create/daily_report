@@ -46,7 +46,7 @@ def _report_block(index: int, report: dict[str, Any]) -> str:
     links = []
     if download_url:
         links.append(f'<a href="{download_url}">PDF</a>')
-    if source_url:
+    if source_url and source_url != download_url:
         links.append(f'<a href="{source_url}">원문</a>')
     meta = institution
     return f"<b>{index}. {title}{date_label}</b>\n{meta}\n{' | '.join(links)}"

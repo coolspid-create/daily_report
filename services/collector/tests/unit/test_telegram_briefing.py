@@ -34,6 +34,27 @@ def test_briefing_uses_snapshot_links_and_digest() -> None:
     assert result.digest_url == "https://example.org/digest.pdf"
 
 
+def test_briefing_omits_duplicate_source_and_pdf_link() -> None:
+    url = "https://official.example/report.pdf"
+    snapshot = {
+        "reportsByTopic": {
+            "all": [
+                {
+                    "title": "공식 PDF만 제공하는 자료",
+                    "institution": "공식 기관",
+                    "file": {"downloadUrl": url, "sourceUrl": url},
+                }
+            ]
+        },
+        "digests": {},
+    }
+
+    result = build_telegram_briefing(snapshot, "2026-08-26")
+
+    assert result.messages[0].count(url) == 1
+    assert "원문" not in result.messages[0]
+
+
 def test_briefing_omits_missing_or_invalid_report_date() -> None:
     snapshot = {"reportsByTopic": {"all": [{"title": "날짜 없음", "file": {}}]}, "digests": {}}
     result = build_telegram_briefing(snapshot, "2026-08-21")

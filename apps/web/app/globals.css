@@ -908,6 +908,7 @@ h1 {
 }
 
 .press-inst-badge {
+  display: inline-block;
   font-size: 0.74rem;
   font-weight: 750;
   padding: 2px 7px;
@@ -915,6 +916,10 @@ h1 {
   background: #fff1eb;
   border: 1px solid #fed7aa;
   color: #c2410c;
+  line-height: 1.25;
+  overflow-wrap: normal;
+  white-space: normal;
+  word-break: keep-all;
 }
 
 .press-date {
@@ -991,10 +996,10 @@ h1 {
 
 .press-list-item {
   display: grid;
-  grid-template-columns: 36px 120px minmax(0, 1fr) 90px auto;
+  grid-template-columns: 36px 120px minmax(0, 1fr) 90px 200px;
   align-items: center;
   gap: 16px;
-  padding: 16px 8px;
+  padding: 14px 8px;
   border-bottom: 1px solid var(--color-border);
   transition: background-color 0.12s ease;
 }
@@ -1024,8 +1029,8 @@ h1 {
 .press-list-title {
   margin: 0;
   min-width: 0;
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 0.98rem;
+  font-weight: 600;
   line-height: 1.4;
   letter-spacing: -0.02em;
 }
@@ -1041,10 +1046,20 @@ h1 {
 }
 
 .press-list-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: 62px 64px 62px;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
+}
+
+.press-list-actions .report-actions-fixed {
+  display: contents;
+}
+
+.press-list-actions .btn-action,
+.press-list-actions .btn-action-placeholder {
+  width: 100%;
 }
 
 .report-actions {
@@ -1053,7 +1068,7 @@ h1 {
   gap: 6px;
 }
 
-.report-actions .btn-action,
+.report-actions:not(.report-actions-fixed) .btn-action,
 .press-list-actions > .btn-action-toggle {
   width: auto;
   min-width: 62px;

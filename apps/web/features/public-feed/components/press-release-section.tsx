@@ -15,6 +15,13 @@ function archiveLabel(date: string | null): string {
   return date ? `${date.replaceAll("-", ".")} 발행본` : "보도자료";
 }
 
+function PressInstitution({ institution }: { institution: string }) {
+  const suffix = "보도자료";
+  if (!institution.endsWith(suffix)) return institution;
+
+  return <>{institution.slice(0, -suffix.length)} <span>{suffix}</span></>;
+}
+
 export function PressReleaseSection({
   reports,
   archiveDate,
@@ -112,7 +119,7 @@ function PressReleaseItem({ report, index = 1, viewMode }: PressReleaseItemProps
     return (
       <article className="press-card" aria-labelledby={titleId}>
         <div className="press-card-meta">
-          <span className="press-inst-badge">{report.institution}</span>
+          <span className="press-inst-badge"><PressInstitution institution={report.institution} /></span>
           <time dateTime={report.publishedAt} className="press-date">{report.publishedAt}</time>
         </div>
         <h4 id={titleId} className="press-card-title">{report.title}</h4>
@@ -128,13 +135,13 @@ function PressReleaseItem({ report, index = 1, viewMode }: PressReleaseItemProps
     <article className="press-list-item" aria-labelledby={titleId}>
       <span className="press-list-num" aria-hidden="true">{String(index).padStart(2, "0")}</span>
       <div className="press-list-meta">
-        <span className="press-inst-badge">{report.institution}</span>
+        <span className="press-inst-badge"><PressInstitution institution={report.institution} /></span>
       </div>
       <h4 id={titleId} className="press-list-title">{title}</h4>
       <time dateTime={report.publishedAt} className="press-date">{report.publishedAt}</time>
       <div className="press-list-actions">
-        <ReportActions file={report.file} />
-        {toggleButton}
+        <ReportActions file={report.file} fixedColumns />
+        {toggleButton ?? <span className="btn-action-placeholder" aria-hidden="true" />}
       </div>
       {isExpanded ? <div className="press-list-summary">{summary}</div> : null}
     </article>

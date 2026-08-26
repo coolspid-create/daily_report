@@ -46,14 +46,15 @@ class IbksResearchAdapter(SourceAdapter):
             if not match:
                 continue
             source_item_key = f"ibks-{match.group(1)}"
-            self.download_urls[source_item_key] = HttpUrl(
-                urljoin(str(self.config.list_url), href)
-            )
+            download_url = HttpUrl(urljoin(str(self.config.list_url), href))
+            self.download_urls[source_item_key] = download_url
             items.append(
                 DiscoveredItem(
                     source_item_key=source_item_key,
                     title=title_node.get_text(" ", strip=True),
-                    detail_url=HttpUrl(f"{self.config.list_url}?seq={match.group(1)}"),
+                    # IBKS mobile has no document-specific public page: the title only
+                    # opens an in-page list panel. Its official download is the source.
+                    detail_url=download_url,
                     published_at=_date(date_node.get_text(" ", strip=True) if date_node else ""),
                 )
             )
