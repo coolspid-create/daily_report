@@ -30,6 +30,7 @@ class CollectBatchSummary:
     failed_sources: int
     new_documents_count: int
     discovered_count: int
+    failed_source_ids: tuple[str, ...] = ()
 
 
 async def run_source(
@@ -106,10 +107,16 @@ async def _collect_paths(
     finally:
         if browser:
             await browser.close()
-    failed = sum(r[0] for r in results)
-    new_docs = sum(r[1] for r in results)
-    discovered = sum(r[2] for r in results)
-    return CollectBatchSummary(failed_sources=failed, new_documents_count=new_docs, discovered_count=discovered)
+    failed = sum(result[1] for result in results)
+    new_docs = sum(result[2] for result in results)
+    discovered = sum(result[3] for result in results)
+    failed_source_ids = tuple(result[0] for result in results if result[1])
+    return CollectBatchSummary(
+        failed_sources=failed,
+        new_documents_count=new_docs,
+        discovered_count=discovered,
+        failed_source_ids=failed_source_ids,
+    )
 
 
 async def _start_shared_browser(
@@ -138,18 +145,18 @@ async def _run_limited(
     browser: PlaywrightBrowserRenderer | None,
     source_slots: asyncio.Semaphore,
     host_slot: asyncio.Semaphore,
-) -> tuple[int, int, int]:
+) -> tuple[str, int, int, int]:
     async with source_slots, host_slot:
         try:
             res = await run_source(path, schema_path, refresh_recent, browser)
             if isinstance(res, CollectionResult):
-                return int(res.failed > 0), res.new_count, res.discovered
+                return res.source_id, int(res.failed > 0), res.new_count, res.discovered
             if isinstance(res, (int, float)):
-                return int(res > 0), 0, 0
-            return 0, 0, 0
+                return path.stem, int(res > 0), 0, 0
+            return path.stem, 0, 0, 0
         except Exception as error:
             print(f"{path.stem}: initialization failed: {error}")
-            return 1, 0, 0
+            return path.stem, 1, 0, 0
 
 
 def collect_and_summarize(
@@ -162,6 +169,17 @@ def collect_and_summarize(
     paths = _source_paths(source, all_active, config_root, schema_path)
     if all_active and (database_url := os.getenv("DATABASE_URL")):
         paths = _filter_database_active_paths(paths, load_active_source_slugs(database_url))
+    if not paths or any(not path.exists() for path in paths):
+        raise SystemExit("source config not found")
+    return asyncio.run(_collect_paths(paths, schema_path, refresh_recent))
+
+
+def collect_sources_and_summarize(
+    source_ids: list[str], config_root: Path, schema_path: Path, refresh_recent: bool = False
+) -> CollectBatchSummary:
+    """Collect an explicit, deduplicated set of sources without touching other sources."""
+    unique_ids = list(dict.fromkeys(source_ids))
+    paths = [config_root / f"{source_id}.yaml" for source_id in unique_ids]
     if not paths or any(not path.exists() for path in paths):
         raise SystemExit("source config not found")
     return asyncio.run(_collect_paths(paths, schema_path, refresh_recent))

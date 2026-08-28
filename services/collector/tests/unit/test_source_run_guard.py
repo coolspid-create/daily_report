@@ -92,3 +92,25 @@ def test_collection_limits_parallel_sources(monkeypatch, tmp_path: Path) -> None
 
     assert collect_command_module.collect_command(None, True, Path("config"), Path("schema.json")) == 0
     assert peak == 2
+
+
+def test_collection_summary_keeps_failed_source_ids(monkeypatch, tmp_path: Path) -> None:
+    async def fake_run_source(path: Path, *_: object) -> CollectionResult:
+        return CollectionResult(path.stem, 0, int(path.stem == "failed"), None)
+
+    async def no_browser(*_: object) -> None:
+        return None
+
+    paths = [tmp_path / "healthy.yaml", tmp_path / "failed.yaml"]
+    for path in paths:
+        path.touch()
+    monkeypatch.setattr(collect_command_module, "run_source", fake_run_source)
+    monkeypatch.setattr(collect_command_module, "_start_shared_browser", no_browser)
+    monkeypatch.setattr(collect_command_module, "_source_host", lambda path, _: path.stem)
+
+    summary = collect_command_module.collect_sources_and_summarize(
+        ["healthy", "failed"], tmp_path, Path("schema.json")
+    )
+
+    assert summary.failed_sources == 1
+    assert summary.failed_source_ids == ("failed",)

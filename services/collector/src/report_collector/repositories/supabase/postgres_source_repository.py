@@ -16,6 +16,22 @@ def load_active_source_slugs(database_url: str) -> set[str]:
         return {str(row[0]) for row in cursor.fetchall()}
 
 
+def load_retryable_press_source_slugs(database_url: str, source_ids: tuple[str, ...]) -> set[str]:
+    """Return only currently active, degraded press sources from an initial failed batch."""
+    if not source_ids:
+        return set()
+    query = """
+        select slug from public.sources
+        where slug = any(%s)
+          and active = true
+          and status = 'DEGRADED'
+          and content_type = 'PRESS_RELEASE'
+    """
+    with psycopg.connect(database_url) as connection, connection.cursor() as cursor:
+        cursor.execute(query, (list(source_ids),))
+        return {str(row[0]) for row in cursor.fetchall()}
+
+
 class PostgresSourceRepository:
     def __init__(self, database_url: str) -> None:
         self.database_url = database_url
