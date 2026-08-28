@@ -39,7 +39,10 @@ jobs:
           if [ -n "${{ inputs.reprocess_sources }}" ]; then
             IFS=',' read -ra SOURCES <<< "${{ inputs.reprocess_sources }}"
             for source in "${SOURCES[@]}"; do
-              python -m report_collector collect --source "$source" --refresh-recent
+              if ! python -m report_collector collect --source "$source" --refresh-recent; then
+                echo "::warning::collection failed for $source; continuing with the remaining targeted sources"
+                continue
+              fi
               python -m report_collector auto-review --timezone Asia/Seoul --window-hours 168 --source "$source" --apply
             done
             python -m report_collector publish-approved --timezone Asia/Seoul --no-telegram
