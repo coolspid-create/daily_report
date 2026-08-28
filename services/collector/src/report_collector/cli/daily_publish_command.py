@@ -1,5 +1,4 @@
 import os
-import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -7,7 +6,6 @@ from zoneinfo import ZoneInfo
 from report_collector.cli.collect_command import (
     CollectBatchSummary,
     collect_and_summarize,
-    collect_sources_and_summarize,
 )
 from report_collector.cli.snapshot_command import SnapshotBuildResult, snapshot_command
 from report_collector.pipelines.auto_review_documents import (
@@ -31,9 +29,6 @@ from report_collector.repositories.supabase.postgres_automation_runs import (
     update_automation_stage,
 )
 from report_collector.repositories.supabase.postgres_documents import load_approved_documents
-from report_collector.repositories.supabase.postgres_source_repository import (
-    load_retryable_press_source_slugs,
-)
 from report_collector.repositories.supabase.postgres_telegram_delivery import (
     load_pending_telegram_deliveries,
 )
@@ -136,41 +131,9 @@ def _collect(root: Path, database_url: str, run_id: str) -> CollectBatchSummary:
         root / "config/sources",
         root / "contracts/source-config.schema.json",
         True,
+        "REPORT",
     )
-    retryable_press_sources = sorted(
-        load_retryable_press_source_slugs(database_url, initial.failed_source_ids)
-    )
-    if not retryable_press_sources:
-        return initial
-
-    delay_seconds = int(os.getenv("PRESS_RETRY_DELAY_SECONDS", "60"))
-    if delay_seconds > 0:
-        print(
-            f"retrying failed press sources after {delay_seconds}s: "
-            f"{', '.join(retryable_press_sources)}"
-        )
-        time.sleep(delay_seconds)
-    retry = collect_sources_and_summarize(
-        retryable_press_sources,
-        root / "config/sources",
-        root / "contracts/source-config.schema.json",
-        refresh_recent=True,
-    )
-    return _merge_collection_summaries(initial, retry, retryable_press_sources)
-
-
-def _merge_collection_summaries(
-    initial: CollectBatchSummary,
-    retry: CollectBatchSummary,
-    retried_sources: list[str],
-) -> CollectBatchSummary:
-    unresolved = (set(initial.failed_source_ids) - set(retried_sources)) | set(retry.failed_source_ids)
-    return CollectBatchSummary(
-        failed_sources=len(unresolved),
-        new_documents_count=initial.new_documents_count + retry.new_documents_count,
-        discovered_count=initial.discovered_count + retry.discovered_count,
-        failed_source_ids=tuple(sorted(unresolved)),
-    )
+    return initial
 
 
 def _auto_review(

@@ -165,10 +165,13 @@ def collect_and_summarize(
     config_root: Path,
     schema_path: Path,
     refresh_recent: bool = False,
+    content_type: str | None = None,
 ) -> CollectBatchSummary:
     paths = _source_paths(source, all_active, config_root, schema_path)
     if all_active and (database_url := os.getenv("DATABASE_URL")):
         paths = _filter_database_active_paths(paths, load_active_source_slugs(database_url))
+    if content_type:
+        paths = _filter_content_type_paths(paths, schema_path, content_type)
     if not paths or any(not path.exists() for path in paths):
         raise SystemExit("source config not found")
     return asyncio.run(_collect_paths(paths, schema_path, refresh_recent))
@@ -191,8 +194,11 @@ def collect_command(
     config_root: Path,
     schema_path: Path,
     refresh_recent: bool = False,
+    content_type: str | None = None,
 ) -> int:
-    summary = collect_and_summarize(source, all_active, config_root, schema_path, refresh_recent)
+    summary = collect_and_summarize(
+        source, all_active, config_root, schema_path, refresh_recent, content_type
+    )
     return summary.failed_sources
 
 
@@ -211,3 +217,13 @@ def _source_host(path: Path, schema_path: Path) -> str:
 
 def _filter_database_active_paths(paths: list[Path], active_source_slugs: set[str]) -> list[Path]:
     return [path for path in paths if path.stem in active_source_slugs]
+
+
+def _filter_content_type_paths(
+    paths: list[Path], schema_path: Path, content_type: str
+) -> list[Path]:
+    return [
+        path
+        for path in paths
+        if load_source_config(path, schema_path).content_type == content_type
+    ]

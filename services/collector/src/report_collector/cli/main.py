@@ -8,6 +8,7 @@ from .cleanup_command import cleanup_command
 from .collect_command import collect_command
 from .daily_publish_command import daily_publish_command
 from .digest_command import digest_command
+from .press_collect_command import press_collect_command
 from .publish_approved_command import publish_approved_command
 from .snapshot_command import snapshot_command
 
@@ -21,6 +22,7 @@ def parser() -> ArgumentParser:
     group.add_argument("--source")
     group.add_argument("--all-active", action="store_true")
     collect.add_argument("--refresh-recent", action="store_true")
+    collect.add_argument("--content-type", choices=["REPORT", "PRESS_RELEASE"])
     collect.add_argument("--config-root", type=Path, default=root / "config/sources")
     snapshot = commands.add_parser("build-snapshot")
     snapshot.add_argument("--date", required=True)
@@ -40,6 +42,10 @@ def parser() -> ArgumentParser:
     daily.add_argument("--output-dir", type=Path, default=root / "output/pdf")
     daily.add_argument("--dry-run", action="store_true")
     daily.add_argument("--scheduled-run", action="store_true")
+    press = commands.add_parser("collect-press")
+    press.add_argument("--timezone", default=os.getenv("AUTOMATION_TIMEZONE", "Asia/Seoul"))
+    press.add_argument("--window-hours", type=int, default=int(os.getenv("AUTOMATION_WINDOW_HOURS", "168")))
+    press.add_argument("--output-dir", type=Path, default=root / "output/pdf")
     refresh = commands.add_parser("publish-approved")
     refresh.add_argument("--timezone", default=os.getenv("AUTOMATION_TIMEZONE", "Asia/Seoul"))
     refresh.add_argument("--output-dir", type=Path, default=root / "output/pdf")
@@ -64,6 +70,7 @@ def main() -> None:
                 arguments.config_root,
                 root / "contracts/source-config.schema.json",
                 arguments.refresh_recent,
+                arguments.content_type,
             )
         )
     elif arguments.command == "build-snapshot":
@@ -91,6 +98,13 @@ def main() -> None:
             arguments.output_dir,
             arguments.dry_run,
             arguments.scheduled_run,
+        )
+    elif arguments.command == "collect-press":
+        press_collect_command(
+            root,
+            arguments.timezone,
+            arguments.window_hours,
+            arguments.output_dir,
         )
     elif arguments.command == "publish-approved":
         publish_approved_command(

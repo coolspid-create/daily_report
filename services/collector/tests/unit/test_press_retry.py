@@ -3,7 +3,7 @@ from pathlib import Path
 
 from report_collector.cli.collect_command import CollectBatchSummary
 
-daily_publish_module = importlib.import_module("report_collector.cli.daily_publish_command")
+press_collect_module = importlib.import_module("report_collector.cli.press_collect_command")
 
 
 def test_collect_retries_only_degraded_press_sources(monkeypatch) -> None:
@@ -21,19 +21,20 @@ def test_collect_retries_only_degraded_press_sources(monkeypatch) -> None:
     )
     calls: list[object] = []
 
-    monkeypatch.setattr(daily_publish_module, "update_automation_stage", lambda *_: None)
-    monkeypatch.setattr(daily_publish_module, "collect_and_summarize", lambda *_: initial)
     monkeypatch.setattr(
-        daily_publish_module, "load_retryable_press_source_slugs", lambda *_: {"press-retry"}
+        press_collect_module, "collect_and_summarize", lambda *_args, **_kwargs: initial
     )
     monkeypatch.setattr(
-        daily_publish_module,
+        press_collect_module, "load_retryable_press_source_slugs", lambda *_: {"press-retry"}
+    )
+    monkeypatch.setattr(
+        press_collect_module,
         "collect_sources_and_summarize",
         lambda source_ids, *_args, **kwargs: calls.append((source_ids, kwargs)) or retry,
     )
     monkeypatch.setenv("PRESS_RETRY_DELAY_SECONDS", "0")
 
-    result = daily_publish_module._collect(Path("."), "postgresql://example", "run-id")
+    result = press_collect_module._collect(Path("."), "postgresql://example")
 
     assert calls == [(["press-retry"], {"refresh_recent": True})]
     assert result.new_documents_count == 3

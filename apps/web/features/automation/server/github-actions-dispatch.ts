@@ -7,7 +7,7 @@ export type GitHubDispatchSettings = {
   token: string;
 };
 
-export type CollectorRunMode = "scheduled" | "refresh";
+export type CollectorRunMode = "scheduled" | "press" | "refresh";
 
 export function readGitHubDispatchSettings(environment: Environment = process.env): GitHubDispatchSettings {
   const token = environment.GITHUB_ACTIONS_DISPATCH_TOKEN;

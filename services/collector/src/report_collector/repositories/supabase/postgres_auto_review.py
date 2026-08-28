@@ -15,6 +15,7 @@ def load_auto_review_candidates(
     window_start: datetime,
     window_end: datetime,
     source_slug: str | None = None,
+    source_content_type: str | None = None,
 ) -> list[AutoApprovalCandidate]:
     query = """
     select d.id,d.published_at,coalesce(seen.first_seen_at,d.created_at) first_seen_at,
@@ -56,12 +57,24 @@ def load_auto_review_candidates(
         join public.sources filtered_source on filtered_source.id=filtered_ds.source_id
         where filtered_ds.document_id=d.id and filtered_source.slug=%s
       ))
+      and (%s::text is null or exists(
+        select 1 from public.document_sources typed_ds
+        join public.sources typed_source on typed_source.id=typed_ds.source_id
+        where typed_ds.document_id=d.id and typed_source.content_type=%s
+      ))
     order by d.created_at
     """
     with psycopg.connect(database_url, row_factory=dict_row) as connection:
         rows = connection.execute(
             query,
-            (window_start, window_end, source_slug, source_slug),
+            (
+                window_start,
+                window_end,
+                source_slug,
+                source_slug,
+                source_content_type,
+                source_content_type,
+            ),
         ).fetchall()
     return [_candidate(row) for row in rows]
 

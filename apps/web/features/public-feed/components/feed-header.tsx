@@ -21,6 +21,7 @@ export function FeedHeader({ generatedAt }: FeedHeaderProps) {
       <div className="feed-header-left">
         <h1>오늘의 공공리포트</h1>
         <p className="subtitle">정부·국회·공공 연구기관의 핵심 보고서를 수집하여 제공합니다.</p>
+        <p className="collection-schedule">수집 시작: 리포트 08:35 · 보도자료 10:30 KST</p>
       </div>
       <div className="feed-header-right">
         <time className="updated-at" dateTime={generatedAt}>

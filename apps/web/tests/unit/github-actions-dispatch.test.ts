@@ -36,6 +36,15 @@ describe("Vercel Cron collector dispatch", () => {
     }));
   });
 
+  it("dispatches the delayed press collection without enabling Telegram delivery", async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
+    const settings = readGitHubDispatchSettings({ GITHUB_ACTIONS_DISPATCH_TOKEN: "token", GITHUB_REPOSITORY: "coolspid-create/daily_report" });
+    await dispatchCollectorWorkflow(settings, "press", fetcher);
+    expect(fetcher).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({
+      body: JSON.stringify({ ref: "main", inputs: { scheduled_run: "false", run_mode: "press" } }),
+    }));
+  });
+
   it("fails closed when dispatch credentials are absent", () => {
     expect(() => readGitHubDispatchSettings({ GITHUB_REPOSITORY: "coolspid-create/daily_report" })).toThrow();
   });

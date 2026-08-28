@@ -9,10 +9,10 @@ on:
         type: boolean
         default: false
       run_mode:
-        description: 정기 수집 또는 관리자 승인 후 재발행
+        description: 리포트 정기 수집, 보도자료 수집 또는 관리자 승인 후 재발행
         required: false
         type: choice
-        options: [scheduled, refresh]
+        options: [scheduled, press, refresh]
         default: scheduled
       reprocess_sources:
         description: AI 분석을 다시 수행할 출처 slug 목록(쉼표 구분). Telegram은 발송하지 않습니다.
@@ -48,6 +48,8 @@ jobs:
             python -m report_collector publish-approved --timezone Asia/Seoul --no-telegram
           elif [ "${{ inputs.run_mode }}" = "refresh" ]; then
             python -m report_collector publish-approved --timezone Asia/Seoul
+          elif [ "${{ inputs.run_mode }}" = "press" ]; then
+            python -m report_collector collect-press --timezone Asia/Seoul --window-hours 168
           elif [ "${{ inputs.scheduled_run }}" = "true" ]; then
             python -m report_collector daily-publish --timezone Asia/Seoul --window-hours 168 --scheduled-run
           else
