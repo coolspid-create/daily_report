@@ -12,6 +12,7 @@ from report_collector.cli.collect_command import (
 from report_collector.cli.publish_approved_command import publish_approved_command
 from report_collector.pipelines.auto_review_documents import auto_review_documents
 from report_collector.repositories.supabase.postgres_source_repository import (
+    load_recovery_probe_press_source_slugs,
     load_retryable_press_source_slugs,
 )
 
@@ -49,23 +50,34 @@ def _collect(root: Path, database_url: str) -> CollectBatchSummary:
     retryable_sources = sorted(
         load_retryable_press_source_slugs(database_url, initial.failed_source_ids)
     )
-    if not retryable_sources:
-        return initial
-
-    delay_seconds = int(os.getenv("PRESS_RETRY_DELAY_SECONDS", "60"))
-    if delay_seconds > 0:
-        print(
-            f"retrying failed press sources after {delay_seconds}s: "
-            f"{', '.join(retryable_sources)}"
+    summary = initial
+    if retryable_sources:
+        delay_seconds = int(os.getenv("PRESS_RETRY_DELAY_SECONDS", "60"))
+        if delay_seconds > 0:
+            print(
+                f"retrying failed press sources after {delay_seconds}s: "
+                f"{', '.join(retryable_sources)}"
+            )
+            time.sleep(delay_seconds)
+        retry = collect_sources_and_summarize(
+            retryable_sources,
+            root / "config/sources",
+            root / "contracts/source-config.schema.json",
+            refresh_recent=True,
         )
-        time.sleep(delay_seconds)
-    retry = collect_sources_and_summarize(
-        retryable_sources,
+        summary = _merge_collection_summaries(summary, retry, retryable_sources)
+
+    recovery_sources = sorted(load_recovery_probe_press_source_slugs(database_url))
+    if not recovery_sources:
+        return summary
+    print(f"running daily recovery probe for disabled press sources: {', '.join(recovery_sources)}")
+    recovery = collect_sources_and_summarize(
+        recovery_sources,
         root / "config/sources",
         root / "contracts/source-config.schema.json",
         refresh_recent=True,
     )
-    return _merge_collection_summaries(initial, retry, retryable_sources)
+    return _merge_collection_summaries(summary, recovery, recovery_sources)
 
 
 def _merge_collection_summaries(

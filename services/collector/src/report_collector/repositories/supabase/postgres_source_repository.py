@@ -10,7 +10,8 @@ from report_collector.services.rights_service import choose_delivery, is_session
 
 
 def load_active_source_slugs(database_url: str) -> set[str]:
-    query = "select slug from public.sources where active=true"
+    """Return enabled sources, excluding those awaiting a scheduled recovery probe."""
+    query = "select slug from public.sources where active=true and status <> 'DISABLED'"
     with psycopg.connect(database_url) as connection, connection.cursor() as cursor:
         cursor.execute(query)
         return {str(row[0]) for row in cursor.fetchall()}
@@ -29,6 +30,20 @@ def load_retryable_press_source_slugs(database_url: str, source_ids: tuple[str, 
     """
     with psycopg.connect(database_url) as connection, connection.cursor() as cursor:
         cursor.execute(query, (list(source_ids),))
+        return {str(row[0]) for row in cursor.fetchall()}
+
+
+def load_recovery_probe_press_source_slugs(database_url: str) -> set[str]:
+    """Return disabled press sources due for one low-frequency recovery check."""
+    query = """
+        select slug from public.sources
+        where active = true
+          and status = 'DISABLED'
+          and content_type = 'PRESS_RELEASE'
+          and (last_failure_at is null or last_failure_at <= now() - interval '24 hours')
+    """
+    with psycopg.connect(database_url) as connection, connection.cursor() as cursor:
+        cursor.execute(query)
         return {str(row[0]) for row in cursor.fetchall()}
 
 
@@ -302,3 +317,23 @@ class PostgresSourceRepository:
         with psycopg.connect(self.database_url) as connection, connection.cursor() as cursor:
             cursor.execute(run_query, (error_code, error_message[:1_000], source_id))
             cursor.execute(source_query, (error_code, error_message[:1_000], source_id))
+
+    def record_maintenance_run(self, source_id: str, error_message: str) -> None:
+        """Record an official maintenance notice without increasing failure escalation."""
+        run_query = """
+        insert into public.source_runs(source_id,finished_at,status,failed_count,error_code,error_message)
+        select id,now(),'FAILED',1,'SOURCE_MAINTENANCE',%s from public.sources where slug=%s
+        """
+        source_query = """
+        update public.sources
+        set status = case when status = 'DISABLED' then 'DISABLED' else 'DEGRADED' end,
+            last_failure_at = now(),
+            last_error_code = 'SOURCE_MAINTENANCE',
+            last_error_message = %s,
+            consecutive_empty_runs = 0,
+            updated_at = now()
+        where slug = %s
+        """
+        with psycopg.connect(self.database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(run_query, (error_message[:1_000], source_id))
+            cursor.execute(source_query, (error_message[:1_000], source_id))

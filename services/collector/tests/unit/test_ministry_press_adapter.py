@@ -3,6 +3,7 @@ from datetime import date
 import pytest
 from pydantic import HttpUrl
 from report_collector.adapters.sources.ministry_press.adapter import MinistryPressAdapter
+from report_collector.domain.errors import SourceMaintenanceError
 from report_collector.domain.models import DiscoveredItem, SourceConfig
 from report_collector.providers.http.http_client import PublicHttpClient
 
@@ -163,6 +164,18 @@ def test_ministry_press_adapter_prefers_configured_title_link(
 
     assert item.title == "정상 보도자료"
     assert item.source_item_key == "nttSn-47906"
+
+
+def test_ministry_press_adapter_identifies_official_maintenance_page(
+    mock_config: SourceConfig,
+) -> None:
+    html = """
+    <html><head><title>시스템 점검 안내 | 과학기술정보통신부</title></head>
+    <body>보다 안정적인 서비스 제공을 위해 시스템 점검을 진행중입니다.</body></html>
+    """
+
+    with pytest.raises(SourceMaintenanceError, match="official maintenance notice"):
+        MinistryPressAdapter(mock_config, PublicHttpClient())._parse_list(html)
 
 
 def test_ministry_press_adapter_builds_moef_detail_url(

@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 from bs4 import BeautifulSoup, Tag
 from pydantic import HttpUrl
 from report_collector.adapters.base import SourceAdapter
-from report_collector.domain.errors import SourceParseError
+from report_collector.domain.errors import SourceMaintenanceError, SourceParseError
 from report_collector.domain.models import (
     Attachment,
     DiscoveredItem,
@@ -41,6 +41,8 @@ class MinistryPressAdapter(SourceAdapter):
 
     def _parse_list(self, html: str) -> list[DiscoveredItem]:
         soup = BeautifulSoup(html, "html.parser")
+        if _is_maintenance_notice(soup):
+            raise SourceMaintenanceError(f"{self.config.name} is displaying an official maintenance notice")
         row_selector = (
             self.config.selectors.list_item
             if self.config.selectors and self.config.selectors.list_item
@@ -141,6 +143,11 @@ def _parse_row(node: Tag, config: SourceConfig) -> DiscoveredItem | None:
         detail_url=HttpUrl(detail_url),
         published_at=published_date,
     )
+
+
+def _is_maintenance_notice(soup: BeautifulSoup) -> bool:
+    text = soup.get_text(" ", strip=True)
+    return "시스템 점검" in text and ("점검 안내" in text or "점검중" in text or "점검 중" in text)
 
 
 def _build_url(href: str, onclick: str, config: SourceConfig) -> str | None:

@@ -3,6 +3,7 @@ import importlib
 from pathlib import Path
 
 import pytest
+from report_collector.domain.errors import SourceMaintenanceError
 from report_collector.pipelines.collect_source import CollectionResult
 from report_collector.pipelines.source_run_guard import run_with_source_timeout
 from report_collector.repositories.source_repository import MemorySourceRepository
@@ -34,6 +35,20 @@ async def test_exception_is_recorded_and_returns_a_failure_result() -> None:
 
     assert result.failed == 1
     assert repository.runs[-1]["error_code"] == "SOURCE_ERROR"
+
+
+@pytest.mark.asyncio
+async def test_maintenance_notice_does_not_use_failure_escalation() -> None:
+    repository = MemorySourceRepository()
+
+    async def maintenance() -> CollectionResult:
+        raise SourceMaintenanceError("official maintenance")
+
+    result = await run_with_source_timeout("fixture", repository, 30, maintenance())
+
+    assert result.failed == 1
+    assert repository.runs[-1]["status"] == "MAINTENANCE"
+    assert repository.runs[-1]["error_code"] == "SOURCE_MAINTENANCE"
 
 
 def test_collection_continues_after_source_initialization_error(monkeypatch, tmp_path: Path) -> None:

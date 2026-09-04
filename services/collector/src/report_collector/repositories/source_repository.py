@@ -16,6 +16,7 @@ class SourceRepository(Protocol):
         updated_count: int = 0,
     ) -> None: ...
     def fail_run(self, source_id: str, error_code: str, error_message: str) -> None: ...
+    def record_maintenance_run(self, source_id: str, error_message: str) -> None: ...
 
 
 class MemorySourceRepository:
@@ -62,6 +63,16 @@ class MemorySourceRepository:
                 "source_id": source_id,
                 "status": "FAILED",
                 "error_code": error_code,
+                "error_message": error_message,
+            }
+        )
+
+    def record_maintenance_run(self, source_id: str, error_message: str) -> None:
+        self.runs.append(
+            {
+                "source_id": source_id,
+                "status": "MAINTENANCE",
+                "error_code": "SOURCE_MAINTENANCE",
                 "error_message": error_message,
             }
         )

@@ -1,6 +1,10 @@
 import httpx
 import pytest
-from report_collector.domain.errors import SourceParseError, SourceTimeoutError
+from report_collector.domain.errors import (
+    SourceMaintenanceError,
+    SourceParseError,
+    SourceTimeoutError,
+)
 from report_collector.pipelines.source_run_guard import classify_error
 from report_collector.providers.http.http_client import PublicHttpClient
 
@@ -8,6 +12,7 @@ from report_collector.providers.http.http_client import PublicHttpClient
 def test_error_classification_maps_known_exceptions() -> None:
     assert classify_error(SourceTimeoutError("timed out"))[0] == "SOURCE_TIMEOUT"
     assert classify_error(SourceParseError("parse failed"))[0] == "SOURCE_PARSE_ERROR"
+    assert classify_error(SourceMaintenanceError("maintenance"))[0] == "SOURCE_MAINTENANCE"
 
     req = httpx.Request("GET", "https://example.org")
     assert classify_error(httpx.ConnectTimeout("conn timeout", request=req))[0] == "CONNECT_TIMEOUT"

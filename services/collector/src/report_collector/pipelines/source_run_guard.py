@@ -1,6 +1,7 @@
 import asyncio
 from collections.abc import Awaitable
 
+from report_collector.domain.errors import SourceMaintenanceError
 from report_collector.pipelines.collect_source import CollectionResult
 from report_collector.repositories.source_repository import SourceRepository
 
@@ -13,6 +14,8 @@ async def run_with_source_timeout(
 ) -> CollectionResult:
     try:
         return await asyncio.wait_for(operation, timeout=timeout_seconds)
+    except SourceMaintenanceError as error:
+        repository.record_maintenance_run(source_id, str(error))
     except TimeoutError:
         repository.fail_run(
             source_id,
@@ -29,6 +32,8 @@ def classify_error(error: Exception) -> tuple[str, str]:
     detail = str(error).strip()
     name = error.__class__.__name__
     message = detail or name
+    if "SourceMaintenanceError" in name:
+        return "SOURCE_MAINTENANCE", message
     if "SourceTimeout" in name or "TimeoutError" in name:
         return "SOURCE_TIMEOUT", message
     if "ConnectTimeout" in name or "ConnectTimeout" in message:

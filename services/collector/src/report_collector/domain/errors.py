@@ -6,6 +6,10 @@ class SourceParseError(CollectorError):
     """Raised when required public HTML structure is unavailable."""
 
 
+class SourceMaintenanceError(CollectorError):
+    """Raised when an official source explicitly reports scheduled maintenance."""
+
+
 class SourceTimeoutError(CollectorError):
     """Raised when a source request or execution times out."""
 
