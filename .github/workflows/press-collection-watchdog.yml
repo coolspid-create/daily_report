@@ -1,0 +1,73 @@
+name: Press Collection Watchdog
+
+on:
+  schedule:
+    # 11:45 KST on weekdays. This gives the 10:30 KST Vercel Cron enough time to start.
+    - cron: "45 2 * * 0-4"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  dispatch-fallback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Detect missing or failed press collection
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const workflowRuns = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: "collector.yml",
+              event: "workflow_dispatch",
+              per_page: 30,
+            });
+            const cutoff = Date.now() - 2 * 60 * 60 * 1000;
+            const recentRuns = workflowRuns.data.workflow_runs.filter(
+              (run) => Date.parse(run.created_at) >= cutoff,
+            );
+            const running = recentRuns.some((run) => run.status !== "completed");
+            const successful = recentRuns.some(
+              (run) => run.status === "completed" && run.conclusion === "success",
+            );
+            const failed = recentRuns.some(
+              (run) => run.status === "completed" && run.conclusion !== "success",
+            );
+            const fallbackRequired = !running && !successful;
+            core.setOutput("fallback_required", String(fallbackRequired));
+            core.setOutput("reason", failed ? "failed" : "missing");
+            core.info(JSON.stringify({ cutoff, running, successful, failed, fallbackRequired }));
+      - name: Start fallback press collection
+        if: steps.check.outputs.fallback_required == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: "collector.yml",
+              ref: "main",
+              inputs: { scheduled_run: "false", run_mode: "press" },
+            });
+      - name: Notify that fallback collection started
+        if: steps.check.outputs.fallback_required == 'true'
+        env:
+          TELEGRAM_ENABLED: ${{ vars.TELEGRAM_ENABLED || 'false' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          FALLBACK_REASON: ${{ steps.check.outputs.reason }}
+        run: |
+          if [ "$TELEGRAM_ENABLED" != "true" ] || [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "::warning::fallback started, but Telegram notification is not configured"
+            exit 0
+          fi
+          message="⚠️ 보도자료 10:30 수집 ${FALLBACK_REASON} 감지: 11:45 GitHub Actions 백업 수집을 시작했습니다. 이 메시지는 보도자료 재게시가 아닙니다."
+          if ! curl --fail --silent --show-error --output /dev/null --request POST \
+            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${message}"; then
+            echo "::warning::fallback Telegram notification failed"
+          fi

@@ -24,7 +24,7 @@ python -m report_collector cleanup --expired-files
 
 ## 일일 자동 발행
 
-Vercel Cron이 GitHub Actions의 `daily-publish`를 월요일부터 금요일 08:35 KST에 정기 실행으로 호출합니다. 같은 방어 규칙이 API에도 있어 주말 호출이 들어와도 GitHub Actions dispatch를 생략합니다. 동일 예약 시각은 `automation_runs.scheduled_for` unique 제약으로 중복 실행되지 않으며, GitHub Actions 화면에서 시작한 수동 실행은 별도 실행 키를 사용하므로 정기 실행을 막지 않습니다. 출처별 timeout은 다음 출처 진행을 막지 않으며 일부 실패는 `PARTIAL`로 기록됩니다.
+Vercel Cron이 GitHub Actions의 리포트 작업을 월요일부터 금요일 08:35 KST에, 보도자료 작업을 10:30 KST에 호출합니다. 보도자료는 `PRESS_RELEASE` 출처만 수집하고, 실패 출처만 지연 재시도한 뒤 Telegram 없이 공개 스냅샷을 갱신합니다. `press-collection-watchdog.yml`은 11:45 KST에 2시간 내 보도자료 작업의 시작·성공 상태를 확인하며, 누락 또는 실패한 경우에만 백업 실행과 Telegram 장애 복구 알림을 수행합니다. 같은 방어 규칙이 API에도 있어 주말 호출이 들어와도 GitHub Actions dispatch를 생략합니다. 출처별 timeout은 다음 출처 진행을 막지 않으며 일부 실패는 `PARTIAL`로 기록됩니다.
 
 자동 품질 정책을 모두 통과한 문서만 시스템이 승인합니다. 조건이 불확실하면 `AUTO_HOLD` 감사 기록과 사유 코드를 남기고 관리자 예외 검수함으로 보냅니다. 최근 7일 발행일이 확인된 문서만 자동 검수 후보로 삼아 예전 자료의 재수집이 현재 발행 후보로 집계되지 않게 합니다. 적격 문서가 없으면 `NO_CONTENT`로 종료하고 current snapshot을 교체하지 않으며, 출처 수집 실패가 함께 있으면 `PARTIAL`로 기록합니다. 정기 실행에서는 수집 후보 수를 포함한 신규 발행 자료 없음 안내를 Telegram으로 보냅니다.
 
