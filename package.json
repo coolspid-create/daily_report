@@ -19,7 +19,7 @@
     "check:sources": "python scripts/check-source-configs.py",
     "check:sizes": "python scripts/verify-file-sizes.py",
     "check:migrations": "python scripts/check-migrations.py",
-    "check:automation": "python scripts/check-automation-workflow.py",
+    "check:automation": "python scripts/check-automation-workflow.py && node --test scripts/press-watchdog.test.cjs",
     "check:collector-policy": "python scripts/check-collector-policy.py",
     "check:product-boundaries": "python scripts/check-product-boundaries.py",
     "verify": "pnpm check:contracts && pnpm check:sources && pnpm check:migrations && pnpm check:automation && pnpm check:collector-policy && pnpm check:product-boundaries && pnpm check:sizes && pnpm python:lint && pnpm python:typecheck && pnpm python:test && pnpm lint && pnpm typecheck && pnpm test && pnpm build"

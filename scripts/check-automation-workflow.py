@@ -28,9 +28,9 @@ def main() -> None:
     missing = [item for item in required if item not in text]
     expected_crons = [
         {"path": "/api/cron/daily-publish", "schedule": "35 23 * * 0-4"},
-        {"path": "/api/cron/press-collect", "schedule": "30 1 * * 0-4"},
+        {"path": "/api/cron/press-collect", "schedule": "30 1 * * 1-5"},
     ]
-    watchdog_schedule = {"cron": "45 2 * * 0-4"}
+    watchdog_schedule = {"cron": "45 2 * * 1-5"}
     watchdog_required = [
         "createWorkflowDispatch",
         'run_mode: "press"',

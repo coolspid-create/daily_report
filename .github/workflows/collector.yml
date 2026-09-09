@@ -1,4 +1,5 @@
 name: Collector
+run-name: Collector / ${{ inputs.reprocess_sources != '' && 'reprocess' || inputs.run_mode || 'scheduled' }}
 
 on:
   workflow_dispatch:
