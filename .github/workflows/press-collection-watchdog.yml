@@ -37,23 +37,3 @@ jobs:
               ref: "main",
               inputs: { scheduled_run: "false", run_mode: "press", fallback: "true" },
             });
-      - name: Notify that fallback collection started
-        if: steps.check.outputs.fallback_required == 'true'
-        env:
-          TELEGRAM_ENABLED: ${{ vars.TELEGRAM_ENABLED || 'false' }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          FALLBACK_REASON: ${{ steps.check.outputs.reason }}
-        run: |
-          if [ "$TELEGRAM_ENABLED" != "true" ] || [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
-            echo "::warning::fallback started, but Telegram notification is not configured"
-            exit 0
-          fi
-          checked_at=$(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M KST')
-          message="⚠️ 보도자료 10:30 수집 ${FALLBACK_REASON} 감지: ${checked_at} GitHub Actions 백업 수집을 시작했습니다. 이 메시지는 보도자료 재게시가 아닙니다."
-          if ! curl --fail --silent --show-error --output /dev/null --request POST \
-            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
-            --data-urlencode "text=${message}"; then
-            echo "::warning::fallback Telegram notification failed"
-          fi

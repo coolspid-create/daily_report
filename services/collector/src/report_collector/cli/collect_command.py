@@ -21,6 +21,8 @@ from report_collector.providers.http.http_client import PublicHttpClient
 from report_collector.repositories.source_repository import MemorySourceRepository, SourceRepository
 from report_collector.repositories.supabase.postgres_source_repository import (
     PostgresSourceRepository,
+)
+from report_collector.repositories.supabase.postgres_source_selection import (
     load_active_source_slugs,
 )
 

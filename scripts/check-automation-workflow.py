@@ -34,20 +34,23 @@ def main() -> None:
     watchdog_required = [
         "createWorkflowDispatch",
         'run_mode: "press"',
-        "TELEGRAM_BOT_TOKEN",
         "fallback_required",
     ]
     missing_watchdog = [item for item in watchdog_required if item not in watchdog_text]
+    forbidden_watchdog = ["TELEGRAM_BOT_TOKEN", "sendMessage", "백업 수집을 시작했습니다"]
+    unexpected_watchdog = [item for item in forbidden_watchdog if item in watchdog_text]
     if (
         missing
         or missing_watchdog
+        or unexpected_watchdog
         or "workflow_dispatch" not in triggers
         or "workflow_dispatch" not in watchdog_triggers
         or watchdog_schedule not in watchdog_triggers.get("schedule", [])
         or crons != expected_crons
     ):
         raise SystemExit(
-            f"automation workflow contract failed: {missing or missing_watchdog or crons}"
+            "automation workflow contract failed: "
+            f"{missing or missing_watchdog or unexpected_watchdog or crons}"
         )
     print(
         "automation workflow passed: Vercel Cron dispatches report collection at 08:35 "

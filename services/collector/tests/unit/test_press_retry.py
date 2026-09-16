@@ -73,3 +73,36 @@ def test_collect_probes_disabled_press_sources_once_per_day(monkeypatch) -> None
     assert calls == [(["molit-press", "msit-press"], {"refresh_recent": True})]
     assert result.new_documents_count == 3
     assert result.discovered_count == 6
+
+
+def test_fallback_collects_all_active_press_sources_including_disabled(monkeypatch) -> None:
+    calls: list[object] = []
+    fallback = CollectBatchSummary(0, 1, 3, (), 3)
+
+    monkeypatch.setenv("PRESS_FALLBACK_RUN", "true")
+    monkeypatch.setattr(
+        press_collect_module,
+        "load_all_active_source_slugs_by_content_type",
+        lambda *_: {"press-healthy", "press-disabled", "press-degraded"},
+    )
+    monkeypatch.setattr(
+        press_collect_module,
+        "collect_sources_and_summarize",
+        lambda source_ids, *_args, **kwargs: calls.append((source_ids, kwargs)) or fallback,
+    )
+    monkeypatch.setattr(
+        press_collect_module, "load_retryable_press_source_slugs", lambda *_: set()
+    )
+    monkeypatch.setattr(
+        press_collect_module, "load_recovery_probe_press_source_slugs", lambda *_: set()
+    )
+
+    result = press_collect_module._collect(Path("."), "postgresql://example")
+
+    assert calls == [
+        (
+            ["press-degraded", "press-disabled", "press-healthy"],
+            {"refresh_recent": True},
+        )
+    ]
+    assert result == fallback

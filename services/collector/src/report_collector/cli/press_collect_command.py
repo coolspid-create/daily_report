@@ -11,7 +11,8 @@ from report_collector.cli.collect_command import (
 )
 from report_collector.cli.publish_approved_command import publish_approved_command
 from report_collector.pipelines.auto_review_documents import auto_review_documents
-from report_collector.repositories.supabase.postgres_source_repository import (
+from report_collector.repositories.supabase.postgres_source_selection import (
+    load_all_active_source_slugs_by_content_type,
     load_recovery_probe_press_source_slugs,
     load_retryable_press_source_slugs,
 )
@@ -46,14 +47,26 @@ def press_collect_command(root: Path, timezone: str, window_hours: int, output_d
 
 
 def _collect(root: Path, database_url: str) -> CollectBatchSummary:
-    initial = collect_and_summarize(
-        None,
-        True,
-        root / "config/sources",
-        root / "contracts/source-config.schema.json",
-        refresh_recent=True,
-        content_type="PRESS_RELEASE",
-    )
+    if _enabled("PRESS_FALLBACK_RUN"):
+        fallback_sources = sorted(
+            load_all_active_source_slugs_by_content_type(database_url, "PRESS_RELEASE")
+        )
+        print(f"fallback press collection sources: {', '.join(fallback_sources)}")
+        initial = collect_sources_and_summarize(
+            fallback_sources,
+            root / "config/sources",
+            root / "contracts/source-config.schema.json",
+            refresh_recent=True,
+        )
+    else:
+        initial = collect_and_summarize(
+            None,
+            True,
+            root / "config/sources",
+            root / "contracts/source-config.schema.json",
+            refresh_recent=True,
+            content_type="PRESS_RELEASE",
+        )
     retryable_sources = sorted(
         load_retryable_press_source_slugs(database_url, initial.failed_source_ids)
     )

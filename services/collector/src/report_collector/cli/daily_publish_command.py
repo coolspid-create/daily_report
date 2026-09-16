@@ -31,7 +31,7 @@ from report_collector.repositories.supabase.postgres_automation_runs import (
     update_automation_stage,
 )
 from report_collector.repositories.supabase.postgres_documents import load_approved_documents
-from report_collector.repositories.supabase.postgres_source_repository import (
+from report_collector.repositories.supabase.postgres_source_selection import (
     load_recovery_probe_source_slugs,
 )
 from report_collector.repositories.supabase.postgres_telegram_delivery import (
