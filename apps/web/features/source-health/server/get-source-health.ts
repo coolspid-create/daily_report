@@ -79,7 +79,7 @@ export async function getSourceHealth(): Promise<SourceHealth[]> {
   }
 
   const result: SourceHealth[] = data.map((row) => {
-    const errorInfo = errorMap.get(row.id);
+    const errorInfo = row.status === "HEALTHY" ? undefined : errorMap.get(row.id);
     return {
       id: row.id,
       slug: row.slug,

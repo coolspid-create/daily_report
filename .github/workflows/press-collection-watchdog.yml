@@ -35,7 +35,7 @@ jobs:
               repo: context.repo.repo,
               workflow_id: "collector.yml",
               ref: "main",
-              inputs: { scheduled_run: "false", run_mode: "press" },
+              inputs: { scheduled_run: "false", run_mode: "press", fallback: "true" },
             });
       - name: Notify that fallback collection started
         if: steps.check.outputs.fallback_required == 'true'

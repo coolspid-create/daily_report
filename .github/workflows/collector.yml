@@ -1,9 +1,13 @@
 name: Collector
-run-name: Collector / ${{ inputs.reprocess_sources != '' && 'reprocess' || inputs.run_mode || 'scheduled' }}
+run-name: Collector / ${{ inputs.reprocess_sources != '' && 'reprocess' || inputs.fallback && 'press-fallback' || inputs.run_mode || 'scheduled' }}
 
 on:
   workflow_dispatch:
     inputs:
+      fallback:
+        description: 보도자료 백업 실행 표시 (하루 1회 제한)
+        type: boolean
+        default: false
       scheduled_run:
         description: Vercel Cron에서 호출한 정기 실행인지 여부
         required: false
@@ -72,7 +76,7 @@ jobs:
           TELEGRAM_DESTINATION_KEY: "daily-report-main"
           PUBLIC_WEB_URL: ${{ vars.PUBLIC_WEB_URL }}
       - name: Revalidate published public feed
-        if: ${{ success() }}
+        if: ${{ !cancelled() }}
         run: |
           if [ -z "$PUBLIC_WEB_URL" ] || [ -z "$FEED_REVALIDATION_SECRET" ]; then
             echo "::warning::public feed revalidation skipped: PUBLIC_WEB_URL or FEED_REVALIDATION_SECRET is missing"

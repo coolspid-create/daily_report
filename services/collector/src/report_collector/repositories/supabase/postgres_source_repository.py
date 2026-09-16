@@ -34,16 +34,23 @@ def load_retryable_press_source_slugs(database_url: str, source_ids: tuple[str, 
 
 
 def load_recovery_probe_press_source_slugs(database_url: str) -> set[str]:
-    """Return disabled press sources due for one low-frequency recovery check."""
+    return load_recovery_probe_source_slugs(database_url, "PRESS_RELEASE")
+
+
+def load_recovery_probe_source_slugs(database_url: str, content_type: str) -> set[str]:
+    """Probe automatically disabled sources at most once per Korean calendar day."""
     query = """
         select slug from public.sources
         where active = true
           and status = 'DISABLED'
-          and content_type = 'PRESS_RELEASE'
-          and (last_failure_at is null or last_failure_at <= now() - interval '24 hours')
+          and content_type = %s
+          and consecutive_failures >= 5
+          and (last_failure_at is null or
+            (last_failure_at at time zone 'Asia/Seoul')::date <
+            (now() at time zone 'Asia/Seoul')::date)
     """
     with psycopg.connect(database_url) as connection, connection.cursor() as cursor:
-        cursor.execute(query)
+        cursor.execute(query, (content_type,))
         return {str(row[0]) for row in cursor.fetchall()}
 
 
@@ -238,19 +245,19 @@ class PostgresSourceRepository:
         update public.sources
         set status = case
               when %s > 0 and consecutive_failures + 1 >= 5 then 'DISABLED'
-              when %s > 0 or %s = 0 then 'DEGRADED'
+              when %s > 0 or (%s = 0 and %s > 0) then 'DEGRADED'
               else 'HEALTHY'
             end,
             last_success_at = case when %s = 0 then now() else last_success_at end,
             last_failure_at = case when %s > 0 then now() else last_failure_at end,
             last_error_code = case
               when %s > 0 then 'ITEM_PROCESSING_FAILED'
-              when %s = 0 then 'NO_CONTENT_SAVED'
+              when %s = 0 and %s > 0 then 'NO_CONTENT_SAVED'
               else null
             end,
             last_error_message = case
               when %s > 0 then %s || ' of ' || %s || ' discovered items failed'
-              when %s = 0 then 'Collector completed without saving any content'
+              when %s = 0 and %s > 0 then 'Collector found candidates but saved no content'
               else null
             end,
             consecutive_failures = case when %s = 0 then 0 else consecutive_failures + 1 end,
@@ -280,14 +287,17 @@ class PostgresSourceRepository:
                     actual_failed,
                     actual_failed,
                     actual_saved,
+                    actual_discovered,
                     actual_failed,
                     actual_failed,
                     actual_failed,
                     actual_saved,
+                    actual_discovered,
                     actual_failed,
                     actual_failed,
                     actual_discovered,
                     actual_saved,
+                    actual_discovered,
                     actual_failed,
                     actual_failed,
                     actual_saved,

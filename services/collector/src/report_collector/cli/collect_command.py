@@ -31,6 +31,7 @@ class CollectBatchSummary:
     new_documents_count: int
     discovered_count: int
     failed_source_ids: tuple[str, ...] = ()
+    attempted_sources: int = 0
 
 
 async def run_source(
@@ -116,6 +117,7 @@ async def _collect_paths(
         new_documents_count=new_docs,
         discovered_count=discovered,
         failed_source_ids=failed_source_ids,
+        attempted_sources=len(results),
     )
 
 
@@ -172,6 +174,8 @@ def collect_and_summarize(
         paths = _filter_database_active_paths(paths, load_active_source_slugs(database_url))
     if content_type:
         paths = _filter_content_type_paths(paths, schema_path, content_type)
+    if not paths and all_active:
+        return CollectBatchSummary(0, 0, 0)
     if not paths or any(not path.exists() for path in paths):
         raise SystemExit("source config not found")
     return asyncio.run(_collect_paths(paths, schema_path, refresh_recent))

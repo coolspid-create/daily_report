@@ -32,6 +32,12 @@ test('weekend and before check time never trigger fallback', () => {
 test('Friday remains eligible', () => {
   assert.equal(decide([], new Date('2026-09-11T11:45:00+09:00')).fallback, true);
 });
+test('failed backup is not repeated on the same day', () => {
+  assert.equal(decide([
+    { ...morningRun, conclusion: 'failure' },
+    { ...morningRun, display_title: 'Collector / press-fallback', conclusion: 'failure' },
+  ], afternoon).fallback, false);
+});
 test('legacy records do not cause rollout false alarms', () => {
   assert.equal(decide([{ ...morningRun, display_title: 'Collector' }], afternoon).fallback, false);
 });

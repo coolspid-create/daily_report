@@ -6,7 +6,9 @@ from zoneinfo import ZoneInfo
 from report_collector.cli.collect_command import (
     CollectBatchSummary,
     collect_and_summarize,
+    collect_sources_and_summarize,
 )
+from report_collector.cli.press_collect_command import _merge_collection_summaries
 from report_collector.cli.snapshot_command import SnapshotBuildResult, snapshot_command
 from report_collector.pipelines.auto_review_documents import (
     AutoReviewSummary,
@@ -29,6 +31,9 @@ from report_collector.repositories.supabase.postgres_automation_runs import (
     update_automation_stage,
 )
 from report_collector.repositories.supabase.postgres_documents import load_approved_documents
+from report_collector.repositories.supabase.postgres_source_repository import (
+    load_recovery_probe_source_slugs,
+)
 from report_collector.repositories.supabase.postgres_telegram_delivery import (
     load_pending_telegram_deliveries,
 )
@@ -133,7 +138,15 @@ def _collect(root: Path, database_url: str, run_id: str) -> CollectBatchSummary:
         True,
         "REPORT",
     )
-    return initial
+    recovery_sources = sorted(load_recovery_probe_source_slugs(database_url, "REPORT"))
+    if not recovery_sources:
+        return initial
+    print(f"daily report recovery probes: {', '.join(recovery_sources)}")
+    recovery = collect_sources_and_summarize(
+        recovery_sources, root / "config/sources",
+        root / "contracts/source-config.schema.json", refresh_recent=True,
+    )
+    return _merge_collection_summaries(initial, recovery, recovery_sources)
 
 
 def _auto_review(

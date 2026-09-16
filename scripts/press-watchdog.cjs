@@ -13,6 +13,9 @@ function decide(runs, now) {
   if (!eligible) return { fallback: false, reason: 'outside-window' };
   const today = runs.filter((run) => run.head_branch === 'main'
     && new Date(run.created_at) >= start && new Date(run.created_at) <= now);
+  if (today.some((run) => run.display_title === 'Collector / press-fallback')) {
+    return { fallback: false, reason: 'fallback-already-attempted' };
+  }
   // Older runs have no mode in their title. Do not infer a missing collection
   // from ambiguous historical records during rollout of the new run names.
   if (today.some((run) => run.display_title === 'Collector')) {

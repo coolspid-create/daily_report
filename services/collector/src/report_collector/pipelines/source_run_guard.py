@@ -24,6 +24,7 @@ async def run_with_source_timeout(
         )
     except Exception as error:
         code, msg = classify_error(error)
+        print(f"{source_id}: collection failed ({code}, {type(error).__name__})")
         repository.fail_run(source_id, code, msg)
     return CollectionResult(source_id, 0, 1, repository.get_cursor(source_id))
 

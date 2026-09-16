@@ -20,6 +20,8 @@ from report_collector.repositories.supabase.postgres_source_repository import (
 def press_collect_command(root: Path, timezone: str, window_hours: int, output_dir: Path) -> None:
     database_url = _required("DATABASE_URL")
     summary = _collect(root, database_url)
+    if summary.attempted_sources == 0:
+        raise RuntimeError("No eligible press sources were checked; collection is not successful")
     now = datetime.now(ZoneInfo(timezone))
     review = auto_review_documents(
         database_url,
@@ -36,6 +38,11 @@ def press_collect_command(root: Path, timezone: str, window_hours: int, output_d
         f"discovered={summary.discovered_count} new={summary.new_documents_count} "
         f"failed={summary.failed_sources} approved={review.approved_count} published={published} telegram=0"
     )
+    if summary.failed_sources:
+        raise RuntimeError(
+            f"Press collection incomplete: {summary.failed_sources} failed sources: "
+            f"{', '.join(summary.failed_source_ids)}"
+        )
 
 
 def _collect(root: Path, database_url: str) -> CollectBatchSummary:
@@ -91,6 +98,7 @@ def _merge_collection_summaries(
         new_documents_count=initial.new_documents_count + retry.new_documents_count,
         discovered_count=initial.discovered_count + retry.discovered_count,
         failed_source_ids=tuple(sorted(unresolved)),
+        attempted_sources=initial.attempted_sources + retry.attempted_sources,
     )
 
 
