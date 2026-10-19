@@ -54,7 +54,6 @@ describe("toPublicReport", () => {
       updated_at: "2026-08-26T00:00:00Z",
       document_analysis: null,
       document_files: null,
-      document_sources: [],
     });
 
     expect(report.analysisAvailable).toBe(false);

@@ -120,6 +120,7 @@ export function PublicFeed({ archive, pressArchive, fallbackSnapshot, initialSel
         />
         {isPressReleaseTab ? (
           <ArchiveSelector
+            key="press-archive"
             label="보도자료 아카이브"
             activeDate={selection.pressArchiveDate}
             dates={pressArchive.dates}
@@ -127,6 +128,7 @@ export function PublicFeed({ archive, pressArchive, fallbackSnapshot, initialSel
           />
         ) : (
           <ArchiveSelector
+            key="report-archive"
             label="리포트 아카이브"
             activeDate={selection.archiveDate}
             dates={archive.dates}

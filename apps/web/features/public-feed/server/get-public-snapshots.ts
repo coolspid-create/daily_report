@@ -3,12 +3,7 @@ import { unstable_cache } from "next/cache";
 import fallbackData from "@/data/public-snapshots.json";
 import type { PublicArchive, PublicFeedSnapshot } from "../types/public-feed";
 import { validatePublicSnapshot } from "./validate-public-snapshot";
-
-const ARCHIVE_LIMIT = 14;
-
-interface ArchiveDateRow {
-  publication_date: string | null;
-}
+import { loadArchiveDates } from "./load-archive-dates";
 
 interface ArchiveClient {
   rpc: (functionName: string, parameters: Record<string, unknown>) => Promise<{
@@ -48,11 +43,7 @@ async function loadLatestArchive(): Promise<PublicArchive> {
   const supabase = client() as ArchiveClient | null;
   if (!supabase) return { currentDate: null, dates: [], loadedDate: null, snapshot: null };
 
-  const { data, error } = await supabase.rpc("public_archive_dates", { maximum: ARCHIVE_LIMIT });
-  if (error || !data) throw new Error("발행 아카이브를 불러오지 못했습니다.");
-  const dates = (data as ArchiveDateRow[])
-    .map((row) => row.publication_date)
-    .filter((value): value is string => Boolean(value));
+  const dates = await loadArchiveDates(supabase, "public_archive_dates_page");
   const currentDate = dates[0] ?? null;
   return {
     currentDate,

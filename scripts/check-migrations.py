@@ -2,6 +2,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = {
+    "0038_paginate_public_archives.sql": [
+        "public_archive_dates_page", "press_archive_dates_page", "security invoker",
+        "press_release", "page_offset", "service_role",
+    ],
     "0001_core_sources.sql": ["source_runs", "source_items"],
     "0002_documents_and_files.sql": ["documents", "document_files", "LINK_ONLY"],
     "0003_analysis_and_topics.sql": ["document_analysis", "document_topics"],

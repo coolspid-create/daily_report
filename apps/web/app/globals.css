@@ -271,6 +271,7 @@ h1 {
 
 .archive-selector {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   margin-top: 10px;
@@ -295,6 +296,15 @@ h1 {
 .archive-selector select:hover {
   border-color: var(--color-text);
 }
+
+.archive-selector nav { display: flex; align-items: center; gap: 6px; }
+.archive-selector button {
+  min-height: 34px; padding: 4px 10px; border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm); background: #fff; color: var(--color-text);
+  font: inherit; cursor: pointer;
+}
+.archive-selector button:disabled { opacity: 0.4; cursor: default; }
+.archive-selector button:focus-visible { outline: 2px solid var(--color-text); outline-offset: 2px; }
 
 
 
