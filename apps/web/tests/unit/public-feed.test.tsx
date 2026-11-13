@@ -21,6 +21,47 @@ function pressArchive(): PublicPressArchive {
 }
 
 describe("public feed", () => {
+  it("switches between top-level sections and restores the report category", () => {
+    const reports = archive();
+    render(<PublicFeed archive={reports} pressArchive={pressArchive()} fallbackSnapshot={reports.snapshot!}
+      initialSelection={{ topic: "economy", archiveDate: null, pressArchiveDate: null, topicFromQuery: true }} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "보도자료" }));
+    expect(screen.getByRole("button", { name: "보도자료" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByRole("group", { name: "공공리포트 분류" })).not.toBeInTheDocument();
+    expect(window.location.search).toBe("?topic=press-release");
+
+    fireEvent.click(screen.getByRole("button", { name: "공공리포트" }));
+    expect(screen.getByRole("button", { name: "경제·금융" })).toHaveAttribute("aria-pressed", "true");
+    expect(window.location.search).toBe("?topic=economy");
+  });
+
+  it("returns from an archived press link to the latest full report feed via the title", async () => {
+    const reports = archive();
+    const previous = { ...reports, loadedDate: "2026-08-20" };
+    const press = { ...pressArchive(), currentDate: "2026-08-21", loadedDate: "2026-08-20", dates: reports.dates };
+    const fetchArchive = vi.fn().mockImplementation(async (url: string) => ({
+      ok: true,
+      json: async () => url.includes("/press-archive/") ? { reports: [], generatedAt: null } : reports.snapshot,
+    }));
+    vi.stubGlobal("fetch", fetchArchive);
+    try {
+      render(<PublicFeed archive={previous} pressArchive={press} fallbackSnapshot={reports.snapshot!}
+        initialSelection={{ topic: "press-release", archiveDate: "2026-08-20", pressArchiveDate: "2026-08-20", topicFromQuery: true }} />);
+
+      fireEvent.click(screen.getByRole("link", { name: "오늘의 공공리포트" }));
+      expect(screen.getByRole("button", { name: "공공리포트" })).toHaveAttribute("aria-pressed", "true");
+      expect(screen.getByRole("button", { name: "전체" })).toHaveAttribute("aria-pressed", "true");
+      expect(screen.getByLabelText("리포트 아카이브 날짜")).toHaveValue("2026-08-21");
+      expect(window.location.search).toBe("");
+      expect(localStorage.getItem(TOPIC_STORAGE_KEY)).toBe("all");
+      await waitFor(() => expect(screen.queryByText("발행본을 불러오는 중입니다.")).not.toBeInTheDocument());
+      expect(fetchArchive).toHaveBeenCalledWith("/api/public/archive/2026-08-21");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("filters an already-loaded snapshot without navigation", () => {
     render(
       <PublicFeed

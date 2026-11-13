@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { TopicId } from "../constants/topics";
 import { buildFeedUrl } from "../lib/build-feed-url";
 import type { FeedSelection } from "../lib/initial-selection";
@@ -20,6 +20,7 @@ export function useFeedSelection(
     }
     return initial.topic;
   });
+  const lastReportTopic = useRef<TopicId>(topic === "press-release" ? "all" : topic);
 
   const [archiveDate, setArchiveDateState] = useState(
     initial.archiveDate && archive.dates.includes(initial.archiveDate)
@@ -41,6 +42,7 @@ export function useFeedSelection(
   }, [topic, archiveDate, archive.currentDate, pressArchiveDate, pressArchive.currentDate]);
 
   function setTopic(next: TopicId) {
+    if (next !== "press-release") lastReportTopic.current = next;
     setTopicState(next);
     if (typeof window !== "undefined") {
       storeTopic(window.localStorage, next);
@@ -55,5 +57,6 @@ export function useFeedSelection(
     if (pressArchive.dates.includes(next)) setPressArchiveDateState(next);
   }
 
-  return { topic, archiveDate, pressArchiveDate, setTopic, setArchiveDate, setPressArchiveDate };
+  const openReports = () => setTopic(lastReportTopic.current);
+  return { topic, archiveDate, pressArchiveDate, setTopic, setArchiveDate, setPressArchiveDate, openReports };
 }

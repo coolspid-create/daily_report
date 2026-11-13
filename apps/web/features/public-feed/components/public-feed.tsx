@@ -14,6 +14,7 @@ import type {
 } from "../types/public-feed";
 import { ArchiveSelector } from "./archive-selector";
 import { FeedHeader } from "./feed-header";
+import { FeedSectionSelector } from "./feed-section-selector";
 import { FeedSummary, type ViewMode } from "./feed-summary";
 import { PressReleaseSection } from "./press-release-section";
 import { ReportList } from "./report-list";
@@ -30,6 +31,7 @@ export function PublicFeed({ archive, pressArchive, fallbackSnapshot, initialSel
   const mainRef = useRef<HTMLElement>(null);
   const selection = useFeedSelection(initialSelection, archive, pressArchive);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [homeReset, setHomeReset] = useState(0);
   const [snapshots, setSnapshots] = useState<Record<string, PublicFeedSnapshot>>(
     archive.loadedDate && archive.snapshot ? { [archive.loadedDate]: archive.snapshot } : {},
   );
@@ -101,9 +103,18 @@ export function PublicFeed({ archive, pressArchive, fallbackSnapshot, initialSel
       .finally(() => setLoadingPressDate(null));
   };
 
+  const handleHome = () => {
+    selection.setTopic("all");
+    if (archive.currentDate) handleArchiveDateChange(archive.currentDate);
+    if (pressArchive.currentDate) handlePressArchiveDateChange(pressArchive.currentDate);
+    setViewMode("list");
+    setHomeReset((current) => current + 1);
+  };
+
   return (
-    <main className="page-shell" ref={mainRef}>
+    <main className="page-shell" data-section={isPressReleaseTab ? "press" : "report"} ref={mainRef}>
       <FeedHeader
+        onHome={handleHome}
         generatedAt={
           isPressReleaseTab
             ? selectedPressArchive?.generatedAt ?? pressArchive.generatedAt ?? fallbackSnapshot.generatedAt
@@ -112,15 +123,19 @@ export function PublicFeed({ archive, pressArchive, fallbackSnapshot, initialSel
       />
 
       <section className="feed-controls" aria-label="피드 선택">
-        <TopicSelector
-          activeTopic={selection.topic}
-          topicSummaries={researchSnapshot?.topics}
-          pressReleaseCount={selectedPressReports.length}
-          onChange={selection.setTopic}
+        <FeedSectionSelector
+          isPress={isPressReleaseTab}
+          reportCount={researchSnapshot?.topics.find((topic) => topic.id === "all")?.count ?? 0}
+          pressCount={selectedPressReports.length}
+          onReports={selection.openReports}
+          onPress={() => selection.setTopic("press-release")}
         />
+        {!isPressReleaseTab && (
+          <TopicSelector activeTopic={selection.topic} topicSummaries={researchSnapshot?.topics} onChange={selection.setTopic} />
+        )}
         {isPressReleaseTab ? (
           <ArchiveSelector
-            key="press-archive"
+            key={`press-archive-${homeReset}`}
             label="보도자료 아카이브"
             activeDate={selection.pressArchiveDate}
             dates={pressArchive.dates}
@@ -128,7 +143,7 @@ export function PublicFeed({ archive, pressArchive, fallbackSnapshot, initialSel
           />
         ) : (
           <ArchiveSelector
-            key="report-archive"
+            key={`report-archive-${homeReset}`}
             label="리포트 아카이브"
             activeDate={selection.archiveDate}
             dates={archive.dates}

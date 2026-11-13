@@ -20,4 +20,39 @@
   --content-width: 1040px;
   --font-hero-title: "Paperlogy", -apple-system, BlinkMacSystemFont, "Pretendard", sans-serif;
   --font-body: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  /* Public brand palette. Admin status colors use the neutral tokens above. */
+  --brand-report: #713848;
+  --brand-report-strong: #572737;
+  --brand-report-soft: #f3e8eb;
+  --brand-report-border: #e4d2d8;
+  --brand-press: #51434e;
+  --brand-press-strong: #3b3039;
+  --brand-press-soft: #eee8ed;
+  --brand-press-border: #ded3dc;
+  --brand-paper: #fdfcf9;
+  --brand-ink: #292428;
+}
+
+.page-shell {
+  --color-bg: var(--brand-paper);
+  --color-surface-hover: #f5f4ef;
+  --color-surface-subtle: #efeee9;
+  --color-text: var(--brand-ink);
+  --color-text-secondary: #50484c;
+  --color-muted: #6b6266;
+  --color-border: #e1e0da;
+  --color-border-strong: var(--brand-report);
+  --color-accent: var(--brand-report);
+  --color-accent-strong: var(--brand-report-strong);
+  --color-accent-soft: var(--brand-report-soft);
+  --color-accent-border: var(--brand-report-border);
+  --color-highlight: var(--color-accent);
+  --radius-sm: 6px;
+}
+
+.page-shell[data-section="press"] {
+  --color-accent: var(--brand-press);
+  --color-accent-strong: var(--brand-press-strong);
+  --color-accent-soft: var(--brand-press-soft);
+  --color-accent-border: var(--brand-press-border);
 }
