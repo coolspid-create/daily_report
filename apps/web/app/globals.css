@@ -1,7 +1,6 @@
 @import "../styles/tokens.css";
 @import "../styles/admin.css";
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css");
-@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@800&display=swap&text=%EC%98%A4%EB%8A%98%EC%9D%98%20%EA%B3%B5%EA%B3%B5%EB%A6%AC%ED%8F%AC%ED%8A%B8");
 
 /* ==========================================================================
    Paperlogy Web Font (히어로 섹션 메인타이틀 전용)
@@ -100,7 +99,6 @@ body:has(.page-shell) {
 .feed-header h1 {
   grid-column: 1 / -1;
   color: var(--brand-ink);
-  font-family: "Noto Serif KR", Batang, var(--font-hero-title);
   font-size: clamp(1.7rem, 5.5vw, 3.6rem);
   line-height: 1.24;
   text-align: center;
