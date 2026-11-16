@@ -2,7 +2,7 @@ name: Press Collection Watchdog
 
 on:
   schedule:
-    # 11:45 KST on weekdays. This gives the 10:30 KST Vercel Cron enough time to start.
+    # 11:45 KST on weekdays, after the primary 10:30 KST Collector schedule.
     - cron: "45 2 * * 1-5"
   workflow_dispatch:
 

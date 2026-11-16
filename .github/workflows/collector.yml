@@ -1,15 +1,22 @@
 name: Collector
-run-name: Collector / ${{ inputs.reprocess_sources != '' && 'reprocess' || inputs.fallback && 'press-fallback' || inputs.run_mode || 'scheduled' }}
+run-name: Collector / ${{ github.event_name == 'schedule' && github.event.schedule == '30 1 * * 1-5' && 'press' || inputs.reprocess_sources != '' && 'reprocess' || inputs.fallback && 'press-fallback' || inputs.run_mode || 'scheduled' }}
 
 on:
+  schedule:
+    - cron: '35 23 * * 0-4'
+    - cron: '30 1 * * 1-5'
   workflow_dispatch:
     inputs:
+      no_telegram:
+        description: Telegram 발송 없이 공개 자료만 복구
+        type: boolean
+        default: false
       fallback:
         description: 보도자료 백업 실행 표시 (하루 1회 제한)
         type: boolean
         default: false
       scheduled_run:
-        description: Vercel Cron에서 호출한 정기 실행인지 여부
+        description: 당일 정기 발행 슬롯으로 처리
         required: false
         type: boolean
         default: false
@@ -41,8 +48,8 @@ jobs:
       - run: python -m pip install -e ./services/collector
       - run: python -m playwright install --with-deps chromium
       - run: |
-          if [ -n "${{ inputs.reprocess_sources }}" ]; then
-            IFS=',' read -ra SOURCES <<< "${{ inputs.reprocess_sources }}"
+          if [ -n "$REPROCESS_SOURCES" ]; then
+            IFS=',' read -ra SOURCES <<< "$REPROCESS_SOURCES"
             for source in "${SOURCES[@]}"; do
               if ! python -m report_collector collect --source "$source" --refresh-recent; then
                 echo "::warning::collection failed for $source; continuing with the remaining targeted sources"
@@ -53,14 +60,16 @@ jobs:
             python -m report_collector publish-approved --timezone Asia/Seoul --no-telegram
           elif [ "${{ inputs.run_mode }}" = "refresh" ]; then
             python -m report_collector publish-approved --timezone Asia/Seoul
-          elif [ "${{ inputs.run_mode }}" = "press" ]; then
+          elif [ "${{ inputs.run_mode }}" = "press" ] || [ "$COLLECTOR_CRON" = "30 1 * * 1-5" ]; then
             python -m report_collector collect-press --timezone Asia/Seoul --window-hours 168
-          elif [ "${{ inputs.scheduled_run }}" = "true" ]; then
+          elif [ "${{ inputs.scheduled_run }}" = "true" ] || [ "$COLLECTOR_CRON" = "35 23 * * 0-4" ]; then
             python -m report_collector daily-publish --timezone Asia/Seoul --window-hours 168 --scheduled-run
           else
             python -m report_collector daily-publish --timezone Asia/Seoul --window-hours 168
           fi
         env:
+          REPROCESS_SOURCES: ${{ inputs.reprocess_sources }}
+          COLLECTOR_CRON: ${{ github.event.schedule }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -71,7 +80,7 @@ jobs:
           ANALYSIS_PROVIDER: ${{ vars.ANALYSIS_PROVIDER || 'extractive' }}
           ANALYSIS_API_KEY: ${{ secrets.ANALYSIS_API_KEY }}
           ANALYSIS_MODEL: ${{ vars.ANALYSIS_MODEL || 'gpt-5-mini' }}
-          TELEGRAM_ENABLED: ${{ vars.TELEGRAM_ENABLED || 'false' }}
+          TELEGRAM_ENABLED: ${{ !inputs.no_telegram && (vars.TELEGRAM_ENABLED || 'false') || 'false' }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_DESTINATION_KEY: "daily-report-main"

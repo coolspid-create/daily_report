@@ -37,7 +37,6 @@ async function check({ github, context, core }) {
       owner: context.repo.owner,
       repo: context.repo.repo,
       workflow_id: 'collector.yml',
-      event: 'workflow_dispatch',
       branch: 'main',
       created: `>=${start.toISOString()}`,
       per_page: 100,

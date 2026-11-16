@@ -1,12 +1,3 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/daily-publish",
-      "schedule": "35 23 * * 0-4"
-    },
-    {
-      "path": "/api/cron/press-collect",
-      "schedule": "30 1 * * 1-5"
-    }
-  ]
+  "crons": []
 }
