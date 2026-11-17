@@ -28,6 +28,12 @@ def main() -> None:
     missing = [item for item in required if item not in text]
     expected_schedules = [{"cron": "35 23 * * 0-4"}, {"cron": "30 1 * * 1-5"}]
     watchdog_schedules = [{"cron": "25 0 * * 1-5"}, {"cron": "45 2 * * 1-5"}]
+    expected_crons = [
+        {"path": "/api/cron/daily-publish", "schedule": "35 23 * * 0-4"},
+        {"path": "/api/cron/press-collect", "schedule": "30 1 * * 1-5"},
+        {"path": "/api/cron/collection-watchdog/scheduled", "schedule": "25 0 * * 1-5"},
+        {"path": "/api/cron/collection-watchdog/press", "schedule": "45 2 * * 1-5"},
+    ]
     watchdog_required = [
         "createWorkflowDispatch",
         'run_mode: mode',
@@ -45,7 +51,7 @@ def main() -> None:
         or "workflow_dispatch" not in watchdog_triggers
         or watchdog_triggers.get("schedule") != watchdog_schedules
         or triggers.get("schedule") != expected_schedules
-        or crons
+        or crons != expected_crons
     ):
         raise SystemExit(
             "automation workflow contract failed: "

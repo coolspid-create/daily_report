@@ -12,7 +12,7 @@
 
 Vercel Project Root Directory를 `apps/web`으로 지정합니다. `next.config.ts`의 `output: "standalone"`은 Docker 전용이므로 Vercel 배포에서는 사용하지 않습니다. `NEXT_PUBLIC_*`만 브라우저 공개 값으로 넣고 service role은 서버 환경에만 둡니다. 배포 후 `/`, `/admin/login`, `/api/health`, 외부 링크 속성을 확인합니다.
 
-정기 수집은 GitHub Actions의 `collector.yml`이 직접 예약합니다. Vercel에서도 예약을 운영하려면 `CRON_SECRET`과 수집 저장소에만 설치한 GitHub App을 설정합니다. App에 Actions 읽기 및 쓰기 권한을 부여하고 `GITHUB_COLLECTOR_APP_ID`, `GITHUB_COLLECTOR_INSTALLATION_ID`, `GITHUB_COLLECTOR_APP_PRIVATE_KEY_BASE64`를 Vercel Production에 등록합니다. 기존 수동 호출에는 `GITHUB_ACTIONS_DISPATCH_TOKEN`도 지원합니다. 공개 피드 갱신에는 `FEED_REVALIDATION_SECRET`을 사용합니다.
+정기 수집은 GitHub Actions의 `collector.yml`과 Vercel Cron에 함께 예약합니다. Vercel은 `CRON_SECRET`으로 요청을 확인하고 수집 저장소에만 설치한 GitHub App의 단기 토큰으로 워크플로를 실행합니다. App에 Actions 읽기 및 쓰기 권한을 부여하고 `GITHUB_COLLECTOR_APP_ID`, `GITHUB_COLLECTOR_INSTALLATION_ID`, `GITHUB_COLLECTOR_APP_PRIVATE_KEY_BASE64`를 Vercel Production에 등록합니다. 기존 수동 호출에는 `GITHUB_ACTIONS_DISPATCH_TOKEN`도 지원합니다. 공개 피드 갱신에는 `FEED_REVALIDATION_SECRET`을 사용합니다.
 
 ## Collector
 
