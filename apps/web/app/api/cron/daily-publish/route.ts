@@ -1,6 +1,7 @@
 import { hasValidCronSecret } from "@/features/automation/server/cron-auth";
 import { isKoreanCollectionWeekday } from "@/features/automation/server/korean-schedule";
 import {
+  dispatchCollectionWatchdog,
   dispatchCollectorWorkflow,
   readGitHubDispatchSettings,
 } from "@/features/automation/server/github-actions-dispatch";
@@ -16,7 +17,12 @@ export async function GET(request: Request) {
     return Response.json({ accepted: false, skipped: "WEEKEND" });
   }
   try {
-    await dispatchCollectorWorkflow(readGitHubDispatchSettings());
+    const settings = readGitHubDispatchSettings();
+    if (new URL(request.url).searchParams.has("backup")) {
+      await dispatchCollectionWatchdog(settings, "scheduled");
+    } else {
+      await dispatchCollectorWorkflow(settings, "scheduled", fetch, true);
+    }
     return Response.json({ accepted: true }, { status: 202 });
   } catch (error) {
     console.error("daily collector dispatch failed", error);

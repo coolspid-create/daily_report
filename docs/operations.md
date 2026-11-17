@@ -30,7 +30,9 @@ python -m report_collector cleanup --expired-files
 
 ## 일일 자동 발행
 
-GitHub Actions는 평일 08:35 KST에 리포트, 10:30 KST에 보도자료 수집을 시작하도록 직접 예약합니다. 보도자료는 `PRESS_RELEASE` 출처만 수집하고, 실패 출처만 지연 재시도한 뒤 Telegram 없이 공개 스냅샷을 갱신합니다. `press-collection-watchdog.yml`은 평일 11:45 KST에 당일 `main` 브랜치의 `Collector / press` 실행을 확인하고, 누락 또는 실패를 감지하면 Telegram 알림 없이 백업을 실행합니다. 출처별 timeout은 다음 출처 진행을 막지 않으며 일부 실패는 `PARTIAL`로 기록됩니다. 수동 복구에서 웹만 갱신하려면 `Collector` 실행 시 `no_telegram`을 선택합니다.
+GitHub Actions는 평일 08:35 KST에 리포트, 10:30 KST에 보도자료 수집을 예약합니다. `press-collection-watchdog.yml`은 평일 09:25에 리포트, 11:45에 보도자료 실행을 확인하고, 당일 실행이 없거나 실패했다면 자료 종류별로 한 번 백업 실행을 요청합니다. 수집 작업은 순차 처리하며, 백업과 늦게 시작된 기본 실행이 겹치면 이미 성공한 실행을 확인하고 건너뜁니다.
+
+보도자료는 `PRESS_RELEASE` 출처만 수집하고, 첫 수집에 실패한 출처를 지연 재시도한 뒤 Telegram 없이 공개 자료를 갱신합니다. 출처별 timeout은 다음 출처 진행을 막지 않으며 일부 실패는 `PARTIAL`로 기록됩니다. 발행 확인은 실행 로그의 피드 갱신 결과와 당일 공개 아카이브를 함께 확인합니다. 수동 복구에서 웹만 갱신하려면 `Collector` 실행 시 `no_telegram`을 선택합니다.
 
 자동 품질 정책을 모두 통과한 문서만 시스템이 승인합니다. 조건이 불확실하면 `AUTO_HOLD` 감사 기록과 사유 코드를 남기고 관리자 예외 검수함으로 보냅니다. 최근 7일 발행일이 확인된 문서만 자동 검수 후보로 삼아 예전 자료의 재수집이 현재 발행 후보로 집계되지 않게 합니다. 적격 문서가 없으면 `NO_CONTENT`로 종료하고 current snapshot을 교체하지 않으며, 출처 수집 실패가 함께 있으면 `PARTIAL`로 기록합니다. 정기 실행에서는 수집 후보 수를 포함한 신규 발행 자료 없음 안내를 Telegram으로 보냅니다.
 

@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { decide } = require('./press-watchdog.cjs');
+const { decide, shouldCollect } = require('./press-watchdog.cjs');
 
 const afternoon = new Date('2026-09-09T16:34:00+09:00');
 const morningRun = {
@@ -40,4 +40,23 @@ test('failed backup is not repeated on the same day', () => {
 });
 test('legacy records do not cause rollout false alarms', () => {
   assert.equal(decide([{ ...morningRun, display_title: 'Collector' }], afternoon).fallback, false);
+});
+
+test('report backup runs at 09:25 KST only when the report run is missing or failed', () => {
+  const checkAt = new Date('2026-09-09T09:25:00+09:00');
+  const report = { ...morningRun, created_at: '2026-09-08T23:35:04Z', display_title: 'Collector / scheduled' };
+  assert.equal(decide([], new Date('2026-09-09T09:24:59+09:00'), 'scheduled').fallback, false);
+  assert.deepEqual(decide([], checkAt, 'scheduled'), { fallback: true, reason: 'missing' });
+  assert.equal(decide([report], checkAt, 'scheduled').fallback, false);
+  assert.deepEqual(decide([{ ...report, conclusion: 'failure' }], checkAt, 'scheduled'),
+    { fallback: true, reason: 'failed' });
+});
+
+test('serialized automatic collectors skip a previous success and ignore other queued jobs', () => {
+  assert.equal(shouldCollect([morningRun], afternoon, 'press', false, 42), false);
+  assert.equal(shouldCollect([{ ...morningRun, status: 'queued' }], afternoon, 'press', false, 42), true);
+  assert.equal(shouldCollect([{ ...morningRun, id: 42 }], afternoon, 'press', false, 42), true);
+  const failedBackup = { ...morningRun, conclusion: 'failure', display_title: 'Collector / press-fallback' };
+  assert.equal(shouldCollect([failedBackup], afternoon, 'press', true, 42), false);
+  assert.equal(shouldCollect([failedBackup], afternoon, 'press', false, 42), true);
 });

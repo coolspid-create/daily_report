@@ -27,10 +27,11 @@ def main() -> None:
     ]
     missing = [item for item in required if item not in text]
     expected_schedules = [{"cron": "35 23 * * 0-4"}, {"cron": "30 1 * * 1-5"}]
-    watchdog_schedule = {"cron": "45 2 * * 1-5"}
+    watchdog_schedules = [{"cron": "25 0 * * 1-5"}, {"cron": "45 2 * * 1-5"}]
     watchdog_required = [
         "createWorkflowDispatch",
-        'run_mode: "press"',
+        'run_mode: mode',
+        'automatic: "true"',
         "fallback_required",
     ]
     missing_watchdog = [item for item in watchdog_required if item not in watchdog_text]
@@ -42,7 +43,7 @@ def main() -> None:
         or unexpected_watchdog
         or "workflow_dispatch" not in triggers
         or "workflow_dispatch" not in watchdog_triggers
-        or watchdog_schedule not in watchdog_triggers.get("schedule", [])
+        or watchdog_triggers.get("schedule") != watchdog_schedules
         or triggers.get("schedule") != expected_schedules
         or crons
     ):
@@ -52,7 +53,7 @@ def main() -> None:
         )
     print(
         "automation workflow passed: GitHub Actions schedules report collection at 08:35 "
-        "and press collection at 10:30 on KST weekdays with an 11:45 Actions fallback"
+        "and press collection at 10:30 on KST weekdays with 09:25 and 11:45 fallbacks"
     )
 
 

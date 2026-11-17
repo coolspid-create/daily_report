@@ -1,39 +1,57 @@
-name: Press Collection Watchdog
+name: Collection Watchdog
 
 on:
   schedule:
-    # 11:45 KST on weekdays, after the primary 10:30 KST Collector schedule.
+    # 09:25 and 11:45 KST on weekdays.
+    - cron: "25 0 * * 1-5"
     - cron: "45 2 * * 1-5"
   workflow_dispatch:
+    inputs:
+      run_mode:
+        description: 백업 확인 대상
+        type: choice
+        options: [scheduled, press]
+        default: press
 
 permissions:
   actions: write
   contents: read
 
 concurrency:
-  group: press-collection-watchdog
-  cancel-in-progress: false
+  group: collection-watchdog-${{ inputs.run_mode || github.event.schedule }}
+  queue: max
+
+env:
+  COLLECTION_MODE: ${{ github.event.schedule == '25 0 * * 1-5' && 'scheduled' || inputs.run_mode || 'press' }}
 
 jobs:
   dispatch-fallback:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Detect missing or failed press collection
+      - name: Detect missing or failed collection
         id: check
         uses: actions/github-script@v7
         with:
           script: |
-            await require('./scripts/press-watchdog.cjs').check({ github, context, core });
-      - name: Start fallback press collection
+            await require('./scripts/press-watchdog.cjs').check({
+              github, context, core, mode: process.env.COLLECTION_MODE,
+            });
+      - name: Start fallback collection
         if: steps.check.outputs.fallback_required == 'true'
         uses: actions/github-script@v7
         with:
           script: |
+            const mode = process.env.COLLECTION_MODE;
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: "collector.yml",
               ref: "main",
-              inputs: { scheduled_run: "false", run_mode: "press", fallback: "true" },
+              inputs: {
+                scheduled_run: String(mode === "scheduled"),
+                run_mode: mode,
+                fallback: "true",
+                automatic: "true",
+              },
             });

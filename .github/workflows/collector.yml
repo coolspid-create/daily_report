@@ -1,5 +1,5 @@
 name: Collector
-run-name: Collector / ${{ github.event_name == 'schedule' && github.event.schedule == '30 1 * * 1-5' && 'press' || inputs.reprocess_sources != '' && 'reprocess' || inputs.fallback && 'press-fallback' || inputs.run_mode || 'scheduled' }}
+run-name: Collector / ${{ github.event.schedule == '30 1 * * 1-5' && 'press' || inputs.reprocess_sources && 'reprocess' || inputs.fallback && (inputs.run_mode == 'press' && 'press-fallback' || 'report-fallback') || inputs.run_mode || 'scheduled' }}
 
 on:
   schedule:
@@ -7,12 +7,16 @@ on:
     - cron: '30 1 * * 1-5'
   workflow_dispatch:
     inputs:
+      automatic:
+        description: 정기 예약 또는 백업 실행의 중복 방지 적용
+        type: boolean
+        default: false
       no_telegram:
         description: Telegram 발송 없이 공개 자료만 복구
         type: boolean
         default: false
       fallback:
-        description: 보도자료 백업 실행 표시 (하루 1회 제한)
+        description: 백업 실행 표시 (자료 종류별 하루 1회 제한)
         type: boolean
         default: false
       scheduled_run:
@@ -34,7 +38,11 @@ on:
 
 concurrency:
   group: daily-public-report
-  cancel-in-progress: false
+  queue: max
+
+permissions:
+  actions: read
+  contents: read
 
 jobs:
   collect-and-publish:
@@ -42,11 +50,27 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+      - name: Check today's automatic collection
+        id: automatic
+        if: github.event_name == 'schedule' || inputs.automatic
+        uses: actions/github-script@v7
+        env:
+          COLLECTION_MODE: ${{ (github.event.schedule == '30 1 * * 1-5' || inputs.run_mode == 'press') && 'press' || 'scheduled' }}
+          COLLECTOR_FALLBACK: ${{ inputs.fallback }}
+        with:
+          script: |
+            await require('./scripts/press-watchdog.cjs').checkCollector({
+              github, context, core, mode: process.env.COLLECTION_MODE,
+              isFallback: process.env.COLLECTOR_FALLBACK === 'true',
+            });
       - uses: actions/setup-python@v5
+        if: steps.automatic.outputs.collect != 'false'
         with:
           python-version: "3.12"
       - run: python -m pip install -e ./services/collector
+        if: steps.automatic.outputs.collect != 'false'
       - run: python -m playwright install --with-deps chromium
+        if: steps.automatic.outputs.collect != 'false'
       - run: |
           if [ -n "$REPROCESS_SOURCES" ]; then
             IFS=',' read -ra SOURCES <<< "$REPROCESS_SOURCES"
@@ -67,6 +91,7 @@ jobs:
           else
             python -m report_collector daily-publish --timezone Asia/Seoul --window-hours 168
           fi
+        if: steps.automatic.outputs.collect != 'false'
         env:
           REPROCESS_SOURCES: ${{ inputs.reprocess_sources }}
           COLLECTOR_CRON: ${{ github.event.schedule }}
@@ -86,7 +111,7 @@ jobs:
           TELEGRAM_DESTINATION_KEY: "daily-report-main"
           PUBLIC_WEB_URL: ${{ vars.PUBLIC_WEB_URL }}
       - name: Revalidate published public feed
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.automatic.outputs.collect != 'false' }}
         run: |
           if [ -z "$PUBLIC_WEB_URL" ] || [ -z "$FEED_REVALIDATION_SECRET" ]; then
             echo "::warning::public feed revalidation skipped: PUBLIC_WEB_URL or FEED_REVALIDATION_SECRET is missing"

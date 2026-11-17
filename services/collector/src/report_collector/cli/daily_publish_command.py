@@ -126,6 +126,8 @@ def daily_publish_command(
             window_ended_at=collection_ended,
         )
         raise
+    if scheduled_run and final_status == "PARTIAL" and counts["published"] == 0:
+        raise RuntimeError("Scheduled report collection did not produce a publication and requires a fallback.")
 
 
 def _collect(root: Path, database_url: str, run_id: str) -> CollectBatchSummary:
