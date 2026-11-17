@@ -10,7 +10,7 @@ timeout_seconds: 30
 max_retries: 2
 active: true
 selectors:
-  list_item: li:has(> .desc:has(a[href*="act=view"]))
+  list_item: li:has(> .desc)
   title: .desc .tit a
   detail_link: .desc .tit a[href*="act=view"]
   published_at: .info .date
